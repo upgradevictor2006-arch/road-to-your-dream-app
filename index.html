@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road to Your Dream</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Главный контейнер приложения -->
+    <div id="app-container">
+        <!-- Экран карты (виден по умолчанию) -->
+        <main id="map-screen" class="screen">
+            <div id="map-canvas"></div>
+        </main>
+
+        <!-- Экран плана (скрыт по умолчанию) -->
+        <section id="plan-screen" class="screen hidden">
+            <div id="plan-content"></div>
+        </section>
+
+        <!-- Экран профиля (скрыт по умолчанию) -->
+        <section id="profile-screen" class="screen hidden">
+            <div id="profile-content"></div>
+        </section>
+    </div>
+
+    <!-- Фиксированный футер с информацией о задаче -->
+    <footer id="footer-panel">
+        <div id="task-info">
+            <h3>Текущая задача</h3>
+            <p id="task-description">Выберите цель для начала путешествия</p>
+        </div>
+        <button id="complete-step-btn" class="btn-primary">
+            Выполнить шаг
+        </button>
+    </footer>
+
+    <!-- Панель навигации -->
+    <nav id="navigation">
+        <button class="nav-btn" data-screen="map-screen" aria-label="Карта">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">Карта</span>
+        </button>
+        <button class="nav-btn" data-screen="plan-screen" aria-label="План">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">План</span>
+        </button>
+        <button class="nav-btn" data-screen="profile-screen" aria-label="Профиль">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Профиль</span>
+        </button>
+    </nav>
+
+    <!-- Подключение JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
