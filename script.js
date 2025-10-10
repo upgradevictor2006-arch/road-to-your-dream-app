@@ -1,5 +1,7 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 
+const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
+
 class RoadToDreamApp {
     constructor() {
         this.currentScreen = 'map-screen';
@@ -7,7 +9,6 @@ class RoadToDreamApp {
     }
 
     init() {
-        this.setupCompleteButton();
         this.setupTelegramWebApp();
         this.showScreen(this.currentScreen);
     }
@@ -200,7 +201,7 @@ async function handleCompleteStep() {
         console.log('Выполняем шаг для пользователя:', telegram_id);
         
         // 3. Делаем POST-запрос на API бэкенда
-        const response = await fetch('/actions/complete', {
+        const response = await fetch(`${BACKEND_BASE_URL}/actions/complete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -217,8 +218,8 @@ async function handleCompleteStep() {
         const result = await response.json();
         console.log('Результат выполнения шага:', result);
         
-        // 5. Если успех - обрабатываем результат
-        if (result.success) {
+        // 5. Если успех - обрабатываем результат (теперь проверяем по ответу бэкенда)
+        if (result.action || result.message) {
             // Находим .user-avatar и добавляем CSS-класс .animate-jump
             const userAvatar = document.querySelector('.user-avatar');
             if (userAvatar) {
@@ -342,7 +343,7 @@ async function initializeApp() {
 // Асинхронная функция для получения данных с сервера
 async function fetchDataFromServer(telegram_id) {
     try {
-        const response = await fetch(`/users/${telegram_id}/data`, {
+        const response = await fetch(`${BACKEND_BASE_URL}/users/${telegram_id}/data`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
