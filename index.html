@@ -2,11 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Road to Your Dream</title>
     <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Достигайте своих целей с помощью интерактивной карты мечты">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Кнопка переключения темы -->
+    <button class="theme-toggle" id="theme-toggle" data-theme="light" aria-label="Переключить тему">
+        <span class="theme-toggle-icon"></span>
+    </button>
+
     <!-- Главный контейнер приложения -->
     <div id="app-container">
         <!-- Экран карты (виден по умолчанию) -->
@@ -14,9 +24,19 @@
             <div id="map-canvas"></div>
         </main>
 
+        <!-- Экран целей (скрыт по умолчанию) -->
+        <section id="goals-screen" class="screen hidden">
+            <div id="goals-content"></div>
+        </section>
+
         <!-- Экран плана (скрыт по умолчанию) -->
         <section id="plan-screen" class="screen hidden">
             <div id="plan-content"></div>
+        </section>
+
+        <!-- Экран каравана (скрыт по умолчанию) -->
+        <section id="caravan-screen" class="screen hidden">
+            <div id="caravan-content"></div>
         </section>
 
         <!-- Экран профиля (скрыт по умолчанию) -->
@@ -38,13 +58,17 @@
 
     <!-- Панель навигации -->
     <nav id="navigation">
-        <button class="nav-btn" data-screen="map-screen" aria-label="Карта">
+        <button class="nav-btn" data-screen="goals-screen" aria-label="Цели">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-label">Цели</span>
+        </button>
+        <button class="nav-btn active" data-screen="map-screen" aria-label="Карта">
             <span class="nav-icon">🗺️</span>
             <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-btn" data-screen="plan-screen" aria-label="План">
-            <span class="nav-icon">📋</span>
-            <span class="nav-label">План</span>
+        <button class="nav-btn" data-screen="caravan-screen" aria-label="Караван">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Караван</span>
         </button>
         <button class="nav-btn" data-screen="profile-screen" aria-label="Профиль">
             <span class="nav-icon">👤</span>
