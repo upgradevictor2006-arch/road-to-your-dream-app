@@ -1,5 +1,18 @@
 /* Базовые стили для Telegram Mini App "Road to Your Dream" */
 
+/* CSS-переменные для основных цветов */
+:root {
+    --primary-bg-color: #ffffff;
+    --secondary-bg-color: #f8f9fa;
+    --text-color: #000000;
+    --hint-color: #666666;
+    --accent-color: #007aff;
+    --border-color: #e0e0e0;
+    --button-color: #007aff;
+    --button-text-color: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
 /* Сброс стилей и базовые настройки */
 * {
     margin: 0;
@@ -9,8 +22,8 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--tg-theme-bg-color, #ffffff);
-    color: var(--tg-theme-text-color, #000000);
+    background-color: var(--primary-bg-color, var(--tg-theme-bg-color, #ffffff));
+    color: var(--text-color, var(--tg-theme-text-color, #000000));
     height: 100vh;
     overflow: hidden;
 }
@@ -32,6 +45,7 @@ body {
     padding: 20px;
     overflow-y: auto;
     transition: opacity 0.3s ease-in-out;
+    box-sizing: border-box;
 }
 
 .screen.hidden {
@@ -100,10 +114,10 @@ body {
     bottom: 80px;
     left: 0;
     right: 0;
-    background: var(--tg-theme-bg-color, #ffffff);
-    border-top: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+    background: var(--primary-bg-color, var(--tg-theme-bg-color, #ffffff));
+    border-top: 1px solid var(--border-color, var(--tg-theme-hint-color, #e0e0e0));
     padding: 15px 20px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 10px var(--shadow-color, rgba(0, 0, 0, 0.1));
     z-index: 1000;
 }
 
@@ -115,36 +129,60 @@ body {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 5px;
-    color: var(--tg-theme-text-color, #000000);
+    color: var(--text-color, var(--tg-theme-text-color, #000000));
 }
 
 #task-description {
     font-size: 14px;
-    color: var(--tg-theme-hint-color, #666666);
+    color: var(--hint-color, var(--tg-theme-hint-color, #666666));
     line-height: 1.4;
 }
 
 /* Кнопка выполнения шага */
 #complete-step-btn {
     width: 100%;
-    padding: 12px 20px;
-    background: var(--tg-theme-button-color, #007aff);
-    color: var(--tg-theme-button-text-color, #ffffff);
+    padding: 16px 24px;
+    background: var(--accent-color, var(--button-color, #007aff));
+    color: var(--button-text-color, var(--tg-theme-button-text-color, #ffffff));
     border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+#complete-step-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
 }
 
 #complete-step-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background: var(--accent-color, var(--button-color, #007aff));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+#complete-step-btn:hover::before {
+    left: 100%;
 }
 
 #complete-step-btn:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    filter: brightness(0.95);
 }
 
 /* Панель навигации */
@@ -153,8 +191,8 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--tg-theme-bg-color, #ffffff);
-    border-top: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+    background: var(--primary-bg-color, var(--tg-theme-bg-color, #ffffff));
+    border-top: 1px solid var(--border-color, var(--tg-theme-hint-color, #e0e0e0));
     padding: 10px 0;
     display: flex;
     justify-content: space-around;
@@ -175,12 +213,12 @@ body {
 }
 
 .nav-btn:hover {
-    background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    background: var(--secondary-bg-color, var(--tg-theme-secondary-bg-color, #f0f0f0));
 }
 
 .nav-btn.active {
-    background: var(--tg-theme-button-color, #007aff);
-    color: var(--tg-theme-button-text-color, #ffffff);
+    background: var(--button-color, var(--tg-theme-button-color, #007aff));
+    color: var(--button-text-color, var(--tg-theme-button-text-color, #ffffff));
 }
 
 .nav-icon {
@@ -191,11 +229,11 @@ body {
 .nav-label {
     font-size: 12px;
     font-weight: 500;
-    color: var(--tg-theme-text-color, #000000);
+    color: var(--text-color, var(--tg-theme-text-color, #000000));
 }
 
 .nav-btn.active .nav-label {
-    color: var(--tg-theme-button-text-color, #ffffff);
+    color: var(--button-text-color, var(--tg-theme-button-text-color, #ffffff));
 }
 
 /* Адаптивность для мобильных устройств */
@@ -240,7 +278,7 @@ body {
 
 /* Скрытие элементов */
 .hidden {
-    display: none !important;
+    display: none;
 }
 
 /* Утилитарные классы */
@@ -254,4 +292,173 @@ body {
 
 .mb-20 {
     margin-bottom: 20px;
+}
+
+/* Стили для заглушек динамических элементов */
+
+/* Аватар пользователя */
+.user-avatar {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-color, #007aff), #5ac8fa);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    border: 3px solid var(--primary-bg-color, #ffffff);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+}
+
+.user-avatar::before {
+    content: '👤';
+    font-size: 24px;
+}
+
+/* Точка цели на карте */
+.goal-dot {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent-color, #007aff);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+    border: 3px solid var(--primary-bg-color, #ffffff);
+    transition: all 0.3s ease;
+    z-index: 50;
+    cursor: pointer;
+}
+
+.goal-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.goal-dot:hover {
+    transform: scale(1.3);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.6);
+}
+
+.goal-dot:active {
+    transform: scale(1.1);
+}
+
+/* Анимация пульсации для активной цели */
+.goal-dot.active {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 4px 16px rgba(0, 122, 255, 0.6);
+        transform: scale(1.1);
+    }
+    100% {
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+        transform: scale(1);
+    }
+}
+
+/* Набор CSS keyframe-анимаций */
+
+/* Анимация прыжка вперед */
+@keyframes jumpForward {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(8px);
+    }
+    50% {
+        transform: translateX(12px);
+    }
+    75% {
+        transform: translateX(4px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* Анимация пульсации (общая) */
+@keyframes pulseScale {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Классы для вызова анимаций */
+.animate-jump {
+    animation: jumpForward 0.5s ease-in-out;
+}
+
+.animate-pulse {
+    animation: pulseScale 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Дополнительные варианты анимаций */
+.animate-jump-slow {
+    animation: jumpForward 0.8s ease-in-out;
+}
+
+.animate-pulse-fast {
+    animation: pulseScale 1s ease-in-out infinite;
+}
+
+.animate-fade-in-slow {
+    animation: fadeIn 1s ease-out;
+}
+
+/* Анимация для кнопок при успешном действии */
+.animate-success {
+    animation: jumpForward 0.5s ease-in-out, pulseScale 0.3s ease-in-out 0.5s;
+}
+
+/* Анимация для уведомлений */
+.animate-notification {
+    animation: fadeIn 0.4s ease-out, pulseScale 0.2s ease-in-out 0.4s;
 }
