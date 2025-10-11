@@ -410,7 +410,7 @@ class SimpleBot:
                     {
                         "text": "🚀 Открыть мой путь",
                         "web_app": {
-                            "url": "https://google.com"
+                            "url": "https://upgradevictor2006-arch.github.io/road-to-your-dream-app/frontend/"
                         }
                     }
                 ],
