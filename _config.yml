@@ -1,0 +1,37 @@
+# GitHub Pages Configuration for Road to Your Dream Mini App
+
+# Site settings
+title: "Road to Your Dream"
+description: "Telegram Mini App для достижения целей с интерактивной картой"
+author: "Your Name"
+url: "https://road-to-your-dream-app.io"
+baseurl: ""
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - .gitignore
+  - .github/
+  - archive/
+  - main.py
+  - bot_ai_agent.py
+  - database_schema.sql
+  - requirements.txt
+  - .env
+
+# Include files
+include:
+  - _redirects
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Custom settings
+telegram_mini_app: true
