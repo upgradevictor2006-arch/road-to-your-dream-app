@@ -131,4 +131,4 @@ https://road-to-your-dream-app.io/
 При возникновении проблем:
 1. Проверьте логи GitHub Actions
 2. Убедитесь, что URL бэкенда корректный
-3. Проверьте настройки Telegram Bot
+3. Проверьте настройки Telegram Bot 
