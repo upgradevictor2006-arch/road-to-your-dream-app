@@ -948,12 +948,179 @@ class RoadToDreamApp {
     // Создать карту
     createMap() {
         console.log('Создание карты с данными:', this.newGoalData);
-        alert('Карта создана! Функция сохранения будет реализована позже.');
+        
+        // Сохраняем данные карты
+        this.currentMap = {
+            goal: this.newGoalData.title,
+            description: this.newGoalData.description,
+            periodType: this.newGoalData.periodType,
+            periodDays: this.newGoalData.periodDays,
+            customPeriod: this.newGoalData.customPeriod,
+            deadline: this.newGoalData.deadline,
+            currentStep: 0,
+            totalSteps: this.newGoalData.periodDays,
+            steps: this.generateMapSteps(),
+            visibleSteps: this.generateVisibleSteps()
+        };
         
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
-        // TODO: Здесь будет логика сохранения карты в базу данных
+        // Показываем карту
+        this.showMapScreen();
+    }
+
+    // Генерация шагов для карты
+    generateMapSteps() {
+        const steps = [];
+        const totalDays = this.newGoalData.periodDays;
+        
+        for (let i = 0; i < totalDays; i++) {
+            steps.push({
+                id: `step-${i}`,
+                day: i + 1,
+                title: `День ${i + 1}`,
+                task: '',
+                completed: false,
+                position: this.calculateStepPosition(i, totalDays)
+            });
+        }
+        
+        return steps;
+    }
+
+    // Генерация видимых шагов (только те, что видны на экране)
+    generateVisibleSteps() {
+        const visibleCount = 8; // Показываем 8 шагов одновременно
+        const startIndex = Math.max(0, this.currentMap?.currentStep - 2 || 0);
+        const endIndex = Math.min(this.currentMap?.totalSteps || 0, startIndex + visibleCount);
+        
+        return this.currentMap?.steps.slice(startIndex, endIndex) || [];
+    }
+
+    // Расчет позиции шага на зигзагообразной дороге
+    calculateStepPosition(stepIndex, totalSteps) {
+        const width = 350;
+        const height = 400;
+        const stepWidth = width / 4; // 4 шага по горизонтали
+        const stepHeight = height / 2; // 2 ряда по вертикали
+        
+        // Зигзагообразный паттерн
+        const row = Math.floor(stepIndex / 4);
+        const col = stepIndex % 4;
+        
+        // Чередование направления в рядах
+        const actualCol = row % 2 === 0 ? col : 3 - col;
+        
+        const x = 50 + (actualCol * stepWidth);
+        const y = 100 + (row * stepHeight);
+        
+        return { x, y };
+    }
+
+    // Показать экран карты
+    showMapScreen() {
+        const appContainer = document.getElementById('app-container');
+        appContainer.innerHTML = this.renderMapVisualization();
+        
+        // Настраиваем обработчики событий
+        this.setupMapEventListeners();
+    }
+
+    // Рендеринг визуализации карты
+    renderMapVisualization() {
+        const progress = ((this.currentMap.currentStep + 1) / this.currentMap.totalSteps) * 100;
+        
+        return `
+            <div class="map-container">
+                <!-- Заголовок с названием цели -->
+                <div class="goal-header">
+                    <h2 class="goal-title">${this.currentMap.goal}</h2>
+                    <div class="goal-progress">День ${this.currentMap.currentStep + 1} из ${this.currentMap.totalSteps}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Карта с зигзагообразной дорогой -->
+                <div class="map-content">
+                    <svg class="road-path" viewBox="0 0 400 500">
+                        ${this.renderRoadPath()}
+                        ${this.renderSteps()}
+                    </svg>
+                    
+                    <!-- Кнопка подтверждения -->
+                    <button class="confirm-step-btn" id="confirm-step-btn">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" fill="currentColor"/>
+                        </svg>
+                        ПОДТВЕРДИТЬ ШАГ
+                    </button>
+                </div>
+                
+                <!-- Детали текущего шага -->
+                <div class="current-step-details">
+                    <h3>${this.currentMap.steps[this.currentMap.currentStep].title}</h3>
+                    <p>${this.currentMap.steps[this.currentMap.currentStep].task || 'Нажмите "Редактировать" чтобы добавить задачу'}</p>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="edit-step-btn">Редактировать</button>
+                        <button class="btn btn-primary" id="skip-step-btn">Пропустить</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Рендеринг дороги
+    renderRoadPath() {
+        const visibleSteps = this.generateVisibleSteps();
+        let pathData = '';
+        let pathElements = '';
+        
+        // Создаем зигзагообразную дорогу
+        for (let i = 0; i < visibleSteps.length - 1; i++) {
+            const currentStep = visibleSteps[i];
+            const nextStep = visibleSteps[i + 1];
+            
+            const pathId = `path-${i}`;
+            const pathD = `M${currentStep.position.x},${currentStep.position.y} L${nextStep.position.x},${nextStep.position.y}`;
+            
+            // Определяем, активна ли линия (до текущего шага)
+            const isActive = i < this.currentMap.currentStep;
+            
+            pathElements += `
+                <path class="road-line ${isActive ? 'active' : ''}" 
+                      id="${pathId}" 
+                      d="${pathD}" 
+                      stroke-dasharray="${isActive ? '0 100' : '100 0'}"
+                      stroke-dashoffset="0"/>
+            `;
+        }
+        
+        return pathElements;
+    }
+
+    // Рендеринг шагов
+    renderSteps() {
+        const visibleSteps = this.generateVisibleSteps();
+        return visibleSteps.map((step, index) => {
+            const globalIndex = this.currentMap.currentStep - 2 + index;
+            let className = 'step';
+            
+            if (globalIndex < this.currentMap.currentStep) {
+                className += ' completed';
+            } else if (globalIndex === this.currentMap.currentStep) {
+                className += ' current';
+            } else {
+                className += ' pending';
+            }
+            
+            return `<circle class="${className}" 
+                           cx="${step.position.x}" 
+                           cy="${step.position.y}" 
+                           r="12" 
+                           data-step-id="${step.id}"/>`;
+        }).join('');
     }
 
     // Получить количество дней для периода
@@ -1004,6 +1171,207 @@ class RoadToDreamApp {
         } else {
             console.log('Telegram WebApp не обнаружен, работаем в обычном браузере');
         }
+    }
+
+    // Настройка обработчиков событий для карты
+    setupMapEventListeners() {
+        const confirmBtn = document.getElementById('confirm-step-btn');
+        const editBtn = document.getElementById('edit-step-btn');
+        const skipBtn = document.getElementById('skip-step-btn');
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                this.confirmCurrentStep();
+            });
+        }
+
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                this.editCurrentStep();
+            });
+        }
+
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                this.skipCurrentStep();
+            });
+        }
+    }
+
+    // Подтвердить текущий шаг
+    confirmCurrentStep() {
+        if (this.currentMap.currentStep < this.currentMap.totalSteps - 1) {
+            // Отмечаем текущий шаг как выполненный
+            this.currentMap.steps[this.currentMap.currentStep].completed = true;
+            
+            // Анимация заполнения линии
+            this.animateLineFill();
+            
+            // Переходим к следующему шагу
+            setTimeout(() => {
+                this.currentMap.currentStep++;
+                this.updateMapInterface();
+            }, 1000);
+            
+            console.log(`Шаг ${this.currentMap.currentStep} подтвержден`);
+        } else {
+            // Цель достигнута!
+            this.showGoalCompleted();
+        }
+    }
+
+    // Пропустить текущий шаг
+    skipCurrentStep() {
+        if (this.currentMap.currentStep < this.currentMap.totalSteps - 1) {
+            // Переходим к следующему шагу без выполнения
+            this.currentMap.currentStep++;
+            this.updateMapInterface();
+            console.log(`Шаг ${this.currentMap.currentStep} пропущен`);
+        }
+    }
+
+    // Редактировать текущий шаг
+    editCurrentStep() {
+        const currentStep = this.currentMap.steps[this.currentMap.currentStep];
+        this.showStepEditModal(currentStep);
+    }
+
+    // Анимация заполнения линии
+    animateLineFill() {
+        const currentPath = document.querySelector(`#path-${this.currentMap.currentStep}`);
+        if (currentPath) {
+            currentPath.style.animation = 'lineFill 1s ease-in-out forwards';
+            currentPath.classList.add('active');
+        }
+    }
+
+    // Обновление интерфейса карты
+    updateMapInterface() {
+        // Обновляем видимые шаги
+        this.currentMap.visibleSteps = this.generateVisibleSteps();
+        
+        const appContainer = document.getElementById('app-container');
+        appContainer.innerHTML = this.renderMapVisualization();
+        this.setupMapEventListeners();
+    }
+
+    // Показать модальное окно редактирования шага
+    showStepEditModal(step) {
+        const modalHTML = `
+            <div class="modal-overlay active" id="step-edit-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Редактировать шаг</h2>
+                        <p class="modal-subtitle">${step.title}</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label" for="step-title">Название</label>
+                            <input type="text" id="step-title" class="form-input" value="${step.title}" maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="step-task">Задача</label>
+                            <textarea id="step-task" class="form-input" rows="3" maxlength="200" placeholder="Опишите задачу для этого дня...">${step.task}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="step-edit-cancel">Отмена</button>
+                        <button class="btn btn-primary" id="step-edit-save">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const cancelBtn = document.getElementById('step-edit-cancel');
+        const saveBtn = document.getElementById('step-edit-save');
+        const modal = document.getElementById('step-edit-modal');
+
+        cancelBtn.addEventListener('click', () => {
+            this.closeStepEditModal();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const title = document.getElementById('step-title').value.trim();
+            const task = document.getElementById('step-task').value.trim();
+            
+            if (title) {
+                step.title = title;
+                step.task = task;
+                this.closeStepEditModal();
+                this.updateMapInterface();
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeStepEditModal();
+            }
+        });
+    }
+
+    // Закрыть модальное окно редактирования шага
+    closeStepEditModal() {
+        const modal = document.getElementById('step-edit-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Показать экран завершения цели
+    showGoalCompleted() {
+        const appContainer = document.getElementById('app-container');
+        appContainer.innerHTML = `
+            <div class="goal-completed-screen">
+                <div class="celebration-content">
+                    <div class="celebration-icon">🎉</div>
+                    <h1 class="celebration-title">Поздравляем!</h1>
+                    <h2 class="goal-achieved">Цель достигнута!</h2>
+                    <p class="goal-name">"${this.currentMap.goal}"</p>
+                    
+                    <div class="completion-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">${this.currentMap.totalSteps}</div>
+                            <div class="stat-label">дней</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${this.getCompletedStepsCount()}</div>
+                            <div class="stat-label">выполнено</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${Math.round((this.getCompletedStepsCount() / this.currentMap.totalSteps) * 100)}%</div>
+                            <div class="stat-label">успех</div>
+                        </div>
+                    </div>
+                    
+                    <div class="completion-actions">
+                        <button class="btn btn-primary" onclick="window.roadToDreamApp.createNewMap()">Создать новую карту</button>
+                        <button class="btn btn-secondary" onclick="window.roadToDreamApp.viewMapHistory()">История карт</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Получить количество выполненных шагов
+    getCompletedStepsCount() {
+        return this.currentMap.steps.filter(step => step.completed).length;
+    }
+
+    // Создать новую карту
+    createNewMap() {
+        this.currentMap = null;
+        this.newGoalData = null;
+        this.showCreateMapModal();
+    }
+
+    // Просмотр истории карт
+    viewMapHistory() {
+        alert('История карт будет реализована позже!');
     }
 }
 
