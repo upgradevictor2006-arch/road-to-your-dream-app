@@ -83,35 +83,9 @@ class RoadToDreamApp {
             tg.ready();
             tg.expand();
             
-            // Настройка темы
-            this.setupTheme(tg);
-            
             console.log('Telegram WebApp инициализирован');
         } else {
             console.log('Telegram WebApp не обнаружен, работаем в обычном браузере');
-        }
-    }
-
-    // Настройка темы Telegram
-    setupTheme(tg) {
-        const themeParams = tg.themeParams;
-        
-        if (themeParams) {
-            // Применяем цвета темы к CSS переменным
-            const root = document.documentElement;
-            
-            if (themeParams.bg_color) {
-                root.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
-            }
-            if (themeParams.text_color) {
-                root.style.setProperty('--tg-theme-text-color', themeParams.text_color);
-            }
-            if (themeParams.button_color) {
-                root.style.setProperty('--tg-theme-button-color', themeParams.button_color);
-            }
-            if (themeParams.button_text_color) {
-                root.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
-            }
         }
     }
 }
@@ -179,52 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Настраиваем навигацию
     setupNavigation();
     
-    // Инициализируем тему
-    initializeTheme();
-    
-    // Настраиваем кнопку переключения темы
-    setupThemeToggle();
-        
-        // Инициализируем основное приложение
-        window.roadToDreamApp = new RoadToDreamApp();
+    // Инициализируем основное приложение
+    window.roadToDreamApp = new RoadToDreamApp();
 });
-
-// Функция для переключения темы
-function toggleTheme() {
-    const body = document.body;
-    const themeToggle = document.getElementById('theme-toggle');
-    const currentTheme = body.getAttribute('data-theme');
-    
-    if (currentTheme === 'dark') {
-        body.setAttribute('data-theme', 'light');
-        themeToggle.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-    } else {
-        body.setAttribute('data-theme', 'dark');
-        themeToggle.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    }
-}
-
-// Функция для инициализации темы
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-    
-    document.body.setAttribute('data-theme', theme);
-    document.getElementById('theme-toggle').setAttribute('data-theme', theme);
-}
-
-// Настройка кнопки переключения темы
-function setupThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-    
-    if (!themeToggle) {
-        console.warn('Кнопка переключения темы не найдена');
-        return;
-    }
-    
-    themeToggle.addEventListener('click', toggleTheme);
-    console.log('Кнопка переключения темы настроена');
-}
