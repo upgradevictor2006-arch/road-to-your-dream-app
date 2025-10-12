@@ -179,6 +179,124 @@ class RoadToDreamApp {
                     </div>
                 </div>
             </div>
+            
+            <!-- Модальное окно редактирования описания -->
+            <div id="edit-description-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Редактировать описание</h3>
+                        <button class="modal-close" onclick="window.roadToDreamApp.closeEditDescriptionModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="edit-description-form" class="caravan-form">
+                            <div class="form-group">
+                                <label for="edit-description-text" class="form-label">Описание каравана</label>
+                                <textarea 
+                                    id="edit-description-text" 
+                                    class="form-textarea" 
+                                    placeholder="Расскажите подробнее о ваших планах..."
+                                    maxlength="200"
+                                    rows="4"
+                                ></textarea>
+                                <div class="form-hint">Максимум 200 символов</div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeEditDescriptionModal()">
+                                    Отмена
+                                </button>
+                                <button type="submit" class="btn-primary">
+                                    Сохранить
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Модальное окно управления участниками -->
+            <div id="manage-members-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Управление участниками</h3>
+                        <button class="modal-close" onclick="window.roadToDreamApp.closeManageMembersModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="members-section">
+                            <div class="members-list" id="members-list">
+                                <!-- Список участников будет добавлен динамически -->
+                            </div>
+                            
+                            <div class="add-member-section">
+                                <h4>Добавить участника</h4>
+                                <div class="form-group">
+                                    <input 
+                                        type="text" 
+                                        id="member-username" 
+                                        class="form-input" 
+                                        placeholder="Имя пользователя или ID"
+                                    >
+                                    <button class="btn-primary" onclick="window.roadToDreamApp.addMember()">
+                                        Добавить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeManageMembersModal()">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Модальное окно поделиться ссылкой -->
+            <div id="share-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Поделиться караваном</h3>
+                        <button class="modal-close" onclick="window.roadToDreamApp.closeShareModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="share-section">
+                            <div class="share-info">
+                                <h4 id="share-caravan-name">Название каравана</h4>
+                                <p class="share-description">Скопируйте ссылку и поделитесь ею с друзьями, чтобы они могли присоединиться к вашему каравану.</p>
+                            </div>
+                            
+                            <div class="share-link-container">
+                                <input 
+                                    type="text" 
+                                    id="share-link-input" 
+                                    class="form-input share-link-input" 
+                                    readonly
+                                    placeholder="Ссылка будет сгенерирована..."
+                                >
+                                <button class="btn-copy" onclick="window.roadToDreamApp.copyShareLink()">
+                                    📋 Копировать
+                                </button>
+                            </div>
+                            
+                            <div class="share-actions">
+                                <button class="btn-share-action" onclick="window.roadToDreamApp.shareToTelegram()">
+                                    📱 Поделиться в Telegram
+                                </button>
+                                <button class="btn-share-action" onclick="window.roadToDreamApp.shareToOther()">
+                                    🌐 Поделиться в другом приложении
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeShareModal()">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
         
         // Добавляем обработчик формы
@@ -189,6 +307,13 @@ class RoadToDreamApp {
                 this.handleCreateCaravan();
             });
         }
+
+        // Добавляем обработчик клика вне меню для его закрытия
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.caravan-menu')) {
+                this.closeAllMenus();
+            }
+        });
     }
 
     // Рендеринг экрана гаража
@@ -357,7 +482,37 @@ class RoadToDreamApp {
             <div class="caravan-card" data-caravan-id="${caravan.id}">
                 <div class="caravan-card-header">
                     <div class="caravan-name">${caravan.name}</div>
-                    <div class="caravan-status ${caravan.status}">${caravan.status === 'active' ? 'Активен' : 'Неактивен'}</div>
+                    <div class="caravan-header-right">
+                        <div class="caravan-status ${caravan.status}">${caravan.status === 'active' ? 'Активен' : 'Неактивен'}</div>
+                        <div class="caravan-menu">
+                            <button class="caravan-menu-trigger" onclick="window.roadToDreamApp.toggleCaravanMenu('${caravan.id}')" aria-label="Меню каравана">
+                                <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                            </button>
+                            <div class="caravan-dropdown-menu" id="menu-${caravan.id}" style="display: none;">
+                                <button class="menu-item" onclick="window.roadToDreamApp.editCaravanDescription('${caravan.id}')">
+                                    <span class="menu-icon">✏️</span>
+                                    Редактировать описание
+                                </button>
+                                <button class="menu-item" onclick="window.roadToDreamApp.manageMembers('${caravan.id}')">
+                                    <span class="menu-icon">👥</span>
+                                    Управление участниками
+                                </button>
+                                <button class="menu-item" onclick="window.roadToDreamApp.shareCaravan('${caravan.id}')">
+                                    <span class="menu-icon">🔗</span>
+                                    Поделиться ссылкой
+                                </button>
+                                <hr class="menu-divider">
+                                <button class="menu-item danger" onclick="window.roadToDreamApp.deleteCaravan('${caravan.id}')">
+                                    <span class="menu-icon">🗑️</span>
+                                    Удалить караван
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="caravan-goal">${this.getGoalName(caravan.goal)}</div>
                 ${caravan.description ? `<div class="caravan-description">${caravan.description}</div>` : ''}
@@ -368,9 +523,6 @@ class RoadToDreamApp {
                 <div class="caravan-actions">
                     <button class="btn-caravan-action" onclick="window.roadToDreamApp.viewCaravan('${caravan.id}')">
                         Открыть
-                    </button>
-                    <button class="btn-caravan-action secondary" onclick="window.roadToDreamApp.editCaravan('${caravan.id}')">
-                        Редактировать
                     </button>
                 </div>
             </div>
@@ -476,6 +628,262 @@ class RoadToDreamApp {
         const caravan = this.caravans.find(c => c.id === caravanId);
         if (caravan) {
             alert(`Просмотр каравана "${caravan.name}"\n\nЦель: ${this.getGoalName(caravan.goal)}\nОписание: ${caravan.description || 'Нет описания'}\n\nФункция просмотра будет реализована позже!`);
+        }
+    }
+
+    // Переключение меню каравана
+    toggleCaravanMenu(caravanId) {
+        // Закрываем все открытые меню
+        document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
+            if (menu.id !== `menu-${caravanId}`) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Переключаем текущее меню
+        const menu = document.getElementById(`menu-${caravanId}`);
+        if (menu) {
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    // Редактирование описания каравана
+    editCaravanDescription(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (!caravan) return;
+
+        // Закрываем меню
+        this.closeAllMenus();
+
+        // Показываем модальное окно редактирования
+        this.showEditDescriptionModal(caravan);
+    }
+
+    // Управление участниками
+    manageMembers(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (!caravan) return;
+
+        // Закрываем меню
+        this.closeAllMenus();
+
+        // Показываем модальное окно управления участниками
+        this.showManageMembersModal(caravan);
+    }
+
+    // Поделиться ссылкой на караван
+    shareCaravan(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (!caravan) return;
+
+        // Закрываем меню
+        this.closeAllMenus();
+
+        // Генерируем ссылку (пока что заглушка)
+        const shareUrl = `${window.location.origin}${window.location.pathname}?caravan=${caravanId}`;
+        
+        // Показываем модальное окно с ссылкой
+        this.showShareModal(caravan, shareUrl);
+    }
+
+    // Удаление каравана
+    deleteCaravan(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (!caravan) return;
+
+        // Закрываем меню
+        this.closeAllMenus();
+
+        // Показываем подтверждение
+        if (confirm(`Вы уверены, что хотите удалить караван "${caravan.name}"?\n\nЭто действие нельзя отменить.`)) {
+            this.caravans = this.caravans.filter(c => c.id !== caravanId);
+            this.saveCaravans();
+            this.renderCaravanScreen();
+            this.showNotification('Караван удален', 'success');
+        }
+    }
+
+    // Закрыть все открытые меню
+    closeAllMenus() {
+        document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+
+    // Показать модальное окно редактирования описания
+    showEditDescriptionModal(caravan) {
+        this.currentEditingCaravan = caravan;
+        const modal = document.getElementById('edit-description-modal');
+        const textarea = document.getElementById('edit-description-text');
+        
+        if (modal && textarea) {
+            textarea.value = caravan.description || '';
+            modal.classList.remove('hidden');
+            
+            // Добавляем обработчик формы
+            const form = document.getElementById('edit-description-form');
+            if (form) {
+                form.onsubmit = (e) => {
+                    e.preventDefault();
+                    this.saveCaravanDescription(textarea.value.trim());
+                };
+            }
+        }
+    }
+
+    // Закрыть модальное окно редактирования описания
+    closeEditDescriptionModal() {
+        const modal = document.getElementById('edit-description-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            this.currentEditingCaravan = null;
+        }
+    }
+
+    // Сохранить описание каравана
+    saveCaravanDescription(newDescription) {
+        if (this.currentEditingCaravan) {
+            this.currentEditingCaravan.description = newDescription;
+            this.saveCaravans();
+            this.closeEditDescriptionModal();
+            this.renderCaravanScreen();
+            this.showNotification('Описание обновлено', 'success');
+        }
+    }
+
+    // Показать модальное окно управления участниками
+    showManageMembersModal(caravan) {
+        this.currentManagingCaravan = caravan;
+        const modal = document.getElementById('manage-members-modal');
+        
+        if (modal) {
+            // Заполняем список участников
+            this.renderMembersList(caravan);
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // Закрыть модальное окно управления участниками
+    closeManageMembersModal() {
+        const modal = document.getElementById('manage-members-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            this.currentManagingCaravan = null;
+        }
+    }
+
+    // Рендеринг списка участников
+    renderMembersList(caravan) {
+        const membersList = document.getElementById('members-list');
+        if (!membersList) return;
+
+        // Пока что у нас только создатель, но в будущем здесь будет список участников
+        const members = [
+            { id: 'creator', name: 'Вы (создатель)', role: 'creator', canRemove: false }
+        ];
+
+        membersList.innerHTML = members.map(member => `
+            <div class="member-item">
+                <div class="member-info">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-role">${member.role === 'creator' ? 'Создатель' : 'Участник'}</div>
+                </div>
+                ${member.canRemove ? `
+                    <button class="btn-remove-member" onclick="window.roadToDreamApp.removeMember('${member.id}')">
+                        Удалить
+                    </button>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    // Добавить участника (заглушка)
+    addMember() {
+        const usernameInput = document.getElementById('member-username');
+        const username = usernameInput?.value.trim();
+        
+        if (!username) {
+            alert('Введите имя пользователя или ID');
+            return;
+        }
+
+        // Пока что просто показываем сообщение
+        alert(`Добавление участника "${username}"\n\nФункция добавления участников будет реализована позже!`);
+        usernameInput.value = '';
+    }
+
+    // Удалить участника (заглушка)
+    removeMember(memberId) {
+        alert(`Удаление участника\n\nФункция удаления участников будет реализована позже!`);
+    }
+
+    // Показать модальное окно поделиться ссылкой
+    showShareModal(caravan, shareUrl) {
+        this.currentSharingCaravan = caravan;
+        this.currentShareUrl = shareUrl;
+        
+        const modal = document.getElementById('share-modal');
+        const nameElement = document.getElementById('share-caravan-name');
+        const linkInput = document.getElementById('share-link-input');
+        
+        if (modal && nameElement && linkInput) {
+            nameElement.textContent = caravan.name;
+            linkInput.value = shareUrl;
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // Закрыть модальное окно поделиться ссылкой
+    closeShareModal() {
+        const modal = document.getElementById('share-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            this.currentSharingCaravan = null;
+            this.currentShareUrl = null;
+        }
+    }
+
+    // Копировать ссылку для поделиться
+    copyShareLink() {
+        const linkInput = document.getElementById('share-link-input');
+        if (linkInput && this.currentShareUrl) {
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999); // Для мобильных устройств
+            
+            try {
+                document.execCommand('copy');
+                this.showNotification('Ссылка скопирована в буфер обмена!', 'success');
+            } catch (err) {
+                // Fallback для современных браузеров
+                navigator.clipboard.writeText(this.currentShareUrl).then(() => {
+                    this.showNotification('Ссылка скопирована в буфер обмена!', 'success');
+                }).catch(() => {
+                    this.showNotification('Не удалось скопировать ссылку', 'error');
+                });
+            }
+        }
+    }
+
+    // Поделиться в Telegram (заглушка)
+    shareToTelegram() {
+        if (this.currentShareUrl) {
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(this.currentShareUrl)}&text=${encodeURIComponent(`Присоединяйтесь к каравану "${this.currentSharingCaravan.name}"!`)}`;
+            window.open(telegramUrl, '_blank');
+        }
+    }
+
+    // Поделиться в другом приложении (заглушка)
+    shareToOther() {
+        if (navigator.share && this.currentShareUrl) {
+            navigator.share({
+                title: `Караван "${this.currentSharingCaravan.name}"`,
+                text: 'Присоединяйтесь к моему каравану!',
+                url: this.currentShareUrl
+            }).catch(() => {
+                this.copyShareLink();
+            });
+        } else {
+            this.copyShareLink();
         }
     }
 
