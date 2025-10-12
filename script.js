@@ -6,6 +6,7 @@ class RoadToDreamApp {
     constructor() {
         console.log('RoadToDreamApp constructor called');
         this.currentScreen = 'map';
+        this.caravans = this.loadCaravans(); // Загружаем сохраненные караваны
         this.init();
     }
 
@@ -105,15 +106,11 @@ class RoadToDreamApp {
                         </div>
                     </div>
                     
-                    <!-- Список существующих караванов (заглушка) -->
+                    <!-- Список существующих караванов -->
                     <div class="existing-caravans">
                         <h4 class="caravans-title">Ваши караваны</h4>
                         <div class="caravans-list">
-                            <div class="empty-caravans">
-                                <div class="empty-icon">📭</div>
-                                <p class="empty-text">У вас пока нет караванов</p>
-                                <p class="empty-hint">Создайте первый караван, чтобы начать!</p>
-                            </div>
+                            ${this.renderCaravansList()}
                         </div>
                     </div>
                 </div>
@@ -275,17 +272,130 @@ class RoadToDreamApp {
 
         console.log('Создание каравана:', caravanData);
 
-        // TODO: Отправить данные на сервер
-        // Пока что показываем сообщение об успехе
+        // Добавляем караван в список
+        const newCaravan = this.addCaravan(caravanData);
+        
+        // Закрываем модальное окно
         this.closeCreateCaravanModal();
         
         // Показываем уведомление об успехе
         this.showNotification('Караван "' + caravanData.name + '" успешно создан!', 'success');
         
-        // Обновляем экран каравана (в будущем здесь будет отображаться созданный караван)
+        // Обновляем экран каравана для отображения нового каравана
         setTimeout(() => {
             this.renderCaravanScreen();
         }, 1000);
+    }
+
+    // Загрузить караваны из localStorage
+    loadCaravans() {
+        try {
+            const saved = localStorage.getItem('roadToDreamCaravans');
+            return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+            console.error('Ошибка загрузки караванов:', error);
+            return [];
+        }
+    }
+
+    // Сохранить караваны в localStorage
+    saveCaravans() {
+        try {
+            localStorage.setItem('roadToDreamCaravans', JSON.stringify(this.caravans));
+        } catch (error) {
+            console.error('Ошибка сохранения караванов:', error);
+        }
+    }
+
+    // Добавить новый караван
+    addCaravan(caravanData) {
+        const newCaravan = {
+            id: Date.now().toString(),
+            name: caravanData.name,
+            goal: caravanData.goal,
+            description: caravanData.description,
+            createdAt: new Date().toISOString(),
+            members: 1, // Пока что только создатель
+            status: 'active'
+        };
+        
+        this.caravans.unshift(newCaravan); // Добавляем в начало списка
+        this.saveCaravans();
+        return newCaravan;
+    }
+
+    // Получить название цели по значению
+    getGoalName(goalValue) {
+        const goals = {
+            'fitness': '💪 Фитнес и здоровье',
+            'career': '🚀 Карьера и развитие',
+            'education': '📚 Обучение и навыки',
+            'travel': '✈️ Путешествия',
+            'business': '💼 Бизнес и предпринимательство',
+            'creativity': '🎨 Творчество и искусство',
+            'family': '👨‍👩‍👧‍👦 Семья и отношения',
+            'finance': '💰 Финансы и инвестиции',
+            'spirituality': '🧘 Духовность и саморазвитие',
+            'other': '🌟 Другое'
+        };
+        return goals[goalValue] || '🌟 Другое';
+    }
+
+    // Рендеринг списка караванов
+    renderCaravansList() {
+        if (!this.caravans || this.caravans.length === 0) {
+            return `
+                <div class="empty-caravans">
+                    <div class="empty-icon">📭</div>
+                    <p class="empty-text">У вас пока нет караванов</p>
+                    <p class="empty-hint">Создайте первый караван, чтобы начать!</p>
+                </div>
+            `;
+        }
+
+        return this.caravans.map(caravan => `
+            <div class="caravan-card" data-caravan-id="${caravan.id}">
+                <div class="caravan-card-header">
+                    <div class="caravan-name">${caravan.name}</div>
+                    <div class="caravan-status ${caravan.status}">${caravan.status === 'active' ? 'Активен' : 'Неактивен'}</div>
+                </div>
+                <div class="caravan-goal">${this.getGoalName(caravan.goal)}</div>
+                ${caravan.description ? `<div class="caravan-description">${caravan.description}</div>` : ''}
+                <div class="caravan-meta">
+                    <div class="caravan-members">👥 ${caravan.members} участник${caravan.members === 1 ? '' : caravan.members < 5 ? 'а' : 'ов'}</div>
+                    <div class="caravan-date">${this.formatDate(caravan.createdAt)}</div>
+                </div>
+                <div class="caravan-actions">
+                    <button class="btn-caravan-action" onclick="window.roadToDreamApp.viewCaravan('${caravan.id}')">
+                        Открыть
+                    </button>
+                    <button class="btn-caravan-action secondary" onclick="window.roadToDreamApp.editCaravan('${caravan.id}')">
+                        Редактировать
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Форматирование даты
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            return 'Сегодня';
+        } else if (diffDays === 2) {
+            return 'Вчера';
+        } else if (diffDays <= 7) {
+            return `${diffDays} дн. назад`;
+        } else {
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short'
+            });
+        }
     }
 
     // Показать уведомление
@@ -359,6 +469,22 @@ class RoadToDreamApp {
             }
         `;
         document.head.appendChild(fadeOutStyle);
+    }
+
+    // Просмотр каравана (заглушка)
+    viewCaravan(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (caravan) {
+            alert(`Просмотр каравана "${caravan.name}"\n\nЦель: ${this.getGoalName(caravan.goal)}\nОписание: ${caravan.description || 'Нет описания'}\n\nФункция просмотра будет реализована позже!`);
+        }
+    }
+
+    // Редактирование каравана (заглушка)
+    editCaravan(caravanId) {
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (caravan) {
+            alert(`Редактирование каравана "${caravan.name}"\n\nФункция редактирования будет реализована позже!`);
+        }
     }
 
     // Настройка Telegram WebApp
