@@ -162,7 +162,7 @@ body {
     border: none;
     border-radius: 50px;
     padding: 18px 32px;
-    font-size: 18px;
+        font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -228,7 +228,7 @@ body {
     border: none;
     border-radius: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 24px 20px 32px 20px;
+    padding: 20px 20px 24px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -242,6 +242,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     background: transparent;
     border: none;
     padding: 16px 20px;
@@ -252,6 +253,7 @@ body {
     flex: 1;
     position: relative;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .nav-btn:hover {
@@ -303,6 +305,9 @@ body {
     color: var(--text-secondary);
     transition: all 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    text-align: center;
+    width: 100%;
+    display: block;
 }
 
 .nav-btn:hover .nav-label {
@@ -360,6 +365,7 @@ body {
         padding: 12px 8px;
         min-width: 0;
         max-width: none;
+        text-align: center;
     }
     
     .nav-icon {
@@ -372,8 +378,8 @@ body {
         font-size: 13px;
         line-height: 1.2;
     }
-}
-
+    }
+    
 @media (max-width: 480px) {
     .empty-map-screen {
         padding: 25px 16px 120px 16px;
