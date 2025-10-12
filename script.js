@@ -608,11 +608,349 @@ class RoadToDreamApp {
         // Закрываем текущее модальное окно
         this.closePeriodSelectionModal();
         
-        // TODO: Переходим к разбивке на подпериоды
-        const message = isDeadlineMode 
-            ? `Дедлайн установлен на ${this.newGoalData.deadline}! Следующий шаг - разбивка на подпериоды.`
-            : `Период "${this.newGoalData.period}" выбран! Следующий шаг - разбивка на подпериоды.`;
-        alert(message);
+        // Переходим к разбивке на подпериоды
+        this.showPeriodBreakdownModal();
+    }
+
+    // Показать модальное окно разбивки на подпериоды
+    showPeriodBreakdownModal() {
+        const totalDays = this.newGoalData.periodDays;
+        const breakdown = this.generatePeriodBreakdown(totalDays);
+
+        const modalHTML = `
+            <div class="modal-overlay active" id="period-breakdown-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Разбивка на подпериоды</h2>
+                        <p class="modal-subtitle">Организуйте свой путь к цели</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="breakdown-container" id="breakdown-container">
+                            ${this.renderBreakdownHTML(breakdown)}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="breakdown-back-btn">Назад</button>
+                        <button class="btn btn-primary" id="breakdown-next-btn">Создать карту</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Добавляем модальное окно в body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Настраиваем обработчики событий
+        this.setupBreakdownModalEvents();
+        
+        // Добавляем обработчики для кнопок разбивки
+        this.setupBreakdownItemHandlers();
+    }
+
+    // Генерация структуры разбивки периода
+    generatePeriodBreakdown(totalDays) {
+        let breakdown = [];
+
+        if (totalDays >= 365) {
+            // Год и больше - разбиваем на месяцы
+            const years = Math.floor(totalDays / 365);
+            const remainingDays = totalDays % 365;
+            
+            for (let i = 0; i < years; i++) {
+                const yearDays = Math.min(365, totalDays - (i * 365));
+                breakdown.push({
+                    id: `year-${i}`,
+                    type: 'year',
+                    title: `Год ${i + 1}`,
+                    task: '',
+                    days: yearDays,
+                    children: this.generateMonthBreakdown(yearDays, i)
+                });
+            }
+            
+            if (remainingDays > 0) {
+                breakdown.push({
+                    id: 'remaining-period',
+                    type: 'period',
+                    title: 'Дополнительный период',
+                    task: '',
+                    days: remainingDays,
+                    children: this.generateMonthBreakdown(remainingDays, years)
+                });
+            }
+        } else if (totalDays >= 30) {
+            // Месяц и больше - разбиваем на недели
+            breakdown = this.generateMonthBreakdown(totalDays, 0);
+        } else if (totalDays >= 7) {
+            // Неделя и больше - разбиваем на дни
+            breakdown = this.generateWeekBreakdown(totalDays);
+        } else {
+            // Меньше недели - только дни
+            breakdown = this.generateDayBreakdown(totalDays);
+        }
+
+        return breakdown;
+    }
+
+    // Генерация разбивки месяцев
+    generateMonthBreakdown(totalDays, yearIndex) {
+        const months = Math.ceil(totalDays / 30);
+        const breakdown = [];
+
+        for (let i = 0; i < months; i++) {
+            const monthDays = Math.min(30, totalDays - (i * 30));
+            breakdown.push({
+                id: `month-${yearIndex}-${i}`,
+                type: 'month',
+                title: this.getMonthName(i + 1),
+                task: '',
+                days: monthDays,
+                children: monthDays >= 7 ? this.generateWeekBreakdown(monthDays, `${yearIndex}-${i}`) : this.generateDayBreakdown(monthDays, `${yearIndex}-${i}`)
+            });
+        }
+
+        return breakdown;
+    }
+
+    // Генерация разбивки недель
+    generateWeekBreakdown(totalDays, parentId = '') {
+        const weeks = Math.ceil(totalDays / 7);
+        const breakdown = [];
+
+        for (let i = 0; i < weeks; i++) {
+            const weekDays = Math.min(7, totalDays - (i * 7));
+            breakdown.push({
+                id: `week-${parentId}-${i}`,
+                type: 'week',
+                title: `Неделя ${i + 1}`,
+                task: '',
+                days: weekDays,
+                children: this.generateDayBreakdown(weekDays, `${parentId}-${i}`)
+            });
+        }
+
+        return breakdown;
+    }
+
+    // Генерация разбивки дней
+    generateDayBreakdown(totalDays, parentId = '') {
+        const breakdown = [];
+
+        for (let i = 0; i < totalDays; i++) {
+            breakdown.push({
+                id: `day-${parentId}-${i}`,
+                type: 'day',
+                title: `День ${i + 1}`,
+                task: '',
+                days: 1,
+                children: []
+            });
+        }
+
+        return breakdown;
+    }
+
+    // Получить название месяца
+    getMonthName(monthNumber) {
+        const months = [
+            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+        ];
+        return months[monthNumber - 1] || `Месяц ${monthNumber}`;
+    }
+
+    // Рендеринг HTML для разбивки
+    renderBreakdownHTML(breakdown, level = 0) {
+        return breakdown.map(item => {
+            const hasChildren = item.children && item.children.length > 0;
+            const childrenHTML = hasChildren ? this.renderBreakdownHTML(item.children, level + 1) : '';
+
+            return `
+                <div class="breakdown-item" data-id="${item.id}">
+                    <div class="breakdown-header" data-toggle-id="${item.id}">
+                        <svg class="breakdown-icon ${hasChildren ? '' : 'hidden'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                        <div class="breakdown-content">
+                            <div class="breakdown-title">${item.title}</div>
+                            <div class="breakdown-task">${item.task || 'Нажмите "Редактировать" чтобы добавить задачу'}</div>
+                        </div>
+                        <button class="breakdown-edit-btn" data-edit-id="${item.id}">Редактировать</button>
+                    </div>
+                    ${hasChildren ? `
+                        <div class="breakdown-children" id="children-${item.id}">
+                            ${childrenHTML}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Настройка обработчиков событий для модального окна разбивки
+    setupBreakdownModalEvents() {
+        const backBtn = document.getElementById('breakdown-back-btn');
+        const nextBtn = document.getElementById('breakdown-next-btn');
+
+        // Обработчики кнопок навигации
+        backBtn.addEventListener('click', () => {
+            this.closePeriodBreakdownModal();
+            this.showPeriodSelectionModal();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            this.createMap();
+        });
+
+        // Закрытие по клику на overlay
+        const modal = document.getElementById('period-breakdown-modal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePeriodBreakdownModal();
+            }
+        });
+    }
+
+    // Настройка обработчиков для элементов разбивки
+    setupBreakdownItemHandlers() {
+        // Обработчики для раскрытия/скрытия
+        document.querySelectorAll('[data-toggle-id]').forEach(header => {
+            header.addEventListener('click', () => {
+                const itemId = header.dataset.toggleId;
+                this.toggleBreakdownItem(itemId);
+            });
+        });
+
+        // Обработчики для редактирования
+        document.querySelectorAll('[data-edit-id]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Предотвращаем срабатывание клика по header
+                const itemId = btn.dataset.editId;
+                this.editBreakdownItem(itemId);
+            });
+        });
+    }
+
+    // Переключение раскрытия/скрытия элемента разбивки
+    toggleBreakdownItem(itemId) {
+        const item = document.querySelector(`[data-id="${itemId}"]`);
+        const children = document.getElementById(`children-${itemId}`);
+        const icon = item.querySelector('.breakdown-icon');
+
+        if (children) {
+            children.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+    }
+
+    // Редактирование элемента разбивки
+    editBreakdownItem(itemId) {
+        const item = document.querySelector(`[data-id="${itemId}"]`);
+        const titleElement = item.querySelector('.breakdown-title');
+        const taskElement = item.querySelector('.breakdown-task');
+        
+        const currentTitle = titleElement.textContent;
+        const currentTask = taskElement.textContent === 'Нажмите "Редактировать" чтобы добавить задачу' ? '' : taskElement.textContent;
+
+        this.showEditModal(itemId, currentTitle, currentTask);
+    }
+
+    // Показать модальное окно редактирования
+    showEditModal(itemId, currentTitle, currentTask) {
+        const modalHTML = `
+            <div class="edit-modal active" id="edit-breakdown-modal">
+                <div class="edit-modal-content">
+                    <div class="edit-modal-header">
+                        <h3 class="edit-modal-title">Редактировать</h3>
+                        <p class="edit-modal-subtitle">Измените название и задачу</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label" for="edit-title">Название</label>
+                            <input type="text" id="edit-title" class="form-input" value="${currentTitle}" maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-task">Задача</label>
+                            <textarea id="edit-task" class="form-input" rows="3" maxlength="200" placeholder="Опишите задачу для этого периода...">${currentTask}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="edit-cancel-btn">Отмена</button>
+                        <button class="btn btn-primary" id="edit-save-btn">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Настройка обработчиков
+        const cancelBtn = document.getElementById('edit-cancel-btn');
+        const saveBtn = document.getElementById('edit-save-btn');
+        const modal = document.getElementById('edit-breakdown-modal');
+
+        cancelBtn.addEventListener('click', () => {
+            this.closeEditModal();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const title = document.getElementById('edit-title').value.trim();
+            const task = document.getElementById('edit-task').value.trim();
+            
+            if (title) {
+                this.saveBreakdownItem(itemId, title, task);
+                this.closeEditModal();
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeEditModal();
+            }
+        });
+    }
+
+    // Сохранить изменения элемента разбивки
+    saveBreakdownItem(itemId, title, task) {
+        const item = document.querySelector(`[data-id="${itemId}"]`);
+        const titleElement = item.querySelector('.breakdown-title');
+        const taskElement = item.querySelector('.breakdown-task');
+        
+        titleElement.textContent = title;
+        taskElement.textContent = task || 'Нажмите "Редактировать" чтобы добавить задачу';
+    }
+
+    // Закрыть модальное окно редактирования
+    closeEditModal() {
+        const modal = document.getElementById('edit-breakdown-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Закрыть модальное окно разбивки
+    closePeriodBreakdownModal() {
+        const modal = document.getElementById('period-breakdown-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Создать карту
+    createMap() {
+        console.log('Создание карты с данными:', this.newGoalData);
+        alert('Карта создана! Функция сохранения будет реализована позже.');
+        
+        // Закрываем модальное окно
+        this.closePeriodBreakdownModal();
+        
+        // TODO: Здесь будет логика сохранения карты в базу данных
     }
 
     // Получить количество дней для периода
