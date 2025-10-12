@@ -1,15 +1,15 @@
 /* Базовые стили для Telegram Mini App "Road to Your Dream" */
 
-/* CSS-переменные для темной темы (как на скриншоте) */
+/* CSS-переменные для темной темы с новой цветовой схемой */
 :root {
     --primary-bg-color: #1a1a1a;
     --secondary-bg-color: #2d2d2d;
     --text-color: #ffffff;
     --hint-color: #cccccc;
-    --accent-color: #ffd700;
-    --accent-gradient: linear-gradient(90deg, #ffd700 0%, #007bff 100%);
+    --accent-color: #f4bd41;
+    --accent-gradient: linear-gradient(90deg, #f4bd41 0%, #007bff 100%);
     --border-color: #374151;
-    --button-color: #ffd700;
+    --button-color: #f4bd41;
     --button-text-color: #ffffff;
     --shadow-color: rgba(0, 0, 0, 0.3);
     --shadow-hover: rgba(0, 0, 0, 0.4);
@@ -19,8 +19,8 @@
     --glass-bg: rgba(26, 26, 26, 0.8);
     --glass-border: rgba(255, 255, 255, 0.1);
     --body-gradient: #1a1a1a;
-    --nav-bg: rgba(26, 26, 26, 0.9);
-    --nav-border: rgba(255, 255, 255, 0.1);
+    --nav-bg: rgba(26, 26, 26, 0.95);
+    --nav-border: transparent;
     --footer-bg: rgba(26, 26, 26, 0.9);
     --footer-border: rgba(255, 255, 255, 0.1);
     --screen-bg: transparent;
@@ -28,8 +28,15 @@
     --text-primary: #ffffff;
     --text-secondary: #cccccc;
     --text-muted: #999999;
-    --active-gradient: #ffd700;
-    --button-gradient: linear-gradient(90deg, #ffd700 0%, #007bff 100%);
+    --active-gradient: #f4bd41;
+    --button-gradient: linear-gradient(90deg, #f4bd41 0%, #007bff 100%);
+    
+    /* Новая цветовая палитра */
+    --gold-primary: #f4bd41;
+    --gold-secondary: #b79852;
+    --gold-dark: #9f7515;
+    --gold-light: #fad070;
+    --gold-pale: #fadb95;
 }
 
 
@@ -159,7 +166,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(244, 189, 65, 0.3);
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -169,11 +176,12 @@ body {
 
 .create-map-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 6px 25px rgba(244, 189, 65, 0.4);
 }
 
 .create-map-button:active {
     transform: translateY(0);
+    box-shadow: 0 2px 15px rgba(244, 189, 65, 0.5);
 }
 
 .plus-icon {
@@ -217,16 +225,20 @@ body {
     background: var(--nav-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--nav-border);
+    border: none;
     border-radius: 25px;
     padding: 16px 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     z-index: 1001;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     gap: 8px;
     transition: all 0.3s ease;
+    /* Объемный эффект */
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .nav-btn {
@@ -246,35 +258,57 @@ body {
 }
 
 .nav-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(244, 189, 65, 0.08);
+    transform: translateY(-1px);
 }
 
 .nav-btn.active {
-    background: rgba(255, 215, 0, 0.1);
+    background: rgba(244, 189, 65, 0.12);
+    box-shadow: 
+        0 0 20px rgba(244, 189, 65, 0.3),
+        inset 0 1px 0 rgba(244, 189, 65, 0.2);
+    transform: translateY(-1px);
 }
 
+.nav-btn:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 0 25px rgba(244, 189, 65, 0.4),
+        inset 0 1px 0 rgba(244, 189, 65, 0.3);
+}
+
+/* SVG иконки навигации */
 .nav-icon {
-    font-size: 24px;
+    width: 24px;
+    height: 24px;
     margin-bottom: 8px;
     transition: all 0.3s ease;
-    color: var(--text-secondary);
-    font-weight: 400;
+    fill: var(--text-secondary);
+    stroke: var(--text-secondary);
 }
 
 .nav-btn:hover .nav-icon {
     transform: scale(1.05);
+    fill: var(--text-primary);
+    stroke: var(--text-primary);
 }
 
 .nav-btn.active .nav-icon {
-    color: var(--accent-color);
+    fill: var(--gold-primary);
+    stroke: var(--gold-primary);
     transform: scale(1.05);
+    filter: drop-shadow(0 0 8px rgba(244, 189, 65, 0.6));
+}
+
+.nav-btn:active .nav-icon {
+    filter: drop-shadow(0 0 12px rgba(244, 189, 65, 0.8));
 }
 
 .nav-label {
     font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
@@ -283,8 +317,13 @@ body {
 }
 
 .nav-btn.active .nav-label {
-    color: var(--accent-color);
+    color: var(--gold-primary);
     font-weight: 600;
+    text-shadow: 0 0 8px rgba(244, 189, 65, 0.4);
+}
+
+.nav-btn:active .nav-label {
+    text-shadow: 0 0 12px rgba(244, 189, 65, 0.6);
 }
 
 /* Адаптивность для мобильных устройств */
@@ -331,7 +370,8 @@ body {
     }
     
     .nav-icon {
-        font-size: 22px;
+        width: 22px;
+        height: 22px;
         margin-bottom: 6px;
     }
     
@@ -384,7 +424,8 @@ body {
     }
     
     .nav-icon {
-        font-size: 20px;
+        width: 20px;
+        height: 20px;
         margin-bottom: 4px;
     }
     
@@ -436,7 +477,8 @@ body {
     }
     
     .nav-icon {
-        font-size: 18px;
+        width: 18px;
+        height: 18px;
         margin-bottom: 3px;
     }
     
