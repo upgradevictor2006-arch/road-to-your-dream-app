@@ -19,50 +19,20 @@
 
     <!-- Главный контейнер приложения -->
     <div id="app-container">
-        <!-- Экран карты (виден по умолчанию) -->
-        <main id="map-screen" class="screen">
-            <div id="map-canvas"></div>
-        </main>
-
-
-        <!-- Экран плана (скрыт по умолчанию) -->
-        <section id="plan-screen" class="screen hidden">
-            <div id="plan-content"></div>
-        </section>
-
-        <!-- Экран каравана (скрыт по умолчанию) -->
-        <section id="caravan-screen" class="screen hidden">
-            <div id="caravan-content"></div>
-        </section>
-
-        <!-- Экран профиля (скрыт по умолчанию) -->
-        <section id="profile-screen" class="screen hidden">
-            <div id="profile-content"></div>
-        </section>
+        <!-- Контент будет добавлен динамически -->
     </div>
-
-    <!-- Фиксированный футер с информацией о задаче -->
-    <footer id="footer-panel">
-        <div id="task-info">
-            <h3>Текущая задача</h3>
-            <p id="task-description">Выберите цель для начала путешествия</p>
-        </div>
-        <button id="complete-step-btn" class="btn-primary">
-            Выполнить шаг
-        </button>
-    </footer>
 
     <!-- Панель навигации -->
     <nav id="navigation">
-        <button class="nav-btn" data-screen="caravan-screen" aria-label="Караван">
+        <button class="nav-btn" data-screen="caravan" aria-label="Караван">
             <span class="nav-icon">🚐</span>
             <span class="nav-label">Караван</span>
         </button>
-        <button class="nav-btn active" data-screen="map-screen" aria-label="Карта">
+        <button class="nav-btn active" data-screen="map" aria-label="Карта">
             <span class="nav-icon">🗺️</span>
             <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-btn" data-screen="profile-screen" aria-label="Гараж">
+        <button class="nav-btn" data-screen="garage" aria-label="Гараж">
             <span class="nav-icon">🏠</span>
             <span class="nav-label">Гараж</span>
         </button>
