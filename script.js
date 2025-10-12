@@ -773,9 +773,14 @@ class RoadToDreamApp {
                         </svg>
                         <div class="breakdown-content">
                             <div class="breakdown-title">${item.title}</div>
-                            <div class="breakdown-task">${item.task || 'Нажмите "Редактировать" чтобы добавить задачу'}</div>
+                            <div class="breakdown-task">${item.task || ''}</div>
                         </div>
-                        <button class="breakdown-edit-btn" data-edit-id="${item.id}">Редактировать</button>
+                        <button class="breakdown-edit-btn" data-edit-id="${item.id}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
                     </div>
                     ${hasChildren ? `
                         <div class="breakdown-children" id="children-${item.id}">
@@ -850,7 +855,7 @@ class RoadToDreamApp {
         const taskElement = item.querySelector('.breakdown-task');
         
         const currentTitle = titleElement.textContent;
-        const currentTask = taskElement.textContent === 'Нажмите "Редактировать" чтобы добавить задачу' ? '' : taskElement.textContent;
+        const currentTask = taskElement.textContent;
 
         this.showEditModal(itemId, currentTitle, currentTask);
     }
@@ -917,7 +922,7 @@ class RoadToDreamApp {
         const taskElement = item.querySelector('.breakdown-task');
         
         titleElement.textContent = title;
-        taskElement.textContent = task || 'Нажмите "Редактировать" чтобы добавить задачу';
+        taskElement.textContent = task || '';
     }
 
     // Закрыть модальное окно редактирования

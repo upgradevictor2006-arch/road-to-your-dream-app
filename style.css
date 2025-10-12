@@ -618,16 +618,25 @@ body {
     color: var(--gold-primary);
     border: 1px solid var(--gold-primary);
     border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     margin-left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
 }
 
 .breakdown-edit-btn:hover {
     background: var(--gold-primary);
     color: var(--primary-bg-color);
+}
+
+.breakdown-edit-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .breakdown-children {
