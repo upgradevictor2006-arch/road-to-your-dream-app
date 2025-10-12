@@ -752,11 +752,7 @@ class RoadToDreamApp {
 
     // Получить название месяца
     getMonthName(monthNumber) {
-        const months = [
-            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-        ];
-        return months[monthNumber - 1] || `Месяц ${monthNumber}`;
+        return `${monthNumber}-й месяц`;
     }
 
     // Рендеринг HTML для разбивки
