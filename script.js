@@ -295,50 +295,93 @@ class RoadToDreamApp {
                 </div>
             </div>
             
-            <!-- Модальное окно поделиться ссылкой -->
-            <div id="share-modal" class="modal-overlay hidden">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Поделиться караваном</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.closeShareModal()">×</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="share-section">
-                            <div class="share-info">
-                                <h4 id="share-caravan-name">Название каравана</h4>
-                                <p class="share-description">Скопируйте ссылку и поделитесь ею с друзьями, чтобы они могли присоединиться к вашему каравану.</p>
-                            </div>
-                            
-                            <div class="share-link-container">
-                                <input 
-                                    type="text" 
-                                    id="share-link-input" 
-                                    class="form-input share-link-input" 
-                                    readonly
-                                    placeholder="Ссылка будет сгенерирована..."
-                                >
-                                <button class="btn-copy" onclick="window.roadToDreamApp.copyShareLink()">
-                                    📋 Копировать
-                                </button>
-                            </div>
-                            
-                            <div class="share-actions">
-                                <button class="btn-share-action" onclick="window.roadToDreamApp.shareToTelegram()">
-                                    📱 Поделиться в Telegram
-                                </button>
-                                <button class="btn-share-action" onclick="window.roadToDreamApp.shareToOther()">
-                                    🌐 Поделиться в другом приложении
-                                </button>
-                            </div>
+                <!-- Модальное окно поделиться ссылкой -->
+                <div id="share-modal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Поделиться караваном</h3>
+                            <button class="modal-close" onclick="window.roadToDreamApp.closeShareModal()">×</button>
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeShareModal()">
-                                Закрыть
-                            </button>
+                        <div class="modal-body">
+                            <div class="share-section">
+                                <div class="share-info">
+                                    <h4 id="share-caravan-name">Название каравана</h4>
+                                    <p class="share-description">Скопируйте ссылку и поделитесь ею с друзьями, чтобы они могли присоединиться к вашему каравану.</p>
+                                </div>
+                                
+                                <div class="share-link-container">
+                                    <input 
+                                        type="text" 
+                                        id="share-link-input" 
+                                        class="form-input share-link-input" 
+                                        readonly
+                                        placeholder="Ссылка будет сгенерирована..."
+                                    >
+                                    <button class="btn-copy" onclick="window.roadToDreamApp.copyShareLink()">
+                                        📋 Копировать
+                                    </button>
+                                </div>
+                                
+                                <div class="share-actions">
+                                    <button class="btn-share-action" onclick="window.roadToDreamApp.shareToTelegram()">
+                                        📱 Поделиться в Telegram
+                                    </button>
+                                    <button class="btn-share-action" onclick="window.roadToDreamApp.shareToOther()">
+                                        🌐 Поделиться в другом приложении
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeShareModal()">
+                                    Закрыть
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Модальное окно подтверждения удаления -->
+                <div id="delete-confirmation-modal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">🗑️ Удалить караван</h3>
+                            <button class="modal-close" onclick="window.roadToDreamApp.closeDeleteConfirmationModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="delete-warning">
+                                <div class="warning-icon">⚠️</div>
+                                <h4 id="delete-caravan-name">Название каравана</h4>
+                                <p class="warning-text">Вы собираетесь удалить караван. Это действие нельзя отменить.</p>
+                                <p class="confirmation-text">Для подтверждения введите фразу:</p>
+                                <div class="confirmation-phrase">
+                                    <strong>"Удалить караван"</strong>
+                                </div>
+                            </div>
+                            
+                            <form id="delete-confirmation-form" class="caravan-form">
+                                <div class="form-group">
+                                    <label for="delete-confirmation-input" class="form-label">Подтверждение:</label>
+                                    <input 
+                                        type="text" 
+                                        id="delete-confirmation-input" 
+                                        class="form-input" 
+                                        placeholder="Введите: Удалить караван"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeDeleteConfirmationModal()">
+                                        Отмена
+                                    </button>
+                                    <button type="submit" class="btn-danger">
+                                        Удалить караван
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
             </div>
         `;
         
@@ -364,6 +407,14 @@ class RoadToDreamApp {
                 form3.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.handleStep3();
+                });
+            }
+            
+            const deleteForm = appContainer.querySelector('#delete-confirmation-form');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleDeleteConfirmation();
                 });
             }
 
@@ -904,13 +955,8 @@ class RoadToDreamApp {
         // Закрываем меню
         this.closeAllMenus();
 
-        // Показываем подтверждение
-        if (confirm(`Вы уверены, что хотите удалить караван "${caravan.name}"?\n\nЭто действие нельзя отменить.`)) {
-            this.caravans = this.caravans.filter(c => c.id !== caravanId);
-            this.saveCaravans();
-            this.renderCaravanScreen();
-            this.showNotification('Караван удален', 'success');
-        }
+        // Показываем модальное окно с подтверждением
+        this.showDeleteConfirmationModal(caravan);
     }
 
     // Закрыть все открытые меню
@@ -918,6 +964,68 @@ class RoadToDreamApp {
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
             menu.style.display = 'none';
         });
+    }
+
+    // Показать модальное окно подтверждения удаления
+    showDeleteConfirmationModal(caravan) {
+        this.caravanToDelete = caravan;
+        const modal = document.getElementById('delete-confirmation-modal');
+        const caravanNameElement = document.getElementById('delete-caravan-name');
+        
+        if (modal && caravanNameElement) {
+            caravanNameElement.textContent = `"${caravan.name}"`;
+            modal.classList.remove('hidden');
+            
+            // Фокусируемся на поле ввода
+            setTimeout(() => {
+                const input = document.getElementById('delete-confirmation-input');
+                if (input) {
+                    input.focus();
+                }
+            }, 100);
+        }
+    }
+
+    // Закрыть модальное окно подтверждения удаления
+    closeDeleteConfirmationModal() {
+        const modal = document.getElementById('delete-confirmation-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            // Очищаем форму
+            const form = document.getElementById('delete-confirmation-form');
+            if (form) {
+                form.reset();
+            }
+        }
+        this.caravanToDelete = null;
+    }
+
+    // Обработка подтверждения удаления
+    handleDeleteConfirmation() {
+        const input = document.getElementById('delete-confirmation-input');
+        if (!input || !this.caravanToDelete) {
+            return;
+        }
+
+        const confirmationText = input.value.trim();
+
+        // Проверяем правильность введенной фразы
+        if (confirmationText !== 'Удалить караван') {
+            alert('Неверная фраза подтверждения. Введите точно: "Удалить караван"');
+            input.focus();
+            return;
+        }
+
+        // Удаляем караван
+        this.caravans = this.caravans.filter(c => c.id !== this.caravanToDelete.id);
+        this.saveCaravans();
+        
+        // Закрываем модальное окно
+        this.closeDeleteConfirmationModal();
+        
+        // Обновляем экран и показываем уведомление
+        this.renderCaravanScreen();
+        this.showNotification('Караван удален', 'success');
     }
 
     // Показать модальное окно редактирования описания
