@@ -194,11 +194,14 @@ body {
 
 /* Описательный текст */
 .cta-description {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    max-width: 280px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    font-size: 14px !important;
+    color: var(--text-secondary) !important;
+    line-height: 1.5 !important;
+    max-width: 280px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    display: block !important;
 }
 
 /* Стили для карты будут добавлены позже */
