@@ -7,6 +7,7 @@ class RoadToDreamApp {
         console.log('RoadToDreamApp constructor called');
         this.currentScreen = 'map';
         this.newGoalData = null; // Данные создаваемой цели
+        this.customPeriods = []; // Кастомные периоды
         this.init();
     }
 
@@ -263,6 +264,31 @@ class RoadToDreamApp {
                                         <div class="period-description">Масштабная цель</div>
                                     </div>
                                 </div>
+                                <div class="period-option" data-period="custom">
+                                    <input type="radio" name="period" value="custom" class="period-radio" id="period-custom">
+                                    <div class="period-info">
+                                        <div class="period-title">Свой вариант</div>
+                                        <div class="period-description">Укажите точный период</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Кастомный ввод периода -->
+                            <div id="custom-period-section" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Добавить период</label>
+                                    <div class="custom-period-input">
+                                        <input type="number" id="custom-period-number" class="period-number-input" placeholder="0" min="1" max="999">
+                                        <select id="custom-period-unit" class="period-unit-select">
+                                            <option value="days">дней</option>
+                                            <option value="weeks">недель</option>
+                                            <option value="months">месяцев</option>
+                                            <option value="years">лет</option>
+                                        </select>
+                                        <button class="custom-period-add" id="add-custom-period">Добавить</button>
+                                    </div>
+                                    <div class="custom-period-list" id="custom-period-list"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -347,6 +373,7 @@ class RoadToDreamApp {
     setupDurationSelection() {
         const periodOptions = document.querySelectorAll('.period-option');
         const nextBtn = document.getElementById('period-next-btn');
+        const customPeriodSection = document.getElementById('custom-period-section');
 
         periodOptions.forEach(option => {
             const radio = option.querySelector('.period-radio');
@@ -361,20 +388,182 @@ class RoadToDreamApp {
                 // Активируем радиокнопку
                 radio.checked = true;
                 
-                // Активируем кнопку "Далее"
-                nextBtn.disabled = false;
-                nextBtn.style.opacity = '1';
+                // Показываем/скрываем кастомный ввод
+                if (radio.value === 'custom') {
+                    customPeriodSection.style.display = 'block';
+                    this.setupCustomPeriodHandlers();
+                } else {
+                    customPeriodSection.style.display = 'none';
+                }
+                
+                // Проверяем валидность
+                this.validateDurationSelection();
             });
 
             radio.addEventListener('change', () => {
                 if (radio.checked) {
                     periodOptions.forEach(opt => opt.classList.remove('selected'));
                     option.classList.add('selected');
-                    nextBtn.disabled = false;
-                    nextBtn.style.opacity = '1';
+                    
+                    // Показываем/скрываем кастомный ввод
+                    if (radio.value === 'custom') {
+                        customPeriodSection.style.display = 'block';
+                        this.setupCustomPeriodHandlers();
+                    } else {
+                        customPeriodSection.style.display = 'none';
+                    }
+                    
+                    // Проверяем валидность
+                    this.validateDurationSelection();
                 }
             });
         });
+    }
+
+    // Настройка обработчиков для кастомных периодов
+    setupCustomPeriodHandlers() {
+        const addBtn = document.getElementById('add-custom-period');
+        const numberInput = document.getElementById('custom-period-number');
+        const unitSelect = document.getElementById('custom-period-unit');
+        const customList = document.getElementById('custom-period-list');
+
+        // Обработчик добавления периода
+        addBtn.addEventListener('click', () => {
+            this.addCustomPeriod();
+        });
+
+        // Обработчик Enter в поле числа
+        numberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.addCustomPeriod();
+            }
+        });
+
+        // Очищаем предыдущие обработчики
+        addBtn.replaceWith(addBtn.cloneNode(true));
+        numberInput.replaceWith(numberInput.cloneNode(true));
+        unitSelect.replaceWith(unitSelect.cloneNode(true));
+    }
+
+    // Добавить кастомный период
+    addCustomPeriod() {
+        const numberInput = document.getElementById('custom-period-number');
+        const unitSelect = document.getElementById('custom-period-unit');
+        const customList = document.getElementById('custom-period-list');
+        const nextBtn = document.getElementById('period-next-btn');
+
+        const number = parseInt(numberInput.value);
+        const unit = unitSelect.value;
+
+        if (number < 1 || number > 999) {
+            alert('Введите число от 1 до 999');
+            return;
+        }
+
+        // Добавляем период в список
+        const period = {
+            id: Date.now(),
+            number: number,
+            unit: unit,
+            days: this.convertToDays(number, unit)
+        };
+
+        this.customPeriods.push(period);
+        
+        // Обновляем список
+        this.updateCustomPeriodList();
+        
+        // Активируем кнопку "Далее"
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+        
+        // Очищаем поля
+        numberInput.value = '';
+    }
+
+    // Обновить список кастомных периодов
+    updateCustomPeriodList() {
+        const customList = document.getElementById('custom-period-list');
+        
+        if (this.customPeriods.length === 0) {
+            customList.innerHTML = '';
+            return;
+        }
+
+        const totalDays = this.customPeriods.reduce((sum, period) => sum + period.days, 0);
+        
+        customList.innerHTML = `
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                Общий период: ${totalDays} дней
+            </div>
+            ${this.customPeriods.map(period => `
+                <div class="custom-period-item">
+                    <span>${period.number} ${this.getUnitName(period.unit)}</span>
+                    <button class="custom-period-remove" data-period-id="${period.id}">Удалить</button>
+                </div>
+            `).join('')}
+        `;
+        
+        // Добавляем обработчики для кнопок удаления
+        customList.querySelectorAll('.custom-period-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const periodId = parseInt(btn.dataset.periodId);
+                this.removeCustomPeriod(periodId);
+            });
+        });
+    }
+
+    // Удалить кастомный период
+    removeCustomPeriod(periodId) {
+        this.customPeriods = this.customPeriods.filter(p => p.id !== periodId);
+        this.updateCustomPeriodList();
+        
+        // Проверяем валидность
+        this.validateDurationSelection();
+    }
+
+    // Конвертировать в дни
+    convertToDays(number, unit) {
+        const conversions = {
+            'days': 1,
+            'weeks': 7,
+            'months': 30, // Примерное значение
+            'years': 365 // Примерное значение
+        };
+        return number * conversions[unit];
+    }
+
+    // Получить название единицы
+    getUnitName(unit) {
+        const names = {
+            'days': 'дней',
+            'weeks': 'недель',
+            'months': 'месяцев',
+            'years': 'лет'
+        };
+        return names[unit];
+    }
+
+    // Валидация выбора периода
+    validateDurationSelection() {
+        const selectedPeriod = document.querySelector('input[name="period"]:checked');
+        const nextBtn = document.getElementById('period-next-btn');
+        
+        if (!selectedPeriod) {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+            return;
+        }
+        
+        if (selectedPeriod.value === 'custom') {
+            // Для кастомного периода нужны добавленные периоды
+            nextBtn.disabled = this.customPeriods.length === 0;
+            nextBtn.style.opacity = this.customPeriods.length === 0 ? '0.5' : '1';
+        } else {
+            // Для стандартных периодов все ОК
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+        }
     }
 
     // Валидация дедлайна
@@ -447,9 +636,17 @@ class RoadToDreamApp {
             // Сохраняем данные периода
             this.newGoalData.periodType = 'duration';
             this.newGoalData.period = selectedPeriod.value;
-            this.newGoalData.periodDays = this.getPeriodDays(selectedPeriod.value);
             
-            console.log('Выбран период:', this.newGoalData.period, 'дней:', this.newGoalData.periodDays);
+            if (selectedPeriod.value === 'custom') {
+                // Кастомный период
+                this.newGoalData.customPeriods = [...this.customPeriods];
+                this.newGoalData.periodDays = this.customPeriods.reduce((sum, period) => sum + period.days, 0);
+                console.log('Выбран кастомный период:', this.newGoalData.customPeriods, 'дней:', this.newGoalData.periodDays);
+            } else {
+                // Стандартный период
+                this.newGoalData.periodDays = this.getPeriodDays(selectedPeriod.value);
+                console.log('Выбран период:', this.newGoalData.period, 'дней:', this.newGoalData.periodDays);
+            }
         }
         
         // Закрываем текущее модальное окно
