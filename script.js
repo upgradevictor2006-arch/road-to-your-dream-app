@@ -116,69 +116,109 @@ class RoadToDreamApp {
                 </div>
             </div>
             
-            <!-- Модальное окно создания каравана -->
-            <div id="create-caravan-modal" class="modal-overlay hidden">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Создать новый караван</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.closeCreateCaravanModal()">×</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="create-caravan-form" class="caravan-form">
-                            <div class="form-group">
-                                <label for="caravan-name" class="form-label">Название команды</label>
-                                <input 
-                                    type="text" 
-                                    id="caravan-name" 
-                                    class="form-input" 
-                                    placeholder="Введите название вашей команды"
-                                    maxlength="50"
-                                    required
-                                >
-                                <div class="form-hint">Максимум 50 символов</div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="caravan-goal" class="form-label">Общая цель</label>
-                                <select id="caravan-goal" class="form-select" required>
-                                    <option value="">Выберите общую цель</option>
-                                    <option value="fitness">💪 Фитнес и здоровье</option>
-                                    <option value="career">🚀 Карьера и развитие</option>
-                                    <option value="education">📚 Обучение и навыки</option>
-                                    <option value="travel">✈️ Путешествия</option>
-                                    <option value="business">💼 Бизнес и предпринимательство</option>
-                                    <option value="creativity">🎨 Творчество и искусство</option>
-                                    <option value="family">👨‍👩‍👧‍👦 Семья и отношения</option>
-                                    <option value="finance">💰 Финансы и инвестиции</option>
-                                    <option value="spirituality">🧘 Духовность и саморазвитие</option>
-                                    <option value="other">🌟 Другое</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="caravan-description" class="form-label">Описание (необязательно)</label>
-                                <textarea 
-                                    id="caravan-description" 
-                                    class="form-textarea" 
-                                    placeholder="Расскажите подробнее о ваших планах..."
-                                    maxlength="200"
-                                    rows="3"
-                                ></textarea>
-                                <div class="form-hint">Максимум 200 символов</div>
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeCreateCaravanModal()">
-                                    Отмена
-                                </button>
-                                <button type="submit" class="btn-primary">
-                                    Создать караван
-                                </button>
-                            </div>
-                        </form>
+                <!-- Модальное окно создания каравана - Шаг 1: Название -->
+                <div id="create-caravan-modal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Шаг 1: Название команды</h3>
+                            <button class="modal-close" onclick="window.roadToDreamApp.closeCreateCaravanModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="create-caravan-step1-form" class="caravan-form">
+                                <div class="form-group">
+                                    <label for="caravan-name" class="form-label">Название команды</label>
+                                    <input 
+                                        type="text" 
+                                        id="caravan-name" 
+                                        class="form-input" 
+                                        placeholder="Введите название вашей команды"
+                                        maxlength="50"
+                                        required
+                                    >
+                                    <div class="form-hint">Максимум 50 символов</div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeCreateCaravanModal()">
+                                        Отмена
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        Продолжить
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+                
+                <!-- Модальное окно создания каравана - Шаг 2: Цель -->
+                <div id="create-caravan-step2-modal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Шаг 2: Общая цель</h3>
+                            <button class="modal-close" onclick="window.roadToDreamApp.closeCreateCaravanModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="create-caravan-step2-form" class="caravan-form">
+                                <div class="form-group">
+                                    <label for="caravan-goal" class="form-label">Общая цель</label>
+                                    <input 
+                                        type="text" 
+                                        id="caravan-goal" 
+                                        class="form-input" 
+                                        placeholder="Опишите общую цель вашей команды"
+                                        maxlength="100"
+                                        required
+                                    >
+                                    <div class="form-hint">Максимум 100 символов</div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.goToStep1()">
+                                        Назад
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        Продолжить
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Модальное окно создания каравана - Шаг 3: Описание -->
+                <div id="create-caravan-step3-modal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Шаг 3: Описание</h3>
+                            <button class="modal-close" onclick="window.roadToDreamApp.closeCreateCaravanModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="create-caravan-step3-form" class="caravan-form">
+                                <div class="form-group">
+                                    <label for="caravan-description" class="form-label">Описание каравана</label>
+                                    <textarea 
+                                        id="caravan-description" 
+                                        class="form-textarea" 
+                                        placeholder="Расскажите подробнее о ваших планах..."
+                                        maxlength="200"
+                                        rows="4"
+                                    ></textarea>
+                                    <div class="form-hint">Максимум 200 символов</div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.goToStep2()">
+                                        Назад
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        Продолжить
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             
             <!-- Модальное окно редактирования описания -->
             <div id="edit-description-modal" class="modal-overlay hidden">
@@ -247,6 +287,9 @@ class RoadToDreamApp {
                             <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.closeManageMembersModal()">
                                 Закрыть
                             </button>
+                            <button type="button" class="btn-primary" onclick="window.roadToDreamApp.finishCaravanCreation()" id="finish-caravan-btn" style="display: none;">
+                                Создать караван
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -299,14 +342,30 @@ class RoadToDreamApp {
             </div>
         `;
         
-        // Добавляем обработчик формы
-        const form = appContainer.querySelector('#create-caravan-form');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleCreateCaravan();
-            });
-        }
+            // Добавляем обработчики форм
+            const form1 = appContainer.querySelector('#create-caravan-step1-form');
+            if (form1) {
+                form1.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleStep1();
+                });
+            }
+            
+            const form2 = appContainer.querySelector('#create-caravan-step2-form');
+            if (form2) {
+                form2.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleStep2();
+                });
+            }
+            
+            const form3 = appContainer.querySelector('#create-caravan-step3-form');
+            if (form3) {
+                form3.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleStep3();
+                });
+            }
 
         // Добавляем обработчик клика вне меню для его закрытия
         document.addEventListener('click', (e) => {
@@ -329,87 +388,222 @@ class RoadToDreamApp {
 
     // Показать модальное окно создания каравана
     showCreateCaravanModal() {
+        this.initCaravanCreation();
         const modal = document.getElementById('create-caravan-modal');
         if (modal) {
             modal.classList.remove('hidden');
-            // Фокусируемся на первом поле
+            // Фокусируемся на поле ввода
+            setTimeout(() => {
+                const input = document.getElementById('caravan-name');
+                if (input) {
+                    input.focus();
+                }
+            }, 100);
+        }
+    }
+
+    // Показать шаг 2
+    showStep2() {
+        const modal1 = document.getElementById('create-caravan-modal');
+        const modal2 = document.getElementById('create-caravan-step2-modal');
+        
+        if (modal1) modal1.classList.add('hidden');
+        if (modal2) {
+            modal2.classList.remove('hidden');
+            // Фокусируемся на поле ввода цели
+            setTimeout(() => {
+                const input = document.getElementById('caravan-goal');
+                if (input) {
+                    input.focus();
+                }
+            }, 100);
+        }
+    }
+
+    // Показать шаг 3
+    showStep3() {
+        const modal2 = document.getElementById('create-caravan-step2-modal');
+        const modal3 = document.getElementById('create-caravan-step3-modal');
+        
+        if (modal2) modal2.classList.add('hidden');
+        if (modal3) {
+            modal3.classList.remove('hidden');
+            // Фокусируемся на поле ввода описания
+            setTimeout(() => {
+                const textarea = document.getElementById('caravan-description');
+                if (textarea) {
+                    textarea.focus();
+                }
+            }, 100);
+        }
+    }
+
+    // Вернуться к шагу 1
+    goToStep1() {
+        const modal1 = document.getElementById('create-caravan-modal');
+        const modal2 = document.getElementById('create-caravan-step2-modal');
+        
+        if (modal2) modal2.classList.add('hidden');
+        if (modal1) {
+            modal1.classList.remove('hidden');
+            // Восстанавливаем введенное название
             const nameInput = document.getElementById('caravan-name');
-            if (nameInput) {
-                setTimeout(() => nameInput.focus(), 100);
+            if (nameInput && this.caravanCreationData) {
+                nameInput.value = this.caravanCreationData.name;
+                nameInput.focus();
+            }
+        }
+    }
+
+    // Вернуться к шагу 2
+    goToStep2() {
+        const modal2 = document.getElementById('create-caravan-step2-modal');
+        const modal3 = document.getElementById('create-caravan-step3-modal');
+        
+        if (modal3) modal3.classList.add('hidden');
+        if (modal2) {
+            modal2.classList.remove('hidden');
+            // Восстанавливаем введенную цель
+            const goalInput = document.getElementById('caravan-goal');
+            if (goalInput && this.caravanCreationData) {
+                goalInput.value = this.caravanCreationData.goal;
+                goalInput.focus();
             }
         }
     }
 
     // Закрыть модальное окно создания каравана
     closeCreateCaravanModal() {
-        const modal = document.getElementById('create-caravan-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            // Очищаем форму
-            const form = document.getElementById('create-caravan-form');
-            if (form) {
-                form.reset();
+        const modals = [
+            'create-caravan-modal',
+            'create-caravan-step2-modal',
+            'create-caravan-step3-modal'
+        ];
+        
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                // Очищаем форму
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset();
+                }
             }
-        }
+        });
+        
+        // Очищаем данные создания каравана
+        this.caravanCreationData = null;
     }
 
-    // Обработка создания каравана
-    handleCreateCaravan() {
-        const nameInput = document.getElementById('caravan-name');
-        const goalSelect = document.getElementById('caravan-goal');
-        const descriptionTextarea = document.getElementById('caravan-description');
+    // Инициализация данных для создания каравана
+    initCaravanCreation() {
+        this.caravanCreationData = {
+            name: '',
+            goal: '',
+            description: ''
+        };
+    }
 
-        if (!nameInput || !goalSelect) {
-            console.error('Не найдены поля формы');
+    // Обработка шага 1: Название команды
+    handleStep1() {
+        const nameInput = document.getElementById('caravan-name');
+
+        if (!nameInput) {
+            console.error('Не найдено поле названия');
             return;
         }
 
-        const caravanData = {
-            name: nameInput.value.trim(),
-            goal: goalSelect.value,
-            description: descriptionTextarea ? descriptionTextarea.value.trim() : ''
-        };
+        const name = nameInput.value.trim();
 
         // Валидация
-        if (!caravanData.name) {
+        if (!name) {
             alert('Пожалуйста, введите название команды');
             nameInput.focus();
             return;
         }
 
-        if (!caravanData.goal) {
-            alert('Пожалуйста, выберите общую цель');
-            goalSelect.focus();
-            return;
-        }
-
-        if (caravanData.name.length > 50) {
+        if (name.length > 50) {
             alert('Название команды не должно превышать 50 символов');
             nameInput.focus();
             return;
         }
 
-        if (caravanData.description.length > 200) {
+        // Сохраняем данные и переходим к следующему шагу
+        this.caravanCreationData.name = name;
+        this.showStep2();
+    }
+
+    // Обработка шага 2: Общая цель
+    handleStep2() {
+        const goalInput = document.getElementById('caravan-goal');
+
+        if (!goalInput) {
+            console.error('Не найдено поле цели');
+            return;
+        }
+
+        const goal = goalInput.value.trim();
+
+        // Валидация
+        if (!goal) {
+            alert('Пожалуйста, введите общую цель');
+            goalInput.focus();
+            return;
+        }
+
+        if (goal.length > 100) {
+            alert('Общая цель не должна превышать 100 символов');
+            goalInput.focus();
+            return;
+        }
+
+        // Сохраняем данные и переходим к следующему шагу
+        this.caravanCreationData.goal = goal;
+        this.showStep3();
+    }
+
+    // Обработка шага 3: Описание
+    handleStep3() {
+        const descriptionTextarea = document.getElementById('caravan-description');
+
+        if (!descriptionTextarea) {
+            console.error('Не найдено поле описания');
+            return;
+        }
+
+        const description = descriptionTextarea.value.trim();
+
+        // Валидация
+        if (description.length > 200) {
             alert('Описание не должно превышать 200 символов');
             descriptionTextarea.focus();
             return;
         }
 
-        console.log('Создание каравана:', caravanData);
+        // Сохраняем данные и переходим к управлению участниками
+        this.caravanCreationData.description = description;
+        this.showManageMembersForNewCaravan();
+    }
 
-        // Добавляем караван в список
-        const newCaravan = this.addCaravan(caravanData);
+    // Показать управление участниками для нового каравана
+    showManageMembersForNewCaravan() {
+        // Закрываем шаг 3
+        const modal3 = document.getElementById('create-caravan-step3-modal');
+        if (modal3) modal3.classList.add('hidden');
         
-        // Закрываем модальное окно
-        this.closeCreateCaravanModal();
+        // Создаем временный караван для отображения в модальном окне управления участниками
+        const tempCaravan = {
+            id: 'temp-new-caravan',
+            name: this.caravanCreationData.name,
+            goal: this.caravanCreationData.goal,
+            description: this.caravanCreationData.description,
+            members: 1,
+            status: 'active'
+        };
         
-        // Показываем уведомление об успехе
-        this.showNotification('Караван "' + caravanData.name + '" успешно создан!', 'success');
-        
-        // Обновляем экран каравана для отображения нового каравана
-        setTimeout(() => {
-            this.renderCaravanScreen();
-        }, 1000);
+        // Показываем модальное окно управления участниками
+        this.showManageMembersModal(tempCaravan);
     }
 
     // Загрузить караваны из localStorage
@@ -463,7 +657,12 @@ class RoadToDreamApp {
             'spirituality': '🧘 Духовность и саморазвитие',
             'other': '🌟 Другое'
         };
-        return goals[goalValue] || '🌟 Другое';
+        // Если это уже готовое название цели, возвращаем как есть
+        if (goalValue && Object.values(goals).includes(goalValue)) {
+            return goalValue;
+        }
+        // Если это ключ, возвращаем соответствующее название
+        return goals[goalValue] || goalValue || '🌟 Другое';
     }
 
     // Рендеринг списка караванов
@@ -771,6 +970,16 @@ class RoadToDreamApp {
             // Заполняем список участников
             this.renderMembersList(caravan);
             modal.classList.remove('hidden');
+            
+            // Показываем кнопку "Создать караван" только для нового каравана
+            const finishBtn = document.getElementById('finish-caravan-btn');
+            if (finishBtn) {
+                if (caravan.id === 'temp-new-caravan') {
+                    finishBtn.style.display = 'inline-block';
+                } else {
+                    finishBtn.style.display = 'none';
+                }
+            }
         }
     }
 
@@ -821,6 +1030,29 @@ class RoadToDreamApp {
         // Пока что просто показываем сообщение
         alert(`Добавление участника "${username}"\n\nФункция добавления участников будет реализована позже!`);
         usernameInput.value = '';
+    }
+
+    // Завершить создание каравана
+    finishCaravanCreation() {
+        if (!this.caravanCreationData) {
+            console.error('Нет данных для создания каравана');
+            return;
+        }
+
+        // Создаем караван
+        const newCaravan = this.addCaravan(this.caravanCreationData);
+        
+        // Закрываем все модальные окна
+        this.closeManageMembersModal();
+        this.closeCreateCaravanModal();
+        
+        // Показываем уведомление об успехе
+        this.showNotification('Караван "' + this.caravanCreationData.name + '" успешно создан!', 'success');
+        
+        // Обновляем экран каравана для отображения нового каравана
+        setTimeout(() => {
+            this.renderCaravanScreen();
+        }, 1000);
     }
 
     // Удалить участника (заглушка)
