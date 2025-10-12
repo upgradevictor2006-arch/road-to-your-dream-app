@@ -764,12 +764,14 @@ class RoadToDreamApp {
             return `
                 <div class="breakdown-item" data-id="${item.id}">
                     <div class="breakdown-header" data-toggle-id="${item.id}">
-                        <svg class="breakdown-icon ${hasChildren ? '' : 'hidden'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9,18 15,12 9,6"></polyline>
-                        </svg>
-                        <div class="breakdown-content">
-                            <div class="breakdown-title">${item.title}</div>
-                            <div class="breakdown-task">${item.task || ''}</div>
+                        <div class="breakdown-left">
+                            <svg class="breakdown-icon ${hasChildren ? '' : 'hidden'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                            <div class="breakdown-content">
+                                <div class="breakdown-title">${item.title}</div>
+                                <div class="breakdown-task">${item.task || ''}</div>
+                            </div>
                         </div>
                         <button class="breakdown-edit-btn" data-edit-id="${item.id}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

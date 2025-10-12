@@ -577,6 +577,7 @@ body {
 .breakdown-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 16px 20px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -584,6 +585,12 @@ body {
 
 .breakdown-header:hover {
     background: rgba(255, 255, 255, 0.05);
+}
+
+.breakdown-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
 }
 
 .breakdown-icon {
@@ -621,12 +628,12 @@ body {
     padding: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-left: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 32px;
     height: 32px;
+    flex-shrink: 0;
 }
 
 .breakdown-edit-btn:hover {
