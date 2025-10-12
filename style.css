@@ -544,12 +544,25 @@ body {
     overflow: hidden;
     animation: dropdownSlideIn 0.2s ease;
     margin-bottom: 120px;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 @keyframes dropdownSlideIn {
     from {
         opacity: 0;
         transform: translateY(-8px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes dropdownSlideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
     }
     to {
         opacity: 1;

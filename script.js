@@ -656,14 +656,42 @@ class RoadToDreamApp {
                     const rect = menu.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
                     const navHeight = 120; // Высота нижней панели навигации
+                    const menuHeight = rect.height;
+                    const triggerRect = menu.previousElementSibling.getBoundingClientRect();
                     
-                    // Если меню выходит за пределы экрана снизу, показываем его сверху
-                    if (rect.bottom > viewportHeight - navHeight) {
+                    // Проверяем, есть ли место снизу для меню
+                    const spaceBelow = viewportHeight - navHeight - triggerRect.bottom;
+                    const spaceAbove = triggerRect.top;
+                    
+                    // Проверяем, не перекрывает ли меню другие караваны
+                    const currentCaravanCard = menu.closest('.caravan-card');
+                    const nextCaravanCard = currentCaravanCard?.nextElementSibling;
+                    
+                    let shouldOpenUp = false;
+                    
+                    // Если места снизу недостаточно, но есть место сверху - показываем сверху
+                    if (spaceBelow < menuHeight && spaceAbove >= menuHeight) {
+                        shouldOpenUp = true;
+                    }
+                    
+                    // Если есть следующий караван и меню может его перекрыть
+                    if (nextCaravanCard && !shouldOpenUp) {
+                        const nextCaravanRect = nextCaravanCard.getBoundingClientRect();
+                        const menuBottomPosition = triggerRect.bottom + menuHeight;
+                        
+                        if (menuBottomPosition > nextCaravanRect.top && spaceAbove >= menuHeight) {
+                            shouldOpenUp = true;
+                        }
+                    }
+                    
+                    if (shouldOpenUp) {
                         menu.style.top = 'auto';
                         menu.style.bottom = '100%';
+                        menu.style.animation = 'dropdownSlideInUp 0.2s ease';
                     } else {
                         menu.style.top = '100%';
                         menu.style.bottom = 'auto';
+                        menu.style.animation = 'dropdownSlideIn 0.2s ease';
                     }
                 }, 10);
             } else {
