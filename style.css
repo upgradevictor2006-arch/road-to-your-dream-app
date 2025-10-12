@@ -841,15 +841,15 @@ body {
 .step.completed {
     fill: var(--gold-primary);
     stroke: var(--gold-primary);
-    filter: drop-shadow(0 0 6px rgba(244, 189, 65, 0.4));
+    filter: drop-shadow(0 0 8px rgba(244, 189, 65, 0.6));
 }
 
 .step.current {
     fill: var(--gold-primary);
     stroke: var(--gold-primary);
     stroke-width: 3;
-    filter: drop-shadow(0 0 12px rgba(244, 189, 65, 0.8));
-    animation: currentStepGlow 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 16px rgba(244, 189, 65, 1));
+    animation: currentStepGlow 1.5s ease-in-out infinite;
 }
 
 .step.pending {
@@ -917,12 +917,12 @@ body {
 /* Анимации */
 @keyframes currentStepGlow {
     0%, 100% { 
-        filter: drop-shadow(0 0 12px rgba(244, 189, 65, 0.8));
+        filter: drop-shadow(0 0 16px rgba(244, 189, 65, 1));
         transform: scale(1);
     }
     50% { 
-        filter: drop-shadow(0 0 16px rgba(244, 189, 65, 1));
-        transform: scale(1.05);
+        filter: drop-shadow(0 0 24px rgba(244, 189, 65, 1));
+        transform: scale(1.1);
     }
 }
 

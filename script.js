@@ -1002,20 +1002,27 @@ class RoadToDreamApp {
     calculateStepPosition(stepIndex, totalSteps) {
         const width = 350;
         const height = 400;
-        const stepWidth = width / 4; // 4 шага по горизонтали
-        const stepHeight = height / 2; // 2 ряда по вертикали
         
-        // Зигзагообразный паттерн
-        const row = Math.floor(stepIndex / 4);
-        const col = stepIndex % 4;
+        // Зигзагообразный паттерн как на шаблоне
+        // Дорога начинается справа вверху, идет вниз-влево, затем вправо, затем влево
+        const positions = [
+            { x: 300, y: 80 },   // 1 - справа вверху
+            { x: 250, y: 150 },  // 2 - левее и ниже
+            { x: 200, y: 220 },  // 3 - еще левее и ниже
+            { x: 150, y: 290 },  // 4 - левее и ниже
+            { x: 100, y: 360 },  // 5 - слева внизу
+            { x: 150, y: 320 },  // 6 - немного вправо
+            { x: 200, y: 280 },  // 7 - еще правее
+            { x: 250, y: 240 },  // 8 - правее
+            { x: 300, y: 200 },  // 9 - справа
+            { x: 250, y: 160 },  // 10 - левее
+            { x: 200, y: 120 },  // 11 - еще левее
+            { x: 150, y: 80 },   // 12 - слева вверху
+        ];
         
-        // Чередование направления в рядах
-        const actualCol = row % 2 === 0 ? col : 3 - col;
-        
-        const x = 50 + (actualCol * stepWidth);
-        const y = 100 + (row * stepHeight);
-        
-        return { x, y };
+        // Используем позиции по циклу
+        const positionIndex = stepIndex % positions.length;
+        return positions[positionIndex];
     }
 
     // Показать экран карты
@@ -1074,7 +1081,6 @@ class RoadToDreamApp {
     // Рендеринг дороги
     renderRoadPath() {
         const visibleSteps = this.generateVisibleSteps();
-        let pathData = '';
         let pathElements = '';
         
         // Создаем зигзагообразную дорогу
@@ -1085,15 +1091,14 @@ class RoadToDreamApp {
             const pathId = `path-${i}`;
             const pathD = `M${currentStep.position.x},${currentStep.position.y} L${nextStep.position.x},${nextStep.position.y}`;
             
-            // Определяем, активна ли линия (до текущего шага)
-            const isActive = i < this.currentMap.currentStep;
+            // Определяем, активна ли линия (до текущего шага включительно)
+            const globalIndex = this.currentMap.currentStep - 2 + i;
+            const isActive = globalIndex < this.currentMap.currentStep;
             
             pathElements += `
                 <path class="road-line ${isActive ? 'active' : ''}" 
                       id="${pathId}" 
-                      d="${pathD}" 
-                      stroke-dasharray="${isActive ? '0 100' : '100 0'}"
-                      stroke-dashoffset="0"/>
+                      d="${pathD}"/>
             `;
         }
         
@@ -1115,10 +1120,12 @@ class RoadToDreamApp {
                 className += ' pending';
             }
             
-            return `<circle class="${className}" 
+            // Овальные шаги как на шаблоне
+            return `<ellipse class="${className}" 
                            cx="${step.position.x}" 
                            cy="${step.position.y}" 
-                           r="12" 
+                           rx="20" 
+                           ry="12" 
                            data-step-id="${step.id}"/>`;
         }).join('');
     }
@@ -1240,7 +1247,10 @@ class RoadToDreamApp {
     animateLineFill() {
         const currentPath = document.querySelector(`#path-${this.currentMap.currentStep}`);
         if (currentPath) {
-            currentPath.style.animation = 'lineFill 1s ease-in-out forwards';
+            // Запускаем анимацию заполнения линии желтым цветом
+            currentPath.style.strokeDasharray = '100 0';
+            currentPath.style.stroke = 'var(--gold-primary)';
+            currentPath.style.filter = 'drop-shadow(0 0 8px rgba(244, 189, 65, 0.6))';
             currentPath.classList.add('active');
         }
     }
