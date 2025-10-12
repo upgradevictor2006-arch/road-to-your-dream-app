@@ -1039,6 +1039,9 @@ class RoadToDreamApp {
             return;
         }
 
+        // Сохраняем данные перед закрытием модальных окон
+        const caravanName = this.caravanCreationData.name;
+        
         // Создаем караван
         const newCaravan = this.addCaravan(this.caravanCreationData);
         
@@ -1047,7 +1050,7 @@ class RoadToDreamApp {
         this.closeCreateCaravanModal();
         
         // Показываем уведомление об успехе
-        this.showNotification('Караван "' + this.caravanCreationData.name + '" успешно создан!', 'success');
+        this.showNotification('Караван "' + caravanName + '" успешно создан!', 'success');
         
         // Обновляем экран каравана для отображения нового каравана
         setTimeout(() => {
