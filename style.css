@@ -622,7 +622,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: 20px 20px 140px 20px;
 }
 
 .modal-overlay.hidden {
@@ -1147,7 +1147,7 @@ body {
     
     .modal-content {
         max-width: 360px;
-        margin: 10px;
+        margin: 10px 10px 140px 10px;
     }
     
     /* Стили карточек караванов для планшетов */
@@ -1426,7 +1426,7 @@ body {
     
     .modal-content {
         max-width: 280px;
-        margin: 8px;
+        margin: 8px 8px 140px 8px;
     }
     
     #navigation {
@@ -1486,6 +1486,11 @@ body {
     .nav-icon {
         font-size: 18px;
         margin-bottom: 0;
+    }
+    
+    /* Стили модального окна для очень маленьких экранов */
+    .modal-content {
+        margin: 8px 8px 140px 8px;
     }
 }
 
