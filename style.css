@@ -1093,7 +1093,7 @@ body {
     align-items: center;
     z-index: 1001;
     box-shadow: 0 8px 32px var(--shadow-color);
-    gap: 4px;
+    gap: 8px;
     transition: all 0.3s ease;
 }
 
@@ -1107,7 +1107,7 @@ body {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 12px;
-    min-width: 70px;
+    min-width: 80px;
     flex: 1;
     position: relative;
     box-sizing: border-box;
@@ -1845,6 +1845,103 @@ body {
 .empty-state p {
     color: var(--text-secondary);
     font-size: 14px;
+}
+
+/* Стили для информации о целях под картой */
+.goals-info {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.goals-info:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.goals-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.goal-stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.goal-stat-number {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.goal-stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+}
+
+.goal-mini-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.goal-mini-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.goal-mini-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.goal-mini-title {
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.goal-mini-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.goal-mini-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    height: 4px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.goal-mini-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.goal-mini-percent {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 10px;
+    min-width: 25px;
+    text-align: right;
 }
 
 /* Стили для профиля */

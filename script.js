@@ -135,11 +135,7 @@ class RoadToDreamApp {
         switch(this.currentScreen) {
             case 'map-screen':
                 console.log('Rendering map with data:', this.demoData);
-                renderMap(this.demoData);
-                break;
-            case 'goals-screen':
-                console.log('Rendering goals with data:', this.demoData);
-                renderPlan(this.demoData);
+                renderMapWithGoals(this.demoData);
                 break;
             case 'caravan-screen':
                 console.log('Caravan screen - TODO');
@@ -523,9 +519,9 @@ function renderApp(data) {
     renderProfile(data);
 }
 
-// Функция отрисовки карты в стиле Duolingo
-function renderMap(data) {
-    console.log('renderMap called with data:', data);
+// Функция отрисовки карты с целями
+function renderMapWithGoals(data) {
+    console.log('renderMapWithGoals called with data:', data);
     const mapCanvas = document.getElementById('map-canvas');
     console.log('mapCanvas element:', mapCanvas);
     if (!mapCanvas) {
@@ -535,7 +531,7 @@ function renderMap(data) {
     
     // Очищаем предыдущий контент
     mapCanvas.innerHTML = '';
-    console.log('Starting to render Duolingo-style map...');
+    console.log('Starting to render map with goals...');
     
     // Используем данные из класса приложения
     if (!data || !data.goals) {
@@ -547,6 +543,14 @@ function renderMap(data) {
     
     // Создаем структуру карты в стиле Duolingo
     createDuolingoMap(mapCanvas, goals, data.user);
+    
+    // Добавляем информацию о целях под картой
+    addGoalsInfo(mapCanvas, goals);
+}
+
+// Функция отрисовки карты в стиле Duolingo (старая версия для совместимости)
+function renderMap(data) {
+    renderMapWithGoals(data);
 }
 
 // Функция создания карты в стиле Duolingo
@@ -578,6 +582,74 @@ function createDuolingoMap(container, goals, user) {
     
     mapContainer.appendChild(road);
     container.appendChild(mapContainer);
+}
+
+// Функция добавления информации о целях под картой
+function addGoalsInfo(container, goals) {
+    // Создаем контейнер для информации о целях
+    const goalsInfo = document.createElement('div');
+    goalsInfo.className = 'goals-info';
+    goalsInfo.style.cssText = `
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    `;
+    
+    // Статистика целей
+    const totalGoals = goals.length;
+    const completedGoals = goals.filter(goal => goal.status === 'completed').length;
+    const currentGoals = goals.filter(goal => goal.status === 'current').length;
+    const overallProgress = Math.round((completedGoals / totalGoals) * 100);
+    
+    goalsInfo.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: white; margin: 0 0 10px 0; font-size: 18px;">📊 Прогресс целей</h3>
+            <div class="goals-stats">
+                <div class="goal-stat-item">
+                    <div class="goal-stat-number">${totalGoals}</div>
+                    <div class="goal-stat-label">Всего</div>
+                </div>
+                <div class="goal-stat-item">
+                    <div class="goal-stat-number" style="color: #10b981;">${completedGoals}</div>
+                    <div class="goal-stat-label">Выполнено</div>
+                </div>
+                <div class="goal-stat-item">
+                    <div class="goal-stat-number" style="color: #f59e0b;">${currentGoals}</div>
+                    <div class="goal-stat-label">В работе</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+            <div style="color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 8px;">Общий прогресс</div>
+            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 8px; overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); height: 100%; width: ${overallProgress}%; transition: width 0.3s ease;"></div>
+            </div>
+            <div style="color: white; font-size: 12px; margin-top: 4px;">${overallProgress}%</div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            ${goals.map(goal => `
+                <div class="goal-mini-card">
+                    <div class="goal-mini-header">
+                        <span style="font-size: 14px;">${getCategoryIcon(goal.category)}</span>
+                        <span class="goal-mini-title">${goal.title}</span>
+                    </div>
+                    <div class="goal-mini-progress">
+                        <div class="goal-mini-bar">
+                            <div class="goal-mini-fill" style="background: ${goal.status === 'completed' ? '#10b981' : goal.status === 'current' ? '#f59e0b' : '#6b7280'}; width: ${goal.progress}%;"></div>
+                        </div>
+                        <span class="goal-mini-percent">${goal.progress}%</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    container.appendChild(goalsInfo);
 }
 
 // Функция создания узла цели
@@ -789,9 +861,7 @@ function selectGoal(goal) {
         
         // Принудительно обновляем текущий экран
         if (window.roadToDreamApp.currentScreen === 'map-screen') {
-            renderMap(window.roadToDreamApp.demoData);
-        } else if (window.roadToDreamApp.currentScreen === 'goals-screen') {
-            renderPlan(window.roadToDreamApp.demoData);
+            renderMapWithGoals(window.roadToDreamApp.demoData);
         } else if (window.roadToDreamApp.currentScreen === 'profile-screen') {
             renderProfile(window.roadToDreamApp.demoData);
         }

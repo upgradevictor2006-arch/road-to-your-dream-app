@@ -24,10 +24,6 @@
             <div id="map-canvas"></div>
         </main>
 
-        <!-- Экран целей (скрыт по умолчанию) -->
-        <section id="goals-screen" class="screen hidden">
-            <div id="goals-content"></div>
-        </section>
 
         <!-- Экран плана (скрыт по умолчанию) -->
         <section id="plan-screen" class="screen hidden">
@@ -58,21 +54,17 @@
 
     <!-- Панель навигации -->
     <nav id="navigation">
-        <button class="nav-btn" data-screen="goals-screen" aria-label="Цели">
-            <span class="nav-icon">🎯</span>
-            <span class="nav-label">Цели</span>
+        <button class="nav-btn" data-screen="caravan-screen" aria-label="Караван">
+            <span class="nav-icon">🚐</span>
+            <span class="nav-label">Караван</span>
         </button>
         <button class="nav-btn active" data-screen="map-screen" aria-label="Карта">
             <span class="nav-icon">🗺️</span>
             <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-btn" data-screen="caravan-screen" aria-label="Караван">
-            <span class="nav-icon">👥</span>
-            <span class="nav-label">Караван</span>
-        </button>
-        <button class="nav-btn" data-screen="profile-screen" aria-label="Профиль">
-            <span class="nav-icon">👤</span>
-            <span class="nav-label">Профиль</span>
+        <button class="nav-btn" data-screen="profile-screen" aria-label="Гараж">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Гараж</span>
         </button>
     </nav>
 
