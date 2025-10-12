@@ -18,7 +18,7 @@ class RoadToDreamApp {
     // Переключение между экранами
     showScreen(screenId) {
             this.currentScreen = screenId;
-        this.renderCurrentScreen();
+            this.renderCurrentScreen();
     }
     
     // Рендеринг текущего экрана
@@ -112,8 +112,8 @@ class RoadToDreamApp {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closeCreateMapModal()">Отмена</button>
-                        <button class="btn btn-primary" onclick="this.nextStep()" id="next-btn" disabled>Далее</button>
+                        <button class="btn btn-secondary" id="cancel-btn">Отмена</button>
+                        <button class="btn btn-primary" id="next-btn" disabled>Далее</button>
                     </div>
                 </div>
             </div>
@@ -130,6 +130,16 @@ class RoadToDreamApp {
     setupCreateMapModalEvents() {
         const goalInput = document.getElementById('goal-title');
         const nextBtn = document.getElementById('next-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // Обработчики кнопок
+        nextBtn.addEventListener('click', () => {
+            this.nextStep();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            this.closeCreateMapModal();
+        });
 
         // Валидация ввода
         goalInput.addEventListener('input', (e) => {
@@ -138,7 +148,7 @@ class RoadToDreamApp {
             
             if (value.length >= 3) {
                 nextBtn.style.opacity = '1';
-            } else {
+    } else {
                 nextBtn.style.opacity = '0.5';
             }
         });
@@ -164,7 +174,7 @@ class RoadToDreamApp {
         const modal = document.getElementById('create-map-modal');
         if (modal) {
             modal.classList.remove('active');
-            setTimeout(() => {
+                setTimeout(() => {
                 modal.remove();
             }, 300);
         }
@@ -176,9 +186,9 @@ class RoadToDreamApp {
         const goalDescription = document.getElementById('goal-description').value.trim();
 
         if (goalTitle.length < 3) {
-            return;
-        }
-
+        return;
+    }
+    
         // Сохраняем данные цели
         this.newGoalData = {
             title: goalTitle,
@@ -202,7 +212,7 @@ class RoadToDreamApp {
                     <div class="modal-header">
                         <h2 class="modal-title">Выберите период</h2>
                         <p class="modal-subtitle">За какой срок хотите достичь цель?</p>
-                    </div>
+                </div>
                     <div class="modal-body">
                         <div class="period-options">
                             <div class="period-option" data-period="week">
@@ -210,51 +220,51 @@ class RoadToDreamApp {
                                 <div class="period-info">
                                     <div class="period-title">1 неделя</div>
                                     <div class="period-description">Быстрая цель на неделю</div>
-                                </div>
+                </div>
                                 <div class="period-badge">7 дней</div>
-                            </div>
+                </div>
                             <div class="period-option" data-period="month">
                                 <input type="radio" name="period" value="month" class="period-radio" id="period-month">
                                 <div class="period-info">
                                     <div class="period-title">1 месяц</div>
                                     <div class="period-description">Среднесрочная цель</div>
-                                </div>
+            </div>
                                 <div class="period-badge">28 дней</div>
-                            </div>
+        </div>
                             <div class="period-option" data-period="quarter">
                                 <input type="radio" name="period" value="quarter" class="period-radio" id="period-quarter">
                                 <div class="period-info">
                                     <div class="period-title">3 месяца</div>
                                     <div class="period-description">Долгосрочная цель</div>
-                                </div>
+            </div>
                                 <div class="period-badge">84 дня</div>
-                            </div>
+        </div>
                             <div class="period-option" data-period="half-year">
                                 <input type="radio" name="period" value="half-year" class="period-radio" id="period-half-year">
                                 <div class="period-info">
                                     <div class="period-title">6 месяцев</div>
                                     <div class="period-description">Серьезный проект</div>
-                                </div>
+                    </div>
                                 <div class="period-badge">168 дней</div>
-                            </div>
+                        </div>
                             <div class="period-option" data-period="year">
                                 <input type="radio" name="period" value="year" class="period-radio" id="period-year">
                                 <div class="period-info">
                                     <div class="period-title">1 год</div>
                                     <div class="period-description">Масштабная цель</div>
-                                </div>
+                    </div>
                                 <div class="period-badge">336 дней</div>
-                            </div>
+                </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.goBackToGoalInput()">Назад</button>
-                        <button class="btn btn-primary" onclick="this.nextToPeriodBreakdown()" id="period-next-btn" disabled>Далее</button>
+                        <button class="btn btn-secondary" id="period-back-btn">Назад</button>
+                        <button class="btn btn-primary" id="period-next-btn" disabled>Далее</button>
                     </div>
                 </div>
-            </div>
-        `;
-
+        </div>
+    `;
+    
         // Добавляем модальное окно в body
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
@@ -266,6 +276,16 @@ class RoadToDreamApp {
     setupPeriodSelectionEvents() {
         const periodOptions = document.querySelectorAll('.period-option');
         const nextBtn = document.getElementById('period-next-btn');
+        const backBtn = document.getElementById('period-back-btn');
+
+        // Обработчики кнопок
+        nextBtn.addEventListener('click', () => {
+            this.nextToPeriodBreakdown();
+        });
+
+        backBtn.addEventListener('click', () => {
+            this.goBackToGoalInput();
+        });
 
         periodOptions.forEach(option => {
             const radio = option.querySelector('.period-radio');
@@ -293,16 +313,16 @@ class RoadToDreamApp {
                     nextBtn.style.opacity = '1';
                 }
             });
-        });
-
-        // Закрытие по клику на overlay
+    });
+    
+    // Закрытие по клику на overlay
         const modal = document.getElementById('period-selection-modal');
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closePeriodSelectionModal();
-            }
-        });
-    }
+        }
+    });
+}
 
     // Закрыть модальное окно выбора периода
     closePeriodSelectionModal() {
@@ -358,8 +378,8 @@ class RoadToDreamApp {
             <div class="screen-content">
                 <h2>🚐 Караван</h2>
                 <p>Здесь будет реализован экран каравана</p>
-            </div>
-        `;
+        </div>
+    `;
     }
 
     // Рендеринг экрана гаража
@@ -369,8 +389,8 @@ class RoadToDreamApp {
             <div class="screen-content">
                 <h2>🏠 Гараж</h2>
                 <p>Здесь будет реализован экран гаража/профиля</p>
-            </div>
-        `;
+        </div>
+    `;
     }
 
     // Настройка Telegram WebApp
