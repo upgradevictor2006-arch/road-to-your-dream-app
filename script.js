@@ -210,51 +210,60 @@ class RoadToDreamApp {
             <div class="modal-overlay active" id="period-selection-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="modal-title">Выберите период</h2>
-                        <p class="modal-subtitle">За какой срок хотите достичь цель?</p>
-                </div>
+                        <h2 class="modal-title">Срок достижения цели</h2>
+                        <p class="modal-subtitle">Как вы хотите установить срок?</p>
+                    </div>
                     <div class="modal-body">
-                        <div class="period-options">
-                            <div class="period-option" data-period="week">
-                                <input type="radio" name="period" value="week" class="period-radio" id="period-week">
-                                <div class="period-info">
-                                    <div class="period-title">1 неделя</div>
-                                    <div class="period-description">Быстрая цель на неделю</div>
-                </div>
-                                <div class="period-badge">7 дней</div>
-                </div>
-                            <div class="period-option" data-period="month">
-                                <input type="radio" name="period" value="month" class="period-radio" id="period-month">
-                                <div class="period-info">
-                                    <div class="period-title">1 месяц</div>
-                                    <div class="period-description">Среднесрочная цель</div>
-            </div>
-                                <div class="period-badge">28 дней</div>
-        </div>
-                            <div class="period-option" data-period="quarter">
-                                <input type="radio" name="period" value="quarter" class="period-radio" id="period-quarter">
-                                <div class="period-info">
-                                    <div class="period-title">3 месяца</div>
-                                    <div class="period-description">Долгосрочная цель</div>
-            </div>
-                                <div class="period-badge">84 дня</div>
-        </div>
-                            <div class="period-option" data-period="half-year">
-                                <input type="radio" name="period" value="half-year" class="period-radio" id="period-half-year">
-                                <div class="period-info">
-                                    <div class="period-title">6 месяцев</div>
-                                    <div class="period-description">Серьезный проект</div>
-                    </div>
-                                <div class="period-badge">168 дней</div>
+                        <div class="period-type-selector">
+                            <button class="period-type-btn active" id="deadline-btn">Дедлайн</button>
+                            <button class="period-type-btn" id="duration-btn">Период</button>
                         </div>
-                            <div class="period-option" data-period="year">
-                                <input type="radio" name="period" value="year" class="period-radio" id="period-year">
-                                <div class="period-info">
-                                    <div class="period-title">1 год</div>
-                                    <div class="period-description">Масштабная цель</div>
-                    </div>
-                                <div class="period-badge">336 дней</div>
-                </div>
+                        
+                        <div id="deadline-section">
+                            <div class="date-input-group">
+                                <label class="form-label" for="goal-deadline">Дата достижения цели</label>
+                                <input type="date" id="goal-deadline" class="date-input" min="">
+                            </div>
+                        </div>
+                        
+                        <div id="duration-section" style="display: none;">
+                            <div class="period-options">
+                                <div class="period-option" data-period="week">
+                                    <input type="radio" name="period" value="week" class="period-radio" id="period-week">
+                                    <div class="period-info">
+                                        <div class="period-title">1 неделя</div>
+                                        <div class="period-description">Быстрая цель на неделю</div>
+                                    </div>
+                                </div>
+                                <div class="period-option" data-period="month">
+                                    <input type="radio" name="period" value="month" class="period-radio" id="period-month">
+                                    <div class="period-info">
+                                        <div class="period-title">1 месяц</div>
+                                        <div class="period-description">Среднесрочная цель</div>
+                                    </div>
+                                </div>
+                                <div class="period-option" data-period="quarter">
+                                    <input type="radio" name="period" value="quarter" class="period-radio" id="period-quarter">
+                                    <div class="period-info">
+                                        <div class="period-title">3 месяца</div>
+                                        <div class="period-description">Долгосрочная цель</div>
+                                    </div>
+                                </div>
+                                <div class="period-option" data-period="half-year">
+                                    <input type="radio" name="period" value="half-year" class="period-radio" id="period-half-year">
+                                    <div class="period-info">
+                                        <div class="period-title">6 месяцев</div>
+                                        <div class="period-description">Серьезный проект</div>
+                                    </div>
+                                </div>
+                                <div class="period-option" data-period="year">
+                                    <input type="radio" name="period" value="year" class="period-radio" id="period-year">
+                                    <div class="period-info">
+                                        <div class="period-title">1 год</div>
+                                        <div class="period-description">Масштабная цель</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -262,11 +271,15 @@ class RoadToDreamApp {
                         <button class="btn btn-primary" id="period-next-btn" disabled>Далее</button>
                     </div>
                 </div>
-        </div>
-    `;
-    
+            </div>
+        `;
+
         // Добавляем модальное окно в body
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Устанавливаем минимальную дату (сегодня)
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('goal-deadline').min = today;
 
         // Настраиваем обработчики событий
         this.setupPeriodSelectionEvents();
@@ -274,11 +287,15 @@ class RoadToDreamApp {
 
     // Настройка обработчиков событий для выбора периода
     setupPeriodSelectionEvents() {
-        const periodOptions = document.querySelectorAll('.period-option');
         const nextBtn = document.getElementById('period-next-btn');
         const backBtn = document.getElementById('period-back-btn');
+        const deadlineBtn = document.getElementById('deadline-btn');
+        const durationBtn = document.getElementById('duration-btn');
+        const deadlineSection = document.getElementById('deadline-section');
+        const durationSection = document.getElementById('duration-section');
+        const deadlineInput = document.getElementById('goal-deadline');
 
-        // Обработчики кнопок
+        // Обработчики кнопок навигации
         nextBtn.addEventListener('click', () => {
             this.nextToPeriodBreakdown();
         });
@@ -286,6 +303,50 @@ class RoadToDreamApp {
         backBtn.addEventListener('click', () => {
             this.goBackToGoalInput();
         });
+
+        // Переключение между дедлайном и периодом
+        deadlineBtn.addEventListener('click', () => {
+            deadlineBtn.classList.add('active');
+            durationBtn.classList.remove('active');
+            deadlineSection.style.display = 'block';
+            durationSection.style.display = 'none';
+            
+            // Проверяем валидность дедлайна
+            this.validateDeadline();
+        });
+
+        durationBtn.addEventListener('click', () => {
+            durationBtn.classList.add('active');
+            deadlineBtn.classList.remove('active');
+            deadlineSection.style.display = 'none';
+            durationSection.style.display = 'block';
+            
+            // Сбрасываем валидацию дедлайна
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+            
+            // Настраиваем обработчики для выбора периода
+            this.setupDurationSelection();
+        });
+
+        // Валидация дедлайна
+        deadlineInput.addEventListener('change', () => {
+            this.validateDeadline();
+        });
+
+        // Закрытие по клику на overlay
+        const modal = document.getElementById('period-selection-modal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePeriodSelectionModal();
+            }
+        });
+    }
+
+    // Настройка обработчиков для выбора периода
+    setupDurationSelection() {
+        const periodOptions = document.querySelectorAll('.period-option');
+        const nextBtn = document.getElementById('period-next-btn');
 
         periodOptions.forEach(option => {
             const radio = option.querySelector('.period-radio');
@@ -313,16 +374,31 @@ class RoadToDreamApp {
                     nextBtn.style.opacity = '1';
                 }
             });
-    });
-    
-    // Закрытие по клику на overlay
-        const modal = document.getElementById('period-selection-modal');
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closePeriodSelectionModal();
+        });
+    }
+
+    // Валидация дедлайна
+    validateDeadline() {
+        const deadlineInput = document.getElementById('goal-deadline');
+        const nextBtn = document.getElementById('period-next-btn');
+        
+        if (deadlineInput.value) {
+            const selectedDate = new Date(deadlineInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate >= today) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+            } else {
+                nextBtn.disabled = true;
+                nextBtn.style.opacity = '0.5';
+            }
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
         }
-    });
-}
+    }
 
     // Закрыть модальное окно выбора периода
     closePeriodSelectionModal() {
@@ -343,20 +419,47 @@ class RoadToDreamApp {
 
     // Переход к разбивке периода
     nextToPeriodBreakdown() {
-        const selectedPeriod = document.querySelector('input[name="period"]:checked');
-        if (!selectedPeriod) return;
-
-        // Сохраняем выбранный период
-        this.newGoalData.period = selectedPeriod.value;
-        this.newGoalData.periodDays = this.getPeriodDays(selectedPeriod.value);
-
-        console.log('Выбранный период:', this.newGoalData.period, 'дней:', this.newGoalData.periodDays);
+        const deadlineBtn = document.getElementById('deadline-btn');
+        const isDeadlineMode = deadlineBtn.classList.contains('active');
+        
+        if (isDeadlineMode) {
+            // Режим дедлайна
+            const deadlineInput = document.getElementById('goal-deadline');
+            if (!deadlineInput.value) return;
+            
+            const deadline = new Date(deadlineInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (deadline < today) return;
+            
+            // Сохраняем данные дедлайна
+            this.newGoalData.periodType = 'deadline';
+            this.newGoalData.deadline = deadlineInput.value;
+            this.newGoalData.periodDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+            
+            console.log('Выбран дедлайн:', this.newGoalData.deadline, 'дней до цели:', this.newGoalData.periodDays);
+        } else {
+            // Режим периода
+            const selectedPeriod = document.querySelector('input[name="period"]:checked');
+            if (!selectedPeriod) return;
+            
+            // Сохраняем данные периода
+            this.newGoalData.periodType = 'duration';
+            this.newGoalData.period = selectedPeriod.value;
+            this.newGoalData.periodDays = this.getPeriodDays(selectedPeriod.value);
+            
+            console.log('Выбран период:', this.newGoalData.period, 'дней:', this.newGoalData.periodDays);
+        }
         
         // Закрываем текущее модальное окно
         this.closePeriodSelectionModal();
         
         // TODO: Переходим к разбивке на подпериоды
-        alert(`Период "${selectedPeriod.value}" выбран! Следующий шаг - разбивка на подпериоды.`);
+        const message = isDeadlineMode 
+            ? `Дедлайн установлен на ${this.newGoalData.deadline}! Следующий шаг - разбивка на подпериоды.`
+            : `Период "${this.newGoalData.period}" выбран! Следующий шаг - разбивка на подпериоды.`;
+        alert(message);
     }
 
     // Получить количество дней для периода
