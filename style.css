@@ -362,6 +362,7 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 20px;
+    margin-bottom: 80px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     transition: all 0.3s ease;
@@ -1152,6 +1153,7 @@ body {
     /* Стили карточек караванов для планшетов */
     .caravan-card {
         padding: 16px;
+        margin-bottom: 90px;
     }
     
     .caravan-name {
@@ -1314,6 +1316,7 @@ body {
     /* Стили карточек караванов для мобильных */
     .caravan-card {
         padding: 16px;
+        margin-bottom: 100px;
     }
     
     .caravan-card-header {
