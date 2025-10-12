@@ -637,13 +637,38 @@ class RoadToDreamApp {
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
             if (menu.id !== `menu-${caravanId}`) {
                 menu.style.display = 'none';
+                menu.style.top = '100%';
+                menu.style.bottom = 'auto';
             }
         });
 
         // Переключаем текущее меню
         const menu = document.getElementById(`menu-${caravanId}`);
         if (menu) {
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            const isHidden = menu.style.display === 'none' || menu.style.display === '';
+            
+            if (isHidden) {
+                // Показываем меню
+                menu.style.display = 'block';
+                
+                // Проверяем, не выходит ли меню за пределы экрана
+                setTimeout(() => {
+                    const rect = menu.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const navHeight = 120; // Высота нижней панели навигации
+                    
+                    // Если меню выходит за пределы экрана снизу, показываем его сверху
+                    if (rect.bottom > viewportHeight - navHeight) {
+                        menu.style.top = 'auto';
+                        menu.style.bottom = '100%';
+                    } else {
+                        menu.style.top = '100%';
+                        menu.style.bottom = 'auto';
+                    }
+                }, 10);
+            } else {
+                menu.style.display = 'none';
+            }
         }
     }
 
@@ -707,6 +732,8 @@ class RoadToDreamApp {
     closeAllMenus() {
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
             menu.style.display = 'none';
+            menu.style.top = '100%';
+            menu.style.bottom = 'auto';
         });
     }
 
