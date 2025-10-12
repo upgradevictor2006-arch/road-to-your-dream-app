@@ -190,8 +190,165 @@ class RoadToDreamApp {
         // Закрываем текущее модальное окно
         this.closeCreateMapModal();
         
-        // TODO: Переходим к следующему шагу (выбор периода)
-        alert(`Цель "${goalTitle}" сохранена! Следующий шаг - выбор периода.`);
+        // Переходим к следующему шагу (выбор периода)
+        this.showPeriodSelectionModal();
+    }
+
+    // Показать модальное окно выбора периода
+    showPeriodSelectionModal() {
+        const modalHTML = `
+            <div class="modal-overlay active" id="period-selection-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Выберите период</h2>
+                        <p class="modal-subtitle">За какой срок хотите достичь цель?</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="period-options">
+                            <div class="period-option" data-period="week">
+                                <input type="radio" name="period" value="week" class="period-radio" id="period-week">
+                                <div class="period-info">
+                                    <div class="period-title">1 неделя</div>
+                                    <div class="period-description">Быстрая цель на неделю</div>
+                                </div>
+                                <div class="period-badge">7 дней</div>
+                            </div>
+                            <div class="period-option" data-period="month">
+                                <input type="radio" name="period" value="month" class="period-radio" id="period-month">
+                                <div class="period-info">
+                                    <div class="period-title">1 месяц</div>
+                                    <div class="period-description">Среднесрочная цель</div>
+                                </div>
+                                <div class="period-badge">28 дней</div>
+                            </div>
+                            <div class="period-option" data-period="quarter">
+                                <input type="radio" name="period" value="quarter" class="period-radio" id="period-quarter">
+                                <div class="period-info">
+                                    <div class="period-title">3 месяца</div>
+                                    <div class="period-description">Долгосрочная цель</div>
+                                </div>
+                                <div class="period-badge">84 дня</div>
+                            </div>
+                            <div class="period-option" data-period="half-year">
+                                <input type="radio" name="period" value="half-year" class="period-radio" id="period-half-year">
+                                <div class="period-info">
+                                    <div class="period-title">6 месяцев</div>
+                                    <div class="period-description">Серьезный проект</div>
+                                </div>
+                                <div class="period-badge">168 дней</div>
+                            </div>
+                            <div class="period-option" data-period="year">
+                                <input type="radio" name="period" value="year" class="period-radio" id="period-year">
+                                <div class="period-info">
+                                    <div class="period-title">1 год</div>
+                                    <div class="period-description">Масштабная цель</div>
+                                </div>
+                                <div class="period-badge">336 дней</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.goBackToGoalInput()">Назад</button>
+                        <button class="btn btn-primary" onclick="this.nextToPeriodBreakdown()" id="period-next-btn" disabled>Далее</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Добавляем модальное окно в body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Настраиваем обработчики событий
+        this.setupPeriodSelectionEvents();
+    }
+
+    // Настройка обработчиков событий для выбора периода
+    setupPeriodSelectionEvents() {
+        const periodOptions = document.querySelectorAll('.period-option');
+        const nextBtn = document.getElementById('period-next-btn');
+
+        periodOptions.forEach(option => {
+            const radio = option.querySelector('.period-radio');
+            
+            option.addEventListener('click', () => {
+                // Снимаем выделение с других опций
+                periodOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Выделяем выбранную опцию
+                option.classList.add('selected');
+                
+                // Активируем радиокнопку
+                radio.checked = true;
+                
+                // Активируем кнопку "Далее"
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+            });
+
+            radio.addEventListener('change', () => {
+                if (radio.checked) {
+                    periodOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = '1';
+                }
+            });
+        });
+
+        // Закрытие по клику на overlay
+        const modal = document.getElementById('period-selection-modal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePeriodSelectionModal();
+            }
+        });
+    }
+
+    // Закрыть модальное окно выбора периода
+    closePeriodSelectionModal() {
+        const modal = document.getElementById('period-selection-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Вернуться к вводу цели
+    goBackToGoalInput() {
+        this.closePeriodSelectionModal();
+        this.showCreateMapModal();
+    }
+
+    // Переход к разбивке периода
+    nextToPeriodBreakdown() {
+        const selectedPeriod = document.querySelector('input[name="period"]:checked');
+        if (!selectedPeriod) return;
+
+        // Сохраняем выбранный период
+        this.newGoalData.period = selectedPeriod.value;
+        this.newGoalData.periodDays = this.getPeriodDays(selectedPeriod.value);
+
+        console.log('Выбранный период:', this.newGoalData.period, 'дней:', this.newGoalData.periodDays);
+        
+        // Закрываем текущее модальное окно
+        this.closePeriodSelectionModal();
+        
+        // TODO: Переходим к разбивке на подпериоды
+        alert(`Период "${selectedPeriod.value}" выбран! Следующий шаг - разбивка на подпериоды.`);
+    }
+
+    // Получить количество дней для периода
+    getPeriodDays(period) {
+        const periodDays = {
+            'week': 7,
+            'month': 28,
+            'quarter': 84,
+            'half-year': 168,
+            'year': 336
+        };
+        return periodDays[period] || 7;
     }
 
     // Рендеринг экрана каравана
