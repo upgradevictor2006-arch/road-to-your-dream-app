@@ -6,6 +6,7 @@ class RoadToDreamApp {
     constructor() {
         console.log('RoadToDreamApp constructor called');
         this.currentScreen = 'map';
+        this.newGoalData = null; // Данные создаваемой цели
         this.init();
     }
 
@@ -75,8 +76,122 @@ class RoadToDreamApp {
     // Обработчик создания новой карты
     handleCreateMap() {
         console.log('Создание новой карты...');
-        // TODO: Реализовать логику создания карты
-        alert('Функция создания карты будет реализована позже!');
+        this.showCreateMapModal();
+    }
+
+    // Показать модальное окно создания карты
+    showCreateMapModal() {
+        const modalHTML = `
+            <div class="modal-overlay active" id="create-map-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Создание новой карты</h2>
+                        <p class="modal-subtitle">Опишите свою цель</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label" for="goal-title">Название цели</label>
+                            <input 
+                                type="text" 
+                                id="goal-title" 
+                                class="form-input" 
+                                placeholder="Например: Выучить английский язык"
+                                maxlength="100"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="goal-description">Описание (необязательно)</label>
+                            <textarea 
+                                id="goal-description" 
+                                class="form-input" 
+                                placeholder="Подробнее опишите свою цель..."
+                                rows="3"
+                                maxlength="500"
+                                style="resize: none; min-height: 80px;"
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closeCreateMapModal()">Отмена</button>
+                        <button class="btn btn-primary" onclick="this.nextStep()" id="next-btn" disabled>Далее</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Добавляем модальное окно в body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Настраиваем обработчики событий
+        this.setupCreateMapModalEvents();
+    }
+
+    // Настройка обработчиков событий для модального окна
+    setupCreateMapModalEvents() {
+        const goalInput = document.getElementById('goal-title');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Валидация ввода
+        goalInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            nextBtn.disabled = value.length < 3;
+            
+            if (value.length >= 3) {
+                nextBtn.style.opacity = '1';
+            } else {
+                nextBtn.style.opacity = '0.5';
+            }
+        });
+
+        // Обработка Enter
+        goalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !nextBtn.disabled) {
+                this.nextStep();
+            }
+        });
+
+        // Закрытие по клику на overlay
+        const modal = document.getElementById('create-map-modal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeCreateMapModal();
+            }
+        });
+    }
+
+    // Закрыть модальное окно создания карты
+    closeCreateMapModal() {
+        const modal = document.getElementById('create-map-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    // Переход к следующему шагу
+    nextStep() {
+        const goalTitle = document.getElementById('goal-title').value.trim();
+        const goalDescription = document.getElementById('goal-description').value.trim();
+
+        if (goalTitle.length < 3) {
+            return;
+        }
+
+        // Сохраняем данные цели
+        this.newGoalData = {
+            title: goalTitle,
+            description: goalDescription
+        };
+
+        console.log('Данные цели:', this.newGoalData);
+        
+        // Закрываем текущее модальное окно
+        this.closeCreateMapModal();
+        
+        // TODO: Переходим к следующему шагу (выбор периода)
+        alert(`Цель "${goalTitle}" сохранена! Следующий шаг - выбор периода.`);
     }
 
     // Рендеринг экрана каравана
