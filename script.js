@@ -44,11 +44,39 @@ class RoadToDreamApp {
     renderMapScreen() {
         const appContainer = document.getElementById('app-container');
         appContainer.innerHTML = `
-            <div class="screen-content">
-                <h2>🗺️ Карта</h2>
-                <p>Здесь будет реализован экран карты с целями</p>
+            <div class="empty-map-screen">
+                <!-- Мотивационная цитата -->
+                <div class="motivational-quote">
+                    <div class="quote-text">Путешествие в тысячу миль начинается с одного шага.</div>
+                    <div class="quote-author">— Лао-цзы</div>
+                </div>
+                
+                <!-- Призыв к действию -->
+                <div class="call-to-action">
+                    <div class="cta-question">Готов начать путь к своей мечте?</div>
+                    <button class="create-map-button" onclick="this.handleCreateMap()">
+                        <span class="plus-icon">+</span>
+                        Создать новую карту
+                    </button>
+                    <div class="cta-description">Определи свою цель, разбей её на шаги и начни двигаться вперед</div>
+                </div>
             </div>
         `;
+        
+        // Добавляем обработчик для кнопки
+        const createButton = appContainer.querySelector('.create-map-button');
+        if (createButton) {
+            createButton.addEventListener('click', () => {
+                this.handleCreateMap();
+            });
+        }
+    }
+    
+    // Обработчик создания новой карты
+    handleCreateMap() {
+        console.log('Создание новой карты...');
+        // TODO: Реализовать логику создания карты
+        alert('Функция создания карты будет реализована позже!');
     }
 
     // Рендеринг экрана каравана
@@ -152,7 +180,7 @@ function updateActiveNavButton(activeButton) {
 document.addEventListener('DOMContentLoaded', () => {
     // Настраиваем навигацию
     setupNavigation();
-    
-    // Инициализируем основное приложение
-    window.roadToDreamApp = new RoadToDreamApp();
+        
+        // Инициализируем основное приложение
+        window.roadToDreamApp = new RoadToDreamApp();
 });

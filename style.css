@@ -1,47 +1,15 @@
 /* Базовые стили для Telegram Mini App "Road to Your Dream" */
 
-/* CSS-переменные для светлой темы */
+/* CSS-переменные для темной темы (как на скриншоте) */
 :root {
-    --primary-bg-color: #ffffff;
-    --secondary-bg-color: #f8f9fa;
-    --text-color: #1a1a1a;
-    --hint-color: #6b7280;
-    --accent-color: #6366f1;
-    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-    --border-color: #e5e7eb;
-    --button-color: #6366f1;
-    --button-text-color: #ffffff;
-    --shadow-color: rgba(0, 0, 0, 0.08);
-    --shadow-hover: rgba(0, 0, 0, 0.12);
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --error-color: #ef4444;
-    --glass-bg: rgba(255, 255, 255, 0.25);
-    --glass-border: rgba(255, 255, 255, 0.18);
-    --body-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --nav-bg: rgba(255, 255, 255, 0.25);
-    --nav-border: rgba(255, 255, 255, 0.18);
-    --footer-bg: rgba(255, 255, 255, 0.25);
-    --footer-border: rgba(255, 255, 255, 0.18);
-    --screen-bg: rgba(255, 255, 255, 0.25);
-    --screen-border: rgba(255, 255, 255, 0.18);
-    --text-primary: white;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --text-muted: rgba(255, 255, 255, 0.7);
-    --active-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    --button-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-}
-
-/* CSS-переменные для темной темы */
-[data-theme="dark"] {
     --primary-bg-color: #1a1a1a;
     --secondary-bg-color: #2d2d2d;
     --text-color: #ffffff;
-    --hint-color: #9ca3af;
-    --accent-color: #6366f1;
-    --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --hint-color: #cccccc;
+    --accent-color: #ffd700;
+    --accent-gradient: linear-gradient(90deg, #ffd700 0%, #007bff 100%);
     --border-color: #374151;
-    --button-color: #10b981;
+    --button-color: #ffd700;
     --button-text-color: #ffffff;
     --shadow-color: rgba(0, 0, 0, 0.3);
     --shadow-hover: rgba(0, 0, 0, 0.4);
@@ -50,19 +18,20 @@
     --error-color: #ef4444;
     --glass-bg: rgba(26, 26, 26, 0.8);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --body-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    --nav-bg: rgba(26, 26, 26, 0.8);
+    --body-gradient: #1a1a1a;
+    --nav-bg: rgba(26, 26, 26, 0.9);
     --nav-border: rgba(255, 255, 255, 0.1);
-    --footer-bg: rgba(26, 26, 26, 0.8);
+    --footer-bg: rgba(26, 26, 26, 0.9);
     --footer-border: rgba(255, 255, 255, 0.1);
-    --screen-bg: rgba(26, 26, 26, 0.8);
+    --screen-bg: transparent;
     --screen-border: rgba(255, 255, 255, 0.1);
-    --text-primary: white;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --text-muted: rgba(255, 255, 255, 0.6);
-    --active-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --button-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #999999;
+    --active-gradient: #ffd700;
+    --button-gradient: linear-gradient(90deg, #ffd700 0%, #007bff 100%);
 }
+
 
 /* Сброс стилей и базовые настройки */
 * {
@@ -123,7 +92,7 @@ body {
 .screen-content {
     width: 100%;
     height: 100%;
-    padding: 24px;
+    padding: 40px 24px 120px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -132,18 +101,93 @@ body {
     color: var(--text-primary);
 }
 
-.screen-content h2 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Стили для экрана пустой карты */
+.empty-map-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-primary);
+    padding: 40px 24px 120px 24px;
 }
 
-.screen-content p {
+/* Мотивационная цитата */
+.motivational-quote {
+    margin-bottom: 60px;
+}
+
+.quote-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.quote-author {
     font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 400;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* Призыв к действию */
+.call-to-action {
+    margin-bottom: 40px;
+}
+
+.cta-question {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 32px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* Кнопка создания карты */
+.create-map-button {
+    background: var(--button-gradient);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 50px;
+    padding: 18px 32px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.create-map-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.4);
+}
+
+.create-map-button:active {
+    transform: translateY(0);
+}
+
+.plus-icon {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* Описательный текст */
+.cta-description {
+    font-size: 14px;
     color: var(--text-secondary);
     line-height: 1.5;
-    max-width: 300px;
+    max-width: 280px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
 /* Стили для карты будут добавлены позже */
@@ -174,13 +218,13 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--nav-border);
-    border-radius: 20px;
-    padding: 12px 8px;
+    border-radius: 25px;
+    padding: 16px 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     z-index: 1001;
-    box-shadow: 0 8px 32px var(--shadow-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     gap: 8px;
     transition: all 0.3s ease;
 }
@@ -193,148 +237,211 @@ body {
     border: none;
     padding: 12px 16px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-radius: 16px;
     min-width: 80px;
     flex: 1;
     position: relative;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .nav-btn:hover {
     background: rgba(255, 255, 255, 0.05);
 }
 
-.nav-btn.active:hover {
-    background: var(--active-gradient);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-}
-
-[data-theme="dark"] .nav-btn.active:hover {
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-}
-
 .nav-btn.active {
-    background: var(--active-gradient);
-    color: white;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-    transform: translateY(-1px);
-}
-
-/* Специальные тени для темной темы */
-[data-theme="dark"] .nav-btn.active {
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+    background: rgba(255, 215, 0, 0.1);
 }
 
 .nav-icon {
-    font-size: 22px;
-    margin-bottom: 6px;
+    font-size: 24px;
+    margin-bottom: 8px;
     transition: all 0.3s ease;
-    color: var(--text-muted);
+    color: var(--text-secondary);
+    font-weight: 400;
 }
 
 .nav-btn:hover .nav-icon {
     transform: scale(1.05);
-    color: var(--text-secondary);
 }
 
 .nav-btn.active .nav-icon {
-    color: white;
+    color: var(--accent-color);
     transform: scale(1.05);
 }
 
 .nav-label {
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    color: var(--text-secondary);
     transition: color 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
 .nav-btn:hover .nav-label {
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .nav-btn.active .nav-label {
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    color: var(--accent-color);
+    font-weight: 600;
 }
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
+    .empty-map-screen {
+        padding: 30px 20px 120px 20px;
+    }
+    
+    .quote-text {
+        font-size: 22px;
+    }
+    
+    .quote-author {
+        font-size: 15px;
+    }
+    
+    .cta-question {
+        font-size: 18px;
+    }
+    
+    .create-map-button {
+        padding: 16px 28px;
+        font-size: 16px;
+    }
+    
+    .cta-description {
+        font-size: 13px;
+        max-width: 260px;
+    }
+    
     #navigation {
         left: 10px;
         right: 10px;
         bottom: 10px;
-        padding: 8px 4px;
-        gap: 4px;
+        padding: 12px 6px;
+        gap: 6px;
     }
     
     .nav-btn {
         flex: 1;
-        padding: 8px 4px;
+        padding: 10px 6px;
         min-width: 0;
         max-width: none;
     }
     
     .nav-icon {
-        font-size: 18px;
-        margin-bottom: 4px;
+        font-size: 22px;
+        margin-bottom: 6px;
     }
     
     .nav-label {
-        font-size: 10px;
+        font-size: 11px;
         line-height: 1.2;
     }
 }
 
 @media (max-width: 480px) {
+    .empty-map-screen {
+        padding: 25px 16px 120px 16px;
+    }
+    
+    .quote-text {
+        font-size: 20px;
+    }
+    
+    .quote-author {
+        font-size: 14px;
+    }
+    
+    .cta-question {
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .create-map-button {
+        padding: 14px 24px;
+        font-size: 15px;
+    }
+    
+    .cta-description {
+        font-size: 12px;
+        max-width: 240px;
+    }
+    
     #navigation {
         left: 8px;
         right: 8px;
         bottom: 8px;
-        padding: 6px 2px;
-        gap: 2px;
+        padding: 10px 4px;
+        gap: 4px;
     }
     
     .nav-btn {
-        padding: 6px 2px;
+        padding: 8px 4px;
         min-width: 0;
-        border-radius: 8px;
+        border-radius: 12px;
     }
     
     .nav-icon {
-        font-size: 16px;
-        margin-bottom: 2px;
+        font-size: 20px;
+        margin-bottom: 4px;
     }
     
     .nav-label {
-        font-size: 9px;
+        font-size: 10px;
         line-height: 1.1;
     }
 }
 
 @media (max-width: 360px) {
+    .empty-map-screen {
+        padding: 20px 12px 120px 12px;
+    }
+    
+    .quote-text {
+        font-size: 18px;
+    }
+    
+    .quote-author {
+        font-size: 13px;
+    }
+    
+    .cta-question {
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .create-map-button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .cta-description {
+        font-size: 11px;
+        max-width: 220px;
+    }
+    
     #navigation {
         left: 5px;
         right: 5px;
         bottom: 5px;
-        padding: 4px 1px;
-        border-radius: 16px;
+        padding: 8px 2px;
+        border-radius: 20px;
     }
     
     .nav-btn {
-        padding: 4px 1px;
-        border-radius: 8px;
+        padding: 6px 2px;
+        border-radius: 10px;
     }
     
     .nav-icon {
-        font-size: 14px;
+        font-size: 18px;
+        margin-bottom: 3px;
     }
     
     .nav-label {
-        font-size: 8px;
+        font-size: 9px;
     }
 }
 
