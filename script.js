@@ -991,8 +991,8 @@ class RoadToDreamApp {
 
     // Генерация видимых шагов (только те, что видны на экране)
     generateVisibleSteps() {
-        const visibleCount = 8; // Показываем 8 шагов одновременно
-        const startIndex = Math.max(0, this.currentMap?.currentStep - 2 || 0);
+        const visibleCount = 6; // Показываем 6 шагов одновременно
+        const startIndex = Math.max(0, this.currentMap?.currentStep || 0);
         const endIndex = Math.min(this.currentMap?.totalSteps || 0, startIndex + visibleCount);
         
         return this.currentMap?.steps.slice(startIndex, endIndex) || [];
@@ -1091,9 +1091,8 @@ class RoadToDreamApp {
             const pathId = `path-${i}`;
             const pathD = `M${currentStep.position.x},${currentStep.position.y} L${nextStep.position.x},${nextStep.position.y}`;
             
-            // Определяем, активна ли линия (до текущего шага включительно)
-            const globalIndex = this.currentMap.currentStep - 2 + i;
-            const isActive = globalIndex < this.currentMap.currentStep;
+            // Определяем, активна ли линия (от начала до текущего шага)
+            const isActive = i === 0; // Первая линия всегда активна (ведущая к текущему шагу)
             
             pathElements += `
                 <path class="road-line ${isActive ? 'active' : ''}" 
@@ -1109,12 +1108,10 @@ class RoadToDreamApp {
     renderSteps() {
         const visibleSteps = this.generateVisibleSteps();
         return visibleSteps.map((step, index) => {
-            const globalIndex = this.currentMap.currentStep - 2 + index;
             let className = 'step';
             
-            if (globalIndex < this.currentMap.currentStep) {
-                className += ' completed';
-            } else if (globalIndex === this.currentMap.currentStep) {
+            // Первый шаг всегда текущий
+            if (index === 0) {
                 className += ' current';
             } else {
                 className += ' pending';
@@ -1211,20 +1208,43 @@ class RoadToDreamApp {
             // Отмечаем текущий шаг как выполненный
             this.currentMap.steps[this.currentMap.currentStep].completed = true;
             
-            // Анимация заполнения линии
-            this.animateLineFill();
-            
-            // Переходим к следующему шагу
-            setTimeout(() => {
-                this.currentMap.currentStep++;
-                this.updateMapInterface();
-            }, 1000);
+            // Запускаем анимацию перехода
+            this.animateStepTransition();
             
             console.log(`Шаг ${this.currentMap.currentStep} подтвержден`);
         } else {
             // Цель достигнута!
             this.showGoalCompleted();
         }
+    }
+
+    // Анимация перехода между шагами
+    animateStepTransition() {
+        const mapContent = document.querySelector('.map-content');
+        const confirmBtn = document.getElementById('confirm-step-btn');
+        
+        if (!mapContent || !confirmBtn) return;
+        
+        // Этап 1: Заполнение линии желтым цветом
+        this.animateLineFill();
+        
+        // Этап 2: Сдвиг карты вверх и обновление интерфейса
+        setTimeout(() => {
+            // Переходим к следующему шагу
+            this.currentMap.currentStep++;
+            
+            // Анимация сдвига карты вверх
+            mapContent.style.transition = 'transform 0.8s ease-in-out';
+            mapContent.style.transform = 'translateY(-80px)';
+            
+            // Обновляем интерфейс
+            setTimeout(() => {
+                this.updateMapInterface();
+                mapContent.style.transition = 'none';
+                mapContent.style.transform = 'translateY(0)';
+            }, 800);
+            
+        }, 500);
     }
 
     // Пропустить текущий шаг
@@ -1245,10 +1265,10 @@ class RoadToDreamApp {
 
     // Анимация заполнения линии
     animateLineFill() {
-        const currentPath = document.querySelector(`#path-${this.currentMap.currentStep}`);
+        const currentPath = document.querySelector('#path-0'); // Первая линия (ведущая к текущему шагу)
         if (currentPath) {
             // Запускаем анимацию заполнения линии желтым цветом
-            currentPath.style.strokeDasharray = '100 0';
+            currentPath.style.transition = 'all 0.5s ease-in-out';
             currentPath.style.stroke = 'var(--gold-primary)';
             currentPath.style.filter = 'drop-shadow(0 0 8px rgba(244, 189, 65, 0.6))';
             currentPath.classList.add('active');
