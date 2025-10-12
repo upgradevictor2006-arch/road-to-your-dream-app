@@ -631,16 +631,14 @@ class RoadToDreamApp {
         }
     }
 
-    // Переключение меню каравана
-    toggleCaravanMenu(caravanId) {
-        // Закрываем все открытые меню
-        document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
-            if (menu.id !== `menu-${caravanId}`) {
-                menu.style.display = 'none';
-                menu.style.top = '100%';
-                menu.style.bottom = 'auto';
-            }
-        });
+        // Переключение меню каравана
+        toggleCaravanMenu(caravanId) {
+            // Закрываем все открытые меню
+            document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
+                if (menu.id !== `menu-${caravanId}`) {
+                    menu.style.display = 'none';
+                }
+            });
 
         // Переключаем текущее меню
         const menu = document.getElementById(`menu-${caravanId}`);
@@ -651,49 +649,9 @@ class RoadToDreamApp {
                 // Показываем меню
                 menu.style.display = 'block';
                 
-                // Проверяем, не выходит ли меню за пределы экрана
-                setTimeout(() => {
-                    const rect = menu.getBoundingClientRect();
-                    const viewportHeight = window.innerHeight;
-                    const navHeight = 120; // Высота нижней панели навигации
-                    const menuHeight = rect.height;
-                    const triggerRect = menu.previousElementSibling.getBoundingClientRect();
-                    
-                    // Проверяем, есть ли место снизу для меню
-                    const spaceBelow = viewportHeight - navHeight - triggerRect.bottom;
-                    const spaceAbove = triggerRect.top;
-                    
-                    // Проверяем, не перекрывает ли меню другие караваны
-                    const currentCaravanCard = menu.closest('.caravan-card');
-                    const nextCaravanCard = currentCaravanCard?.nextElementSibling;
-                    
-                    let shouldOpenUp = false;
-                    
-                    // Если места снизу недостаточно, но есть место сверху - показываем сверху
-                    if (spaceBelow < menuHeight && spaceAbove >= menuHeight) {
-                        shouldOpenUp = true;
-                    }
-                    
-                    // Если есть следующий караван и меню может его перекрыть
-                    if (nextCaravanCard && !shouldOpenUp) {
-                        const nextCaravanRect = nextCaravanCard.getBoundingClientRect();
-                        const menuBottomPosition = triggerRect.bottom + menuHeight;
-                        
-                        if (menuBottomPosition > nextCaravanRect.top && spaceAbove >= menuHeight) {
-                            shouldOpenUp = true;
-                        }
-                    }
-                    
-                    if (shouldOpenUp) {
-                        menu.style.top = 'auto';
-                        menu.style.bottom = '100%';
-                        menu.style.animation = 'dropdownSlideInUp 0.2s ease';
-                    } else {
-                        menu.style.top = '100%';
-                        menu.style.bottom = 'auto';
-                        menu.style.animation = 'dropdownSlideIn 0.2s ease';
-                    }
-                }, 10);
+                // Простое позиционирование рядом с кнопкой
+                menu.style.top = '100%';
+                menu.style.bottom = 'auto';
             } else {
                 menu.style.display = 'none';
             }
@@ -760,8 +718,6 @@ class RoadToDreamApp {
     closeAllMenus() {
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
             menu.style.display = 'none';
-            menu.style.top = '100%';
-            menu.style.bottom = 'auto';
         });
     }
 
