@@ -57,28 +57,33 @@ class CaravanModule {
             ${this.renderCaravanModals()}
         `;
         
-        this.setupCaravanEventListeners();
+        // Настраиваем обработчики событий только если они еще не настроены
+        if (!this.eventListenersSetup) {
+            setTimeout(() => {
+                console.log('Устанавливаем обработчики событий каравана');
+                this.setupCaravanEventListeners();
+            }, 100);
+        }
     }
 
     // Рендеринг модальных окон каравана
     renderCaravanModals() {
         return `
             <!-- Модальное окно создания каравана - Шаг 1: Название -->
-            <div id="create-caravan-modal" class="modal-overlay hidden">
+            <div id="create-caravan-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">Шаг 1: Название команды</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeCreateCaravanModal()">×</button>
+                        <h3 class="modal-title">Шаг 1: Название каравана</h3>
                     </div>
                     <div class="modal-body">
                         <form id="create-caravan-step1-form" class="caravan-form">
                             <div class="form-group">
-                                <label for="caravan-name" class="form-label">Название команды</label>
+                                <label for="caravan-name" class="form-label">Название каравана</label>
                                 <input 
                                     type="text" 
                                     id="caravan-name" 
                                     class="form-input" 
-                                    placeholder="Введите название вашей команды"
+                                    placeholder="Введите название каравана"
                                     maxlength="50"
                                     required
                                 >
@@ -86,7 +91,7 @@ class CaravanModule {
                             </div>
                             
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.closeCreateCaravanModal()">
+                                <button type="button" class="btn-secondary" data-action="close-create-caravan">
                                     Отмена
                                 </button>
                                 <button type="submit" class="btn-primary">
@@ -99,46 +104,81 @@ class CaravanModule {
             </div>
             
             <!-- Модальное окно создания каравана - Шаг 2: Цель -->
-            <div id="create-caravan-step2-modal" class="modal-overlay hidden">
+            <div id="create-caravan-step2-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">Шаг 2: Общая цель</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeCreateCaravanModal()">×</button>
+                        <h3 class="modal-title">Шаг 2: Тип каравана</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="create-caravan-step2-form" class="caravan-form">
-                            <div class="form-group">
-                                <label for="caravan-goal" class="form-label">Общая цель</label>
-                                <input 
-                                    type="text" 
-                                    id="caravan-goal" 
-                                    class="form-input" 
-                                    placeholder="Опишите общую цель вашей команды"
-                                    maxlength="100"
-                                    required
-                                >
-                                <div class="form-hint">Максимум 100 символов</div>
+                        <div class="caravan-type-selection">
+                            <div class="type-option" data-type="goal">
+                                <div class="type-icon">🎯</div>
+                                <h4 class="type-title">Цель</h4>
+                                <p class="type-description">Путь который разбивается на этапы и строится маршрут. Долгосрочная задача с промежуточными шагами.</p>
+                                <button type="button" class="btn-type-select" data-type="goal">Создать цель</button>
                             </div>
                             
-                            <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.goToStep1()">
-                                    Назад
-                                </button>
-                                <button type="submit" class="btn-primary">
-                                    Продолжить
-                                </button>
+                            <div class="type-option" data-type="challenge">
+                                <div class="type-icon">⚡</div>
+                                <h4 class="type-title">Челлендж</h4>
+                                <p class="type-description">Одно задание которое нужно выполнять каждый день в течение определенного периода. Краткосрочная задача.</p>
+                                <button type="button" class="btn-type-select" data-type="challenge">Создать челлендж</button>
                             </div>
-                        </form>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" data-action="go-to-step1">
+                                Назад
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Модальное окно создания цели -->
+            <div id="create-goal-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Создание новой цели</h3>
+                        <p class="modal-subtitle">Опишите свою цель для каравана</p>
+                    </div>
+                    <div class="modal-body">
+                        <form id="create-goal-form" class="caravan-form">
+                            <div class="form-group">
+                                <label class="form-label" for="goal-title">Название цели</label>
+                                <input 
+                                    type="text" 
+                                    id="goal-title" 
+                                    class="form-input" 
+                                    placeholder="Например: Выучить английский язык"
+                                    maxlength="100"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="goal-description">Описание (необязательно)</label>
+                                <textarea 
+                                    id="goal-description" 
+                                    class="form-input" 
+                                    placeholder="Подробнее опишите свою цель..."
+                                    rows="3"
+                                    maxlength="500"
+                                    style="resize: none; min-height: 80px;"
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="goal-cancel-btn">Отмена</button>
+                        <button class="btn btn-primary" id="goal-next-btn" disabled>Создать цель</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Модальное окно создания каравана - Шаг 3: Описание -->
-            <div id="create-caravan-step3-modal" class="modal-overlay hidden">
+            <div id="create-caravan-step3-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">Шаг 3: Описание</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeCreateCaravanModal()">×</button>
                     </div>
                     <div class="modal-body">
                         <form id="create-caravan-step3-form" class="caravan-form">
@@ -155,7 +195,7 @@ class CaravanModule {
                             </div>
                             
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.goToStep2()">
+                                <button type="button" class="btn-secondary" data-action="go-to-step2">
                                     Назад
                                 </button>
                                 <button type="submit" class="btn-primary">
@@ -168,11 +208,10 @@ class CaravanModule {
             </div>
         
             <!-- Модальное окно редактирования описания -->
-            <div id="edit-description-modal" class="modal-overlay hidden">
+            <div id="edit-description-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">Редактировать описание</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeEditDescriptionModal()">×</button>
                     </div>
                     <div class="modal-body">
                         <form id="edit-description-form" class="caravan-form">
@@ -189,7 +228,7 @@ class CaravanModule {
                             </div>
                             
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.closeEditDescriptionModal()">
+                                <button type="button" class="btn-secondary" data-action="close-edit-description">
                                     Отмена
                                 </button>
                                 <button type="submit" class="btn-primary">
@@ -202,11 +241,10 @@ class CaravanModule {
             </div>
             
             <!-- Модальное окно управления участниками -->
-            <div id="manage-members-modal" class="modal-overlay hidden">
+            <div id="manage-members-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">Управление участниками</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeManageMembersModal()">×</button>
                     </div>
                     <div class="modal-body">
                         <div class="members-section">
@@ -223,7 +261,7 @@ class CaravanModule {
                                         class="form-input" 
                                         placeholder="Имя пользователя или ID"
                                     >
-                                    <button class="btn-primary" onclick="window.roadToDreamApp.caravanModule.addMember()">
+                                    <button class="btn-primary" id="add-member-btn">
                                         Добавить
                                     </button>
                                 </div>
@@ -231,10 +269,10 @@ class CaravanModule {
                         </div>
                         
                         <div class="form-actions">
-                            <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.closeManageMembersModal()">
+                            <button type="button" class="btn-secondary" data-action="close-manage-members">
                                 Закрыть
                             </button>
-                            <button type="button" class="btn-primary" onclick="window.roadToDreamApp.caravanModule.finishCaravanCreation()" id="finish-caravan-btn" style="display: none;">
+                            <button type="button" class="btn-primary" id="finish-caravan-btn" style="display: none;">
                                 Создать караван
                             </button>
                         </div>
@@ -243,11 +281,10 @@ class CaravanModule {
             </div>
             
             <!-- Модальное окно поделиться ссылкой -->
-            <div id="share-modal" class="modal-overlay hidden">
+            <div id="share-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">Поделиться караваном</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeShareModal()">×</button>
                     </div>
                     <div class="modal-body">
                         <div class="share-section">
@@ -264,23 +301,23 @@ class CaravanModule {
                                     readonly
                                     placeholder="Ссылка будет сгенерирована..."
                                 >
-                                <button class="btn-copy" onclick="window.roadToDreamApp.caravanModule.copyShareLink()">
+                                <button class="btn-copy" id="copy-share-link-btn">
                                     📋 Копировать
                                 </button>
                             </div>
                             
                             <div class="share-actions">
-                                <button class="btn-share-action" onclick="window.roadToDreamApp.caravanModule.shareToTelegram()">
+                                <button class="btn-share-action" id="share-telegram-btn">
                                     📱 Поделиться в Telegram
                                 </button>
-                                <button class="btn-share-action" onclick="window.roadToDreamApp.caravanModule.shareToOther()">
+                                <button class="btn-share-action" id="share-other-btn">
                                     🌐 Поделиться в другом приложении
                                 </button>
                             </div>
                         </div>
                         
                         <div class="form-actions">
-                            <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.closeShareModal()">
+                            <button type="button" class="btn-secondary" data-action="close-share">
                                 Закрыть
                             </button>
                         </div>
@@ -289,11 +326,10 @@ class CaravanModule {
             </div>
             
             <!-- Модальное окно подтверждения удаления -->
-            <div id="delete-confirmation-modal" class="modal-overlay hidden">
+            <div id="delete-confirmation-modal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">🗑️ Удалить караван</h3>
-                        <button class="modal-close" onclick="window.roadToDreamApp.caravanModule.closeDeleteConfirmationModal()">×</button>
                     </div>
                     <div class="modal-body">
                         <div class="delete-warning">
@@ -319,7 +355,7 @@ class CaravanModule {
                             </div>
                             
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="window.roadToDreamApp.caravanModule.closeDeleteConfirmationModal()">
+                                <button type="button" class="btn-secondary" data-action="close-delete-confirmation">
                                     Отмена
                                 </button>
                                 <button type="submit" class="btn-danger">
@@ -335,57 +371,178 @@ class CaravanModule {
 
     // Настройка обработчиков событий каравана
     setupCaravanEventListeners() {
-        // Обработчик для кнопки создания каравана
-        const createCaravanBtn = document.getElementById('create-caravan-btn');
-        console.log('Кнопка создания каравана найдена:', createCaravanBtn);
-        if (createCaravanBtn) {
-            createCaravanBtn.addEventListener('click', () => {
-                console.log('Кнопка создания каравана нажата!');
-                this.showCreateCaravanModal();
-            });
-        } else {
-            console.error('Кнопка create-caravan-btn не найдена!');
+        console.log('Настройка обработчиков событий каравана...');
+        
+        // Проверяем, не настроены ли уже обработчики
+        if (this.eventListenersSetup) {
+            console.log('Обработчики событий уже настроены');
+            return;
+        }
+        
+        // Используем делегирование событий для надежности
+        const appContainer = document.getElementById('app-container');
+        if (!appContainer) {
+            console.error('app-container не найден!');
+            return;
         }
 
-        // Обработчики форм создания каравана
-        const form1 = document.getElementById('create-caravan-step1-form');
-        if (form1) {
-            form1.addEventListener('submit', (e) => {
+        // Обработчик для кнопки создания каравана
+        appContainer.addEventListener('click', (e) => {
+            if (e.target.id === 'create-caravan-btn' || e.target.closest('#create-caravan-btn')) {
+                console.log('Кнопка создания каравана нажата!');
+                e.preventDefault();
+                this.showCreateCaravanModal();
+            }
+        });
+
+        // Обработчик для кнопок караванов
+        appContainer.addEventListener('click', (e) => {
+            const caravanBtn = e.target.closest('.btn-caravan-action');
+            if (caravanBtn) {
+                const caravanId = caravanBtn.dataset.caravanId;
+                console.log('Кнопка каравана нажата, ID:', caravanId);
+                this.viewCaravan(caravanId);
+            }
+        });
+
+        // Обработчик для меню караванов
+        appContainer.addEventListener('click', (e) => {
+            const menuTrigger = e.target.closest('.caravan-menu-trigger');
+            if (menuTrigger) {
+                e.preventDefault();
+                e.stopPropagation();
+                const caravanId = menuTrigger.dataset.caravanId;
+                console.log('Меню каравана нажато, ID:', caravanId);
+                this.toggleCaravanMenu(caravanId);
+            }
+        });
+
+        // Обработчик для пунктов меню
+        appContainer.addEventListener('click', (e) => {
+            const menuItem = e.target.closest('.menu-item');
+            if (menuItem) {
+                e.preventDefault();
+                e.stopPropagation();
+                const caravanId = menuItem.dataset.caravanId;
+                console.log('Пункт меню нажат, ID:', caravanId);
+                // Действие будет определено по тексту кнопки
+                const action = menuItem.textContent.trim();
+                this.handleCaravanMenuAction(caravanId, action);
+            }
+        });
+
+        // Обработчики форм создания каравана (используем делегирование)
+        document.addEventListener('submit', (e) => {
+            if (e.target.id === 'create-caravan-step1-form') {
                 e.preventDefault();
                 this.handleStep1();
-            });
-        }
-        
-        const form2 = document.getElementById('create-caravan-step2-form');
-        if (form2) {
-            form2.addEventListener('submit', (e) => {
+            } else if (e.target.id === 'create-caravan-step2-form') {
                 e.preventDefault();
                 this.handleStep2();
-            });
-        }
-        
-        const form3 = document.getElementById('create-caravan-step3-form');
-        if (form3) {
-            form3.addEventListener('submit', (e) => {
+            } else if (e.target.id === 'create-caravan-step3-form') {
                 e.preventDefault();
                 this.handleStep3();
-            });
-        }
-        
-        const deleteForm = document.getElementById('delete-confirmation-form');
-        if (deleteForm) {
-            deleteForm.addEventListener('submit', (e) => {
+            } else if (e.target.id === 'delete-confirmation-form') {
                 e.preventDefault();
                 this.handleDeleteConfirmation();
-            });
-        }
+            }
+        });
+
+        // Обработчики для кнопок модальных окон
+        document.addEventListener('click', (e) => {
+            const action = e.target.getAttribute('data-action');
+            if (!action) return;
+            
+            switch (action) {
+                case 'close-create-caravan':
+                    this.closeCreateCaravanModal();
+                    break;
+                case 'close-edit-description':
+                    this.closeEditDescriptionModal();
+                    break;
+                case 'close-manage-members':
+                    this.closeManageMembersModal();
+                    break;
+                case 'close-share':
+                    this.closeShareModal();
+                    break;
+                case 'close-delete-confirmation':
+                    this.closeDeleteConfirmationModal();
+                    break;
+                case 'go-to-step1':
+                    this.goToStep1();
+                    break;
+                case 'go-to-step2':
+                    this.goToStep2();
+                    break;
+            }
+        });
+
+        // Обработчики для специальных кнопок
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'finish-caravan-btn') {
+                this.finishCaravanCreation();
+            } else if (e.target.id === 'add-member-btn') {
+                this.addMember();
+            } else if (e.target.id === 'copy-share-link-btn') {
+                this.copyShareLink();
+            } else if (e.target.id === 'share-telegram-btn') {
+                this.shareToTelegram();
+            } else if (e.target.id === 'share-other-btn') {
+                this.shareToOther();
+            } else if (e.target.classList.contains('btn-type-select')) {
+                const type = e.target.dataset.type;
+                console.log('Выбран тип каравана:', type);
+                this.handleCaravanTypeSelection(type);
+            }
+        });
 
         // Обработчик клика вне меню для его закрытия
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.caravan-menu')) {
+            // Проверяем, что клик не по кнопке меню или самому меню
+            if (!e.target.closest('.caravan-menu') && !e.target.closest('.caravan-menu-trigger')) {
                 this.closeAllMenus();
             }
         });
+        
+        // Отмечаем, что обработчики настроены
+        this.eventListenersSetup = true;
+        console.log('Обработчики событий каравана настроены');
+    }
+
+    // Обработка действий меню каравана
+    handleCaravanMenuAction(caravanId, action) {
+        console.log('Обработка действия меню:', action, 'для каравана:', caravanId);
+        
+        // Закрываем меню
+        this.closeAllMenus();
+        
+        // Определяем действие по тексту
+        if (action.includes('Редактировать описание')) {
+            this.editCaravanDescription(caravanId);
+        } else if (action.includes('Управление участниками')) {
+            this.manageMembers(caravanId);
+        } else if (action.includes('Поделиться ссылкой')) {
+            this.shareCaravan(caravanId);
+        } else if (action.includes('Удалить караван')) {
+            this.deleteCaravan(caravanId);
+        }
+    }
+
+    // Обработка выбора типа каравана
+    handleCaravanTypeSelection(type) {
+        console.log('Обработка выбора типа:', type);
+        
+        // Сохраняем выбранный тип
+        this.caravanCreationData.type = type;
+        
+        if (type === 'goal') {
+            // Для цели переходим к созданию цели (как в Моих целях)
+            this.showGoalCreationModal();
+        } else if (type === 'challenge') {
+            // Для челленджа переходим к настройке периода и задания
+            this.showChallengeCreationModal();
+        }
     }
 
     // Показать модальное окно создания каравана
@@ -395,8 +552,8 @@ class CaravanModule {
         const modal = document.getElementById('create-caravan-modal');
         console.log('Найдено модальное окно:', modal);
         if (modal) {
-            console.log('Убираем класс hidden');
-            modal.classList.remove('hidden');
+            console.log('Добавляем класс active');
+            modal.classList.add('active');
             // Фокусируемся на поле ввода
             setTimeout(() => {
                 const input = document.getElementById('caravan-name');
@@ -414,9 +571,9 @@ class CaravanModule {
         const modal1 = document.getElementById('create-caravan-modal');
         const modal2 = document.getElementById('create-caravan-step2-modal');
         
-        if (modal1) modal1.classList.add('hidden');
+        if (modal1) modal1.classList.remove('active');
         if (modal2) {
-            modal2.classList.remove('hidden');
+            modal2.classList.add('active');
             // Фокусируемся на поле ввода цели
             setTimeout(() => {
                 const input = document.getElementById('caravan-goal');
@@ -432,9 +589,9 @@ class CaravanModule {
         const modal2 = document.getElementById('create-caravan-step2-modal');
         const modal3 = document.getElementById('create-caravan-step3-modal');
         
-        if (modal2) modal2.classList.add('hidden');
+        if (modal2) modal2.classList.remove('active');
         if (modal3) {
-            modal3.classList.remove('hidden');
+            modal3.classList.add('active');
             // Фокусируемся на поле ввода описания
             setTimeout(() => {
                 const textarea = document.getElementById('caravan-description');
@@ -450,9 +607,9 @@ class CaravanModule {
         const modal1 = document.getElementById('create-caravan-modal');
         const modal2 = document.getElementById('create-caravan-step2-modal');
         
-        if (modal2) modal2.classList.add('hidden');
+        if (modal2) modal2.classList.remove('active');
         if (modal1) {
-            modal1.classList.remove('hidden');
+            modal1.classList.add('active');
             // Восстанавливаем введенное название
             const nameInput = document.getElementById('caravan-name');
             if (nameInput && this.caravanCreationData) {
@@ -467,9 +624,9 @@ class CaravanModule {
         const modal2 = document.getElementById('create-caravan-step2-modal');
         const modal3 = document.getElementById('create-caravan-step3-modal');
         
-        if (modal3) modal3.classList.add('hidden');
+        if (modal3) modal3.classList.remove('active');
         if (modal2) {
-            modal2.classList.remove('hidden');
+            modal2.classList.add('active');
             // Восстанавливаем введенную цель
             const goalInput = document.getElementById('caravan-goal');
             if (goalInput && this.caravanCreationData) {
@@ -484,13 +641,14 @@ class CaravanModule {
         const modals = [
             'create-caravan-modal',
             'create-caravan-step2-modal',
-            'create-caravan-step3-modal'
+            'create-caravan-step3-modal',
+            'create-goal-modal'
         ];
         
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (modal) {
-                modal.classList.add('hidden');
+                modal.classList.remove('active');
                 // Очищаем форму
                 const form = modal.querySelector('form');
                 if (form) {
@@ -507,9 +665,317 @@ class CaravanModule {
     initCaravanCreation() {
         this.caravanCreationData = {
             name: '',
+            type: '', // 'goal' или 'challenge'
             goal: '',
             description: ''
         };
+    }
+
+    // Показать модальное окно создания цели
+    showGoalCreationModal() {
+        console.log('Показываем создание цели');
+        // Закрываем текущее модальное окно
+        this.closeCreateCaravanModal();
+        
+        // Показываем модальное окно создания цели
+        const modal = document.getElementById('create-goal-modal');
+        if (modal) {
+            modal.classList.add('active');
+            // Предзаполняем название цели, если оно уже введено
+            const goalTitleInput = document.getElementById('goal-title');
+            if (goalTitleInput && this.caravanCreationData.name) {
+                goalTitleInput.value = this.caravanCreationData.name;
+                this.validateGoalForm();
+            }
+        } else {
+            console.error('Модальное окно создания цели не найдено!');
+        }
+    }
+
+    // Валидация формы создания цели
+    validateGoalForm() {
+        const goalTitle = document.getElementById('goal-title').value.trim();
+        const nextBtn = document.getElementById('goal-next-btn');
+        
+        if (goalTitle.length >= 3) {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+        }
+    }
+
+    // Закрыть модальное окно создания цели
+    closeGoalModal() {
+        const modal = document.getElementById('create-goal-modal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    // Показать модальное окно создания челленджа
+    showChallengeCreationModal() {
+        console.log('Показываем создание челленджа');
+        // Закрываем шаг 2
+        const modal2 = document.getElementById('create-caravan-step2-modal');
+        if (modal2) modal2.classList.remove('active');
+        
+        // Показываем модальное окно создания челленджа
+        this.showChallengePeriodModal();
+    }
+
+    // Показать модальное окно выбора периода для челленджа
+    showChallengePeriodModal() {
+        const modalHTML = `
+            <div class="modal-overlay active" id="challenge-period-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Период челленджа</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="challenge-period-section">
+                            <p class="period-description">Выберите период выполнения челленджа</p>
+                            
+                            <div class="period-type-selector">
+                                <button class="period-type-btn active" id="challenge-deadline-btn">Дедлайн</button>
+                                <button class="period-type-btn" id="challenge-duration-btn">Период</button>
+                            </div>
+                            
+                            <div id="challenge-deadline-section">
+                                <div class="form-group">
+                                    <label for="challenge-deadline" class="form-label">Дата завершения челленджа</label>
+                                    <input type="date" id="challenge-deadline" class="form-input" min="">
+                                </div>
+                            </div>
+                            
+                            <div id="challenge-duration-section" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Длительность</label>
+                                    <div class="duration-options">
+                                        <div class="duration-option" data-days="7">
+                                            <input type="radio" name="duration" value="7" id="dur-7">
+                                            <label for="dur-7">1 неделя</label>
+                                        </div>
+                                        <div class="duration-option" data-days="14">
+                                            <input type="radio" name="duration" value="14" id="dur-14">
+                                            <label for="dur-14">2 недели</label>
+                                        </div>
+                                        <div class="duration-option" data-days="21">
+                                            <input type="radio" name="duration" value="21" id="dur-21">
+                                            <label for="dur-21">3 недели</label>
+                                        </div>
+                                        <div class="duration-option" data-days="30">
+                                            <input type="radio" name="duration" value="30" id="dur-30">
+                                            <label for="dur-30">1 месяц</label>
+                                        </div>
+                                        <div class="duration-option" data-days="60">
+                                            <input type="radio" name="duration" value="60" id="dur-60">
+                                            <label for="dur-60">2 месяца</label>
+                                        </div>
+                                        <div class="duration-option" data-days="90">
+                                            <input type="radio" name="duration" value="90" id="dur-90">
+                                            <label for="dur-90">3 месяца</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="challenge-period-back-btn">Назад</button>
+                        <button class="btn btn-primary" id="challenge-period-next-btn">Далее</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Устанавливаем минимальную дату
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('challenge-deadline').min = today;
+        
+        // Настраиваем обработчики
+        this.setupChallengePeriodEvents();
+        this.setupGoalCreationEvents();
+    }
+
+    // Настройка обработчиков для создания цели
+    setupGoalCreationEvents() {
+        const goalTitleInput = document.getElementById('goal-title');
+        const goalCancelBtn = document.getElementById('goal-cancel-btn');
+        const goalNextBtn = document.getElementById('goal-next-btn');
+
+        if (goalTitleInput) {
+            goalTitleInput.addEventListener('input', () => this.validateGoalForm());
+        }
+
+        if (goalCancelBtn) {
+            goalCancelBtn.addEventListener('click', () => this.closeGoalModal());
+        }
+
+        if (goalNextBtn) {
+            goalNextBtn.addEventListener('click', () => this.handleGoalCreation());
+        }
+    }
+
+    // Обработка создания цели
+    handleGoalCreation() {
+        const goalTitle = document.getElementById('goal-title').value.trim();
+        const goalDescription = document.getElementById('goal-description').value.trim();
+
+        if (!goalTitle) {
+            alert('Введите название цели');
+            return;
+        }
+
+        // Сохраняем данные цели
+        this.caravanCreationData.goalTitle = goalTitle;
+        this.caravanCreationData.goalDescription = goalDescription;
+        this.caravanCreationData.type = 'goal';
+
+        console.log('Создана цель:', this.caravanCreationData);
+
+        // Закрываем модальное окно создания цели
+        this.closeGoalModal();
+
+        // Показываем финальное окно добавления участников
+        this.showStep3();
+    }
+
+    // Настройка обработчиков для периода челленджа
+    setupChallengePeriodEvents() {
+        const backBtn = document.getElementById('challenge-period-back-btn');
+        const nextBtn = document.getElementById('challenge-period-next-btn');
+        const deadlineBtn = document.getElementById('challenge-deadline-btn');
+        const durationBtn = document.getElementById('challenge-duration-btn');
+        const deadlineSection = document.getElementById('challenge-deadline-section');
+        const durationSection = document.getElementById('challenge-duration-section');
+
+        backBtn.addEventListener('click', () => {
+            this.closeChallengePeriodModal();
+            this.showStep2();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            this.handleChallengePeriodNext();
+        });
+
+        deadlineBtn.addEventListener('click', () => {
+            deadlineBtn.classList.add('active');
+            durationBtn.classList.remove('active');
+            deadlineSection.style.display = 'block';
+            durationSection.style.display = 'none';
+        });
+
+        durationBtn.addEventListener('click', () => {
+            durationBtn.classList.add('active');
+            deadlineBtn.classList.remove('active');
+            deadlineSection.style.display = 'none';
+            durationSection.style.display = 'block';
+        });
+    }
+
+    // Обработка следующего шага для периода челленджа
+    handleChallengePeriodNext() {
+        const deadlineBtn = document.getElementById('challenge-deadline-btn');
+        const isDeadlineMode = deadlineBtn.classList.contains('active');
+        
+        if (isDeadlineMode) {
+            const deadlineInput = document.getElementById('challenge-deadline');
+            if (!deadlineInput.value) {
+                alert('Выберите дату завершения челленджа');
+                return;
+            }
+            this.caravanCreationData.deadline = deadlineInput.value;
+        } else {
+            const selectedDuration = document.querySelector('input[name="duration"]:checked');
+            if (!selectedDuration) {
+                alert('Выберите длительность челленджа');
+                return;
+            }
+            this.caravanCreationData.duration = parseInt(selectedDuration.value);
+        }
+        
+        this.closeChallengePeriodModal();
+        this.showChallengeTaskModal();
+    }
+
+    // Показать модальное окно задания челленджа
+    showChallengeTaskModal() {
+        const modalHTML = `
+            <div class="modal-overlay active" id="challenge-task-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Задание челленджа</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="challenge-task" class="form-label">Что нужно делать каждый день?</label>
+                            <textarea 
+                                id="challenge-task" 
+                                class="form-input" 
+                                placeholder="Опишите задание для ежедневного выполнения..."
+                                rows="4"
+                                maxlength="200"
+                            ></textarea>
+                            <div class="form-hint">Максимум 200 символов</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="challenge-task-back-btn">Назад</button>
+                        <button class="btn btn-primary" id="challenge-task-next-btn">Далее</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        this.setupChallengeTaskEvents();
+    }
+
+    // Настройка обработчиков для задания челленджа
+    setupChallengeTaskEvents() {
+        const backBtn = document.getElementById('challenge-task-back-btn');
+        const nextBtn = document.getElementById('challenge-task-next-btn');
+
+        backBtn.addEventListener('click', () => {
+            this.closeChallengeTaskModal();
+            this.showChallengePeriodModal();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const taskInput = document.getElementById('challenge-task');
+            const task = taskInput.value.trim();
+            
+            if (!task) {
+                alert('Опишите задание для челленджа');
+                return;
+            }
+            
+            this.caravanCreationData.task = task;
+            this.closeChallengeTaskModal();
+            this.showMembersModal();
+        });
+    }
+
+    // Закрыть модальное окно периода челленджа
+    closeChallengePeriodModal() {
+        const modal = document.getElementById('challenge-period-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+
+    // Закрыть модальное окно задания челленджа
+    closeChallengeTaskModal() {
+        const modal = document.getElementById('challenge-task-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
     }
 
     // Обработка шага 1: Название команды
@@ -691,7 +1157,7 @@ class CaravanModule {
                     <div class="caravan-header-right">
                         <div class="caravan-status ${caravan.status}">${caravan.status === 'active' ? 'Активен' : 'Неактивен'}</div>
                         <div class="caravan-menu">
-                            <button class="caravan-menu-trigger" onclick="window.roadToDreamApp.caravanModule.toggleCaravanMenu('${caravan.id}')" aria-label="Меню каравана">
+                            <button class="caravan-menu-trigger" data-caravan-id="${caravan.id}" aria-label="Меню каравана">
                                 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="1"></circle>
                                     <circle cx="12" cy="5" r="1"></circle>
@@ -699,20 +1165,20 @@ class CaravanModule {
                                 </svg>
                             </button>
                             <div class="caravan-dropdown-menu" id="menu-${caravan.id}" style="display: none;">
-                                <button class="menu-item" onclick="window.roadToDreamApp.caravanModule.editCaravanDescription('${caravan.id}')">
+                                <button class="menu-item" data-caravan-id="${caravan.id}">
                                     <span class="menu-icon">✏️</span>
                                     Редактировать описание
                                 </button>
-                                <button class="menu-item" onclick="window.roadToDreamApp.caravanModule.manageMembers('${caravan.id}')">
+                                <button class="menu-item" data-caravan-id="${caravan.id}">
                                     <span class="menu-icon">👥</span>
                                     Управление участниками
                                 </button>
-                                <button class="menu-item" onclick="window.roadToDreamApp.caravanModule.shareCaravan('${caravan.id}')">
+                                <button class="menu-item" data-caravan-id="${caravan.id}">
                                     <span class="menu-icon">🔗</span>
                                     Поделиться ссылкой
                                 </button>
                                 <hr class="menu-divider">
-                                <button class="menu-item danger" onclick="window.roadToDreamApp.caravanModule.deleteCaravan('${caravan.id}')">
+                                <button class="menu-item danger" data-caravan-id="${caravan.id}">
                                     <span class="menu-icon">🗑️</span>
                                     Удалить караван
                                 </button>
@@ -727,7 +1193,7 @@ class CaravanModule {
                     <div class="caravan-date">${this.formatDate(caravan.createdAt)}</div>
                 </div>
                 <div class="caravan-actions">
-                    <button class="btn-caravan-action" onclick="window.roadToDreamApp.caravanModule.viewCaravan('${caravan.id}')">
+                    <button class="btn-caravan-action" data-caravan-id="${caravan.id}">
                         Открыть
                     </button>
                 </div>
@@ -839,28 +1305,41 @@ class CaravanModule {
 
     // Переключение меню каравана
     toggleCaravanMenu(caravanId) {
+        console.log('toggleCaravanMenu вызвана для ID:', caravanId);
+        
         // Закрываем все открытые меню
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
             if (menu.id !== `menu-${caravanId}`) {
-                menu.style.display = 'none';
+                menu.classList.remove('show');
             }
         });
 
         // Переключаем текущее меню
         const menu = document.getElementById(`menu-${caravanId}`);
+        console.log('Найдено меню:', menu);
+        
         if (menu) {
-            const isHidden = menu.style.display === 'none' || menu.style.display === '';
+            // Очищаем все inline стили
+            menu.style.display = '';
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.right = '';
+            menu.style.zIndex = '';
             
-            if (isHidden) {
-                // Показываем меню
-                menu.style.display = 'block';
-                
-                // Простое позиционирование рядом с кнопкой
-                menu.style.top = '100%';
-                menu.style.bottom = 'auto';
+            const isShown = menu.classList.contains('show');
+            console.log('Меню показано:', isShown);
+            
+            if (isShown) {
+                // Скрываем меню
+                menu.classList.remove('show');
+                console.log('Меню скрыто');
             } else {
-                menu.style.display = 'none';
+                // Показываем меню
+                menu.classList.add('show');
+                console.log('Меню показано');
             }
+        } else {
+            console.error('Меню не найдено для ID:', caravanId);
         }
     }
 
@@ -917,8 +1396,15 @@ class CaravanModule {
 
     // Закрыть все открытые меню
     closeAllMenus() {
+        console.log('Закрываем все меню');
         document.querySelectorAll('.caravan-dropdown-menu').forEach(menu => {
-            menu.style.display = 'none';
+            menu.classList.remove('show');
+            // Очищаем inline стили
+            menu.style.display = '';
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.right = '';
+            menu.style.zIndex = '';
         });
     }
 
@@ -930,7 +1416,7 @@ class CaravanModule {
         
         if (modal && caravanNameElement) {
             caravanNameElement.textContent = `"${caravan.name}"`;
-            modal.classList.remove('hidden');
+            modal.classList.add('active');
             
             // Фокусируемся на поле ввода
             setTimeout(() => {
@@ -946,7 +1432,7 @@ class CaravanModule {
     closeDeleteConfirmationModal() {
         const modal = document.getElementById('delete-confirmation-modal');
         if (modal) {
-            modal.classList.add('hidden');
+            modal.classList.remove('active');
             // Очищаем форму
             const form = document.getElementById('delete-confirmation-form');
             if (form) {
@@ -992,7 +1478,7 @@ class CaravanModule {
         
         if (modal && textarea) {
             textarea.value = caravan.description || '';
-            modal.classList.remove('hidden');
+            modal.classList.add('active');
             
             // Добавляем обработчик формы
             const form = document.getElementById('edit-description-form');
@@ -1009,7 +1495,7 @@ class CaravanModule {
     closeEditDescriptionModal() {
         const modal = document.getElementById('edit-description-modal');
         if (modal) {
-            modal.classList.add('hidden');
+            modal.classList.remove('active');
             this.currentEditingCaravan = null;
         }
     }
@@ -1033,7 +1519,7 @@ class CaravanModule {
         if (modal) {
             // Заполняем список участников
             this.renderMembersList(caravan);
-            modal.classList.remove('hidden');
+            modal.classList.add('active');
             
             // Показываем кнопку "Создать караван" только для нового каравана
             const finishBtn = document.getElementById('finish-caravan-btn');
@@ -1051,7 +1537,7 @@ class CaravanModule {
     closeManageMembersModal() {
         const modal = document.getElementById('manage-members-modal');
         if (modal) {
-            modal.classList.add('hidden');
+            modal.classList.remove('active');
             this.currentManagingCaravan = null;
         }
     }
@@ -1139,7 +1625,7 @@ class CaravanModule {
         if (modal && nameElement && linkInput) {
             nameElement.textContent = caravan.name;
             linkInput.value = shareUrl;
-            modal.classList.remove('hidden');
+            modal.classList.add('active');
         }
     }
 
@@ -1147,7 +1633,7 @@ class CaravanModule {
     closeShareModal() {
         const modal = document.getElementById('share-modal');
         if (modal) {
-            modal.classList.add('hidden');
+            modal.classList.remove('active');
             this.currentSharingCaravan = null;
             this.currentShareUrl = null;
         }
