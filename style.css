@@ -207,29 +207,31 @@ body {
 /* Стили для экрана карты с лентой шагов */
 .map-screen {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     padding: 20px 24px 120px 24px;
     display: flex;
     flex-direction: column;
     color: var(--text-primary);
-    overflow-y: auto;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .map-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .map-title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
 .map-progress {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .progress-text {
@@ -259,7 +261,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px 0;
+    padding: 10px 0;
+    min-height: 0;
 }
 
 /* Лента шагов */
@@ -267,16 +270,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
     transition: all 0.8s ease;
 }
 
 .step-square {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -304,7 +307,7 @@ body {
 }
 
 .step-number {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -329,8 +332,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    margin-top: 30px;
+    gap: 8px;
+    margin-top: 15px;
+    flex-shrink: 0;
 }
 
 .complete-step-button {
@@ -338,8 +342,8 @@ body {
     color: var(--text-primary);
     border: none;
     border-radius: 50px;
-    padding: 16px 32px;
-    font-size: 16px;
+    padding: 12px 24px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -362,8 +366,8 @@ body {
     color: var(--text-secondary);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50px;
-    padding: 12px 24px;
-    font-size: 14px;
+    padding: 8px 16px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -385,11 +389,8 @@ body {
     0% {
         transform: translateY(0);
     }
-    50% {
-        transform: translateY(30px);
-    }
     100% {
-        transform: translateY(0);
+        transform: translateY(100px);
     }
 }
 
