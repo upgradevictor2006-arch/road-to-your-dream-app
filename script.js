@@ -7,6 +7,7 @@ class RoadToDreamApp {
         console.log('RoadToDreamApp constructor called');
         this.currentScreen = 'map';
         this.newGoalData = null; // Данные создаваемой цели
+        this.currentMap = null; // Текущая карта
         
         // Инициализируем модуль каравана
         if (typeof CaravanModule !== 'undefined') {
@@ -22,6 +23,10 @@ class RoadToDreamApp {
 
     init() {
         this.setupTelegramWebApp();
+        
+        // Загружаем сохраненный прогресс карты
+        this.loadMapProgress();
+        
         this.showScreen(this.currentScreen);
     }
 
@@ -59,6 +64,18 @@ class RoadToDreamApp {
     // Рендеринг экрана карты
     renderMapScreen() {
         const appContainer = document.getElementById('app-container');
+        
+        // Проверяем, есть ли созданная карта
+        if (this.currentMap) {
+            this.renderMapWithStepsStrip();
+        } else {
+            this.renderEmptyMapScreen();
+        }
+    }
+    
+    // Рендеринг пустого экрана карты
+    renderEmptyMapScreen() {
+        const appContainer = document.getElementById('app-container');
         appContainer.innerHTML = `
             <div class="empty-map-screen">
                 <!-- Мотивационная цитата -->
@@ -70,7 +87,7 @@ class RoadToDreamApp {
                 <!-- Призыв к действию -->
                 <div class="call-to-action">
                     <div class="cta-question">Готов начать путь к своей мечте?</div>
-                    <button class="create-map-button" onclick="this.handleCreateMap()">
+                    <button class="create-map-button" id="create-map-btn">
                         <span class="plus-icon">+</span>
                         Создать новую карту
                     </button>
@@ -80,10 +97,53 @@ class RoadToDreamApp {
         `;
         
         // Добавляем обработчик для кнопки
-        const createButton = appContainer.querySelector('.create-map-button');
+        const createButton = document.getElementById('create-map-btn');
         if (createButton) {
             createButton.addEventListener('click', () => {
                 this.handleCreateMap();
+            });
+        }
+    }
+    
+    // Рендеринг карты с лентой шагов
+    renderMapWithStepsStrip() {
+        const appContainer = document.getElementById('app-container');
+        const progress = Math.round((this.currentMap.currentStep / this.currentMap.totalSteps) * 100);
+        
+        appContainer.innerHTML = `
+            <div class="map-screen">
+                <!-- Заголовок карты -->
+                <div class="map-header">
+                    <h2 class="map-title">${this.currentMap.goal}</h2>
+                    <div class="map-progress">
+                        <div class="progress-text">Прогресс: ${this.currentMap.currentStep}/${this.currentMap.totalSteps} дней (${progress}%)</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Область карты с лентой шагов -->
+                <div class="map-container">
+                    <div class="steps-strip" id="steps-strip">
+                        ${this.renderStepsStrip()}
+                    </div>
+                </div>
+                
+                <!-- Кнопка завершения текущего шага -->
+                <div class="map-actions">
+                    <button class="complete-step-button" id="complete-step-btn">
+                        Отметить сегодняшний день
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Добавляем обработчик для кнопки завершения шага
+        const completeButton = document.getElementById('complete-step-btn');
+        if (completeButton) {
+            completeButton.addEventListener('click', () => {
+                this.completeCurrentStep();
             });
         }
     }
@@ -995,12 +1055,107 @@ class RoadToDreamApp {
                 day: i + 1,
                 title: `День ${i + 1}`,
                 task: '',
-                completed: false,
-                position: this.calculateStepPosition(i, totalDays)
+                completed: false
             });
         }
         
         return steps;
+    }
+    
+    // Рендеринг ленты шагов (показываем 4 шага одновременно)
+    renderStepsStrip() {
+        const visibleSteps = 4; // Количество видимых шагов
+        const currentStepIndex = this.currentMap.currentStep;
+        const steps = this.currentMap.steps;
+        
+        // Определяем диапазон шагов для отображения
+        let startIndex = Math.max(0, currentStepIndex - visibleSteps + 1);
+        let endIndex = Math.min(steps.length, startIndex + visibleSteps);
+        
+        // Если мы в начале, показываем первые шаги
+        if (currentStepIndex < visibleSteps) {
+            startIndex = 0;
+            endIndex = Math.min(visibleSteps, steps.length);
+        }
+        
+        let html = '';
+        for (let i = startIndex; i < endIndex; i++) {
+            const step = steps[i];
+            const isCurrent = i === currentStepIndex;
+            const isCompleted = step.completed;
+            
+            html += `
+                <div class="step-square ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}" 
+                     data-step="${i}">
+                    <span class="step-number">${step.day}</span>
+                    ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
+                </div>
+            `;
+        }
+        
+        return html;
+    }
+    
+    // Завершение текущего шага
+    completeCurrentStep() {
+        if (this.currentMap.currentStep >= this.currentMap.totalSteps) {
+            console.log('Все шаги завершены!');
+            return;
+        }
+        
+        // Отмечаем текущий шаг как завершенный
+        this.currentMap.steps[this.currentMap.currentStep].completed = true;
+        this.currentMap.currentStep++;
+        
+        // Сохраняем прогресс
+        this.saveMapProgress();
+        
+        // Анимация сдвига ленты
+        this.animateStepsStripShift();
+        
+        // Обновляем интерфейс
+        setTimeout(() => {
+            this.renderMapScreen();
+        }, 800);
+    }
+    
+    // Анимация сдвига ленты шагов
+    animateStepsStripShift() {
+        const stepsStrip = document.getElementById('steps-strip');
+        if (!stepsStrip) return;
+        
+        // Добавляем класс анимации сдвига вниз
+        stepsStrip.classList.add('shifting-down');
+        
+        // Убираем класс анимации через 800ms
+        setTimeout(() => {
+            stepsStrip.classList.remove('shifting-down');
+        }, 800);
+    }
+    
+    // Сохранение прогресса карты
+    saveMapProgress() {
+        try {
+            localStorage.setItem('currentMap', JSON.stringify(this.currentMap));
+            console.log('Прогресс карты сохранен');
+        } catch (error) {
+            console.error('Ошибка сохранения прогресса:', error);
+        }
+    }
+    
+    // Загрузка прогресса карты
+    loadMapProgress() {
+        try {
+            const savedMap = localStorage.getItem('currentMap');
+            if (savedMap) {
+                this.currentMap = JSON.parse(savedMap);
+                console.log('Прогресс карты загружен');
+                return true;
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки прогресса:', error);
+        }
+        return false;
     }
 
 

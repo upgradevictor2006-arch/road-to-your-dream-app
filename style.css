@@ -204,7 +204,199 @@ body {
     display: block !important;
 }
 
-/* Стили для карты будут добавлены позже */
+/* Стили для экрана карты с лентой шагов */
+.map-screen {
+    width: 100%;
+    height: 100%;
+    padding: 20px 24px 120px 24px;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-primary);
+    overflow-y: auto;
+}
+
+.map-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.map-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.map-progress {
+    margin-bottom: 20px;
+}
+
+.progress-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--button-gradient);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.map-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+}
+
+/* Лента шагов */
+.steps-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.8s ease;
+}
+
+.step-square {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.step-square:hover {
+    transform: scale(1.05);
+    border-color: rgba(244, 189, 65, 0.5);
+}
+
+.step-square.current {
+    background: rgba(244, 189, 65, 0.2);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 25px rgba(244, 189, 65, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.step-square.completed {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--success-color);
+}
+
+.step-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.checkmark {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    background: var(--success-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    font-weight: bold;
+}
+
+.map-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.complete-step-button {
+    background: var(--button-gradient);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(244, 189, 65, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.complete-step-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(244, 189, 65, 0.4);
+}
+
+.complete-step-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 15px rgba(244, 189, 65, 0.5);
+}
+
+/* Анимация сдвига ленты */
+.steps-strip.shifting-down {
+    animation: shiftDown 0.8s ease-in-out;
+}
+
+@keyframes shiftDown {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(20px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 25px rgba(244, 189, 65, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(244, 189, 65, 0.7);
+    }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+    .step-square {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .step-number {
+        font-size: 16px;
+    }
+    
+    .map-title {
+        font-size: 20px;
+    }
+    
+    .steps-strip {
+        gap: 16px;
+    }
+}
 
 /* Модальные окна */
 .modal-overlay {
