@@ -1069,13 +1069,14 @@ class RoadToDreamApp {
         return steps;
     }
 
-    // Рендеринг ленты шагов (показываем 4 шага одновременно)
+    // Рендеринг ленты шагов (показываем 4 шага одновременно, снизу вверх)
     renderStepsStrip() {
         const visibleSteps = 4; // Количество видимых шагов
         const currentStepIndex = this.currentMap.currentStep;
         const steps = this.currentMap.steps;
         
         // Определяем диапазон шагов для отображения
+        // Текущий шаг всегда должен быть снизу (последним в массиве)
         let startIndex = Math.max(0, currentStepIndex - visibleSteps + 1);
         let endIndex = Math.min(steps.length, startIndex + visibleSteps);
         
@@ -1086,7 +1087,8 @@ class RoadToDreamApp {
         }
         
         let html = '';
-        for (let i = startIndex; i < endIndex; i++) {
+        // Рендерим шаги в обратном порядке (сверху вниз: новые -> старые -> текущий)
+        for (let i = endIndex - 1; i >= startIndex; i--) {
             const step = steps[i];
             const isCurrent = i === currentStepIndex;
             const isCompleted = step.completed;
@@ -1096,10 +1098,10 @@ class RoadToDreamApp {
                      data-step="${i}">
                     <span class="step-number">${step.day}</span>
                     ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
-        </div>
-    `;
-    }
-
+                </div>
+            `;
+        }
+        
         return html;
     }
     
