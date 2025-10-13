@@ -23,10 +23,6 @@ class RoadToDreamApp {
 
     init() {
         this.setupTelegramWebApp();
-        
-        // Загружаем сохраненный прогресс карты
-        this.loadMapProgress();
-        
         this.showScreen(this.currentScreen);
     }
 
@@ -130,10 +126,13 @@ class RoadToDreamApp {
                     </div>
                 </div>
                 
-                <!-- Кнопка завершения текущего шага -->
+                <!-- Кнопки управления -->
                 <div class="map-actions">
                     <button class="complete-step-button" id="complete-step-btn">
                         Отметить сегодняшний день
+                    </button>
+                    <button class="reset-map-button" id="reset-map-btn">
+                        Создать новую карту
                     </button>
                 </div>
             </div>
@@ -144,6 +143,14 @@ class RoadToDreamApp {
         if (completeButton) {
             completeButton.addEventListener('click', () => {
                 this.completeCurrentStep();
+            });
+        }
+        
+        // Добавляем обработчик для кнопки сброса карты
+        const resetButton = document.getElementById('reset-map-btn');
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                this.resetMap();
             });
         }
     }
@@ -477,7 +484,7 @@ class RoadToDreamApp {
                 if (radio.value === 'custom') {
                     customPeriodSection.style.display = 'block';
                     this.setupCustomPeriodHandlers();
-                } else {
+        } else {
                     customPeriodSection.style.display = 'none';
                 }
                 
@@ -494,7 +501,7 @@ class RoadToDreamApp {
                     if (radio.value === 'custom') {
                         customPeriodSection.style.display = 'block';
                         this.setupCustomPeriodHandlers();
-                    } else {
+        } else {
                         customPeriodSection.style.display = 'none';
                     }
                     
@@ -846,8 +853,8 @@ class RoadToDreamApp {
                             <div class="breakdown-content">
                                 <div class="breakdown-title">${item.title}</div>
                                 <div class="breakdown-task">${item.task || ''}</div>
-                            </div>
-                        </div>
+            </div>
+        </div>
                         <button class="breakdown-edit-btn" data-edit-id="${item.id}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -860,8 +867,8 @@ class RoadToDreamApp {
                             ${childrenHTML}
                         </div>
                     ` : ''}
-                </div>
-            `;
+        </div>
+    `;
         }).join('');
     }
 
@@ -941,8 +948,8 @@ class RoadToDreamApp {
                     <div class="edit-modal-header">
                         <h3 class="edit-modal-title">Редактировать</h3>
                         <p class="edit-modal-subtitle">Измените название и задачу</p>
-                    </div>
-                    <div class="modal-body">
+                </div>
+                <div class="modal-body">
                         <div class="form-group">
                             <label class="form-label" for="edit-title">Название</label>
                             <input type="text" id="edit-title" class="form-input" value="${currentTitle}" maxlength="50">
@@ -950,16 +957,16 @@ class RoadToDreamApp {
                         <div class="form-group">
                             <label class="form-label" for="edit-task">Задача</label>
                             <textarea id="edit-task" class="form-input" rows="3" maxlength="200" placeholder="Опишите задачу для этого периода...">${currentTask}</textarea>
-                        </div>
+                    </div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" id="edit-cancel-btn">Отмена</button>
                         <button class="btn btn-primary" id="edit-save-btn">Сохранить</button>
-                    </div>
                 </div>
             </div>
-        `;
-
+        </div>
+    `;
+    
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         // Настройка обработчиков
@@ -984,9 +991,9 @@ class RoadToDreamApp {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closeEditModal();
-            }
-        });
-    }
+        }
+    });
+}
 
     // Сохранить изменения элемента разбивки
     saveBreakdownItem(itemId, title, task) {
@@ -1061,7 +1068,7 @@ class RoadToDreamApp {
         
         return steps;
     }
-    
+
     // Рендеринг ленты шагов (показываем 4 шага одновременно)
     renderStepsStrip() {
         const visibleSteps = 4; // Количество видимых шагов
@@ -1089,10 +1096,10 @@ class RoadToDreamApp {
                      data-step="${i}">
                     <span class="step-number">${step.day}</span>
                     ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
-                </div>
-            `;
-        }
-        
+        </div>
+    `;
+    }
+
         return html;
     }
     
@@ -1105,16 +1112,16 @@ class RoadToDreamApp {
         
         // Отмечаем текущий шаг как завершенный
         this.currentMap.steps[this.currentMap.currentStep].completed = true;
-        this.currentMap.currentStep++;
-        
+            this.currentMap.currentStep++;
+            
         // Сохраняем прогресс
         this.saveMapProgress();
-        
+            
         // Анимация сдвига ленты
         this.animateStepsStripShift();
-        
+            
         // Обновляем интерфейс
-        setTimeout(() => {
+            setTimeout(() => {
             this.renderMapScreen();
         }, 800);
     }
@@ -1157,6 +1164,23 @@ class RoadToDreamApp {
         }
         return false;
     }
+    
+    // Сброс карты и возврат к созданию новой
+    resetMap() {
+        // Очищаем данные карты
+        this.currentMap = null;
+        
+        // Очищаем localStorage
+        try {
+            localStorage.removeItem('currentMap');
+            console.log('Карта сброшена');
+        } catch (error) {
+            console.error('Ошибка очистки localStorage:', error);
+        }
+        
+        // Возвращаемся к пустому экрану карты
+        this.renderMapScreen();
+    }
 
 
 
@@ -1196,7 +1220,7 @@ class RoadToDreamApp {
             tg.expand();
             
             console.log('Telegram WebApp инициализирован');
-        } else {
+    } else {
             console.log('Telegram WebApp не обнаружен, работаем в обычном браузере');
         }
     }
@@ -1229,9 +1253,9 @@ function setupNavigation() {
         
         if (!targetScreenId) {
             console.warn('Кнопка навигации не имеет атрибута data-screen');
-            return;
-        }
-        
+        return;
+    }
+    
         // Переключаем экран
         switchToScreen(targetScreenId);
         

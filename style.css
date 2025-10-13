@@ -327,7 +327,9 @@ body {
 
 .map-actions {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     margin-top: 30px;
 }
 
@@ -353,6 +355,25 @@ body {
 .complete-step-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 15px rgba(244, 189, 65, 0.5);
+}
+
+.reset-map-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.reset-map-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Анимация сдвига ленты */
