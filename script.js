@@ -7,6 +7,10 @@ class RoadToDreamApp {
         console.log('RoadToDreamApp constructor called');
         this.currentScreen = 'map';
         this.newGoalData = null; // Данные создаваемой цели
+        
+        // Инициализируем модуль каравана
+        this.caravanModule = new CaravanModule(this);
+        
         this.init();
     }
 
@@ -33,7 +37,7 @@ class RoadToDreamApp {
                 this.renderMapScreen();
                 break;
             case 'caravan':
-                this.renderCaravanScreen();
+                this.caravanModule.renderCaravanScreen();
                 break;
             case 'garage':
                 this.renderGarageScreen();
@@ -1003,16 +1007,6 @@ class RoadToDreamApp {
         return periodDays[period] || 7;
     }
 
-    // Рендеринг экрана каравана
-    renderCaravanScreen() {
-        const appContainer = document.getElementById('app-container');
-        appContainer.innerHTML = `
-            <div class="screen-content">
-                <h2>🚐 Караван</h2>
-                <p>Здесь будет реализован экран каравана</p>
-        </div>
-    `;
-    }
 
     // Рендеринг экрана гаража
     renderGarageScreen() {
