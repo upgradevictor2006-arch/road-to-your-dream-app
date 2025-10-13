@@ -14,7 +14,9 @@ class CaravanModule {
 
     // Рендеринг экрана каравана
     renderCaravanScreen() {
+        console.log('renderCaravanScreen вызвана');
         const appContainer = document.getElementById('app-container');
+        console.log('app-container найден:', appContainer);
         appContainer.innerHTML = `
             <div class="caravan-screen">
                 <!-- Заголовок экрана -->
@@ -31,7 +33,7 @@ class CaravanModule {
                             <div class="cta-icon">🤝</div>
                             <h3 class="cta-title">Создать караван</h3>
                             <p class="cta-description">Объединитесь с друзьями для совместного достижения целей</p>
-                            <button class="create-caravan-button" onclick="window.roadToDreamApp.caravanModule.showCreateCaravanModal()">
+                            <button class="create-caravan-button" id="create-caravan-btn">
                                 <span class="plus-icon">+</span>
                                 Создать караван
                             </button>
@@ -330,6 +332,18 @@ class CaravanModule {
 
     // Настройка обработчиков событий каравана
     setupCaravanEventListeners() {
+        // Обработчик для кнопки создания каравана
+        const createCaravanBtn = document.getElementById('create-caravan-btn');
+        console.log('Кнопка создания каравана найдена:', createCaravanBtn);
+        if (createCaravanBtn) {
+            createCaravanBtn.addEventListener('click', () => {
+                console.log('Кнопка создания каравана нажата!');
+                this.showCreateCaravanModal();
+            });
+        } else {
+            console.error('Кнопка create-caravan-btn не найдена!');
+        }
+
         // Обработчики форм создания каравана
         const form1 = document.getElementById('create-caravan-step1-form');
         if (form1) {
@@ -373,9 +387,12 @@ class CaravanModule {
 
     // Показать модальное окно создания каравана
     showCreateCaravanModal() {
+        console.log('showCreateCaravanModal вызвана');
         this.initCaravanCreation();
         const modal = document.getElementById('create-caravan-modal');
+        console.log('Найдено модальное окно:', modal);
         if (modal) {
+            console.log('Убираем класс hidden');
             modal.classList.remove('hidden');
             // Фокусируемся на поле ввода
             setTimeout(() => {
@@ -384,6 +401,8 @@ class CaravanModule {
                     input.focus();
                 }
             }, 100);
+        } else {
+            console.error('Модальное окно create-caravan-modal не найдено!');
         }
     }
 
