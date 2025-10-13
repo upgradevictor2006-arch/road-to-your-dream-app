@@ -9,7 +9,13 @@ class RoadToDreamApp {
         this.newGoalData = null; // Данные создаваемой цели
         
         // Инициализируем модуль каравана
-        this.caravanModule = new CaravanModule(this);
+        if (typeof CaravanModule !== 'undefined') {
+            this.caravanModule = new CaravanModule(this);
+            console.log('Модуль каравана инициализирован');
+        } else {
+            console.error('CaravanModule не найден! Проверьте загрузку caravan.js');
+            this.caravanModule = null;
+        }
         
         this.init();
     }
@@ -37,7 +43,12 @@ class RoadToDreamApp {
                 this.renderMapScreen();
                 break;
             case 'caravan':
-                this.caravanModule.renderCaravanScreen();
+                if (this.caravanModule) {
+                    this.caravanModule.renderCaravanScreen();
+                } else {
+                    console.error('Модуль каравана не инициализирован!');
+                    this.renderGarageScreen(); // Fallback
+                }
                 break;
             case 'garage':
                 this.renderGarageScreen();

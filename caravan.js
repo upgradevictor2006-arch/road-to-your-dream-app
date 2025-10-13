@@ -1,7 +1,10 @@
 // Модуль каравана для Telegram Mini App "Road to Your Dream"
 
+console.log('caravan.js загружен');
+
 class CaravanModule {
     constructor(mainApp) {
+        console.log('CaravanModule constructor called');
         this.mainApp = mainApp;
         this.caravans = this.loadCaravans();
         this.caravanCreationData = null;
