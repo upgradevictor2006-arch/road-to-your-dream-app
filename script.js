@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 28 - ИСПРАВЛЕНО МОДАЛЬНОЕ ОКНО!');
-console.log('🔧 ИСПРАВЛЕНО ОТОБРАЖЕНИЕ МОДАЛЬНОГО ОКНА ВЫБОРА КАРТ!');
+console.log('🚀 Загружен script.js версии 29 - УБРАНА АНИМАЦИЯ!');
+console.log('🔧 УБРАНА АНИМАЦИЯ ДВИЖЕНИЯ ШАГОВ ПРИ ПОДТВЕРЖДЕНИИ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -1419,28 +1419,10 @@ class RoadToDreamApp {
         // Сохраняем прогресс
         this.saveMapProgress();
             
-        // Анимация сдвига ленты
-        this.animateStepsStripShift();
-            
-        // Обновляем интерфейс
-        setTimeout(() => {
-            this.renderMapScreen();
-        }, 800);
+        // Обновляем интерфейс сразу без анимации
+        this.renderMapScreen();
     }
     
-    // Анимация сдвига ленты шагов
-    animateStepsStripShift() {
-        const stepsStrip = document.getElementById('steps-strip');
-        if (!stepsStrip) return;
-        
-        // Добавляем класс анимации сдвига вниз
-        stepsStrip.classList.add('shifting-down');
-        
-        // Убираем класс анимации через 800ms
-        setTimeout(() => {
-            stepsStrip.classList.remove('shifting-down');
-        }, 800);
-    }
     
     // Сохранение прогресса карты
     saveMapProgress() {

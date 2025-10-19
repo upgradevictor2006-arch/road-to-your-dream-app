@@ -396,19 +396,6 @@ body {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Анимация сдвига ленты */
-.steps-strip.shifting-down {
-    animation: shiftDown 0.8s ease-in-out;
-}
-
-@keyframes shiftDown {
-    0% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(100px);
-    }
-}
 
 @keyframes pulse {
     0%, 100% {
