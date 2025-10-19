@@ -833,7 +833,11 @@ class RoadToDreamApp {
         });
 
         nextBtn.addEventListener('click', () => {
-            this.createMap();
+            if (this.mapModule && this.mapModule.createMap) {
+                this.mapModule.createMap();
+            } else {
+                console.error('Модуль карты не найден или функция createMap недоступна');
+            }
         });
 
         // Закрытие по клику на overlay
@@ -1164,7 +1168,11 @@ class RoadToDreamApp {
             addNewBtn.addEventListener('click', () => {
                 console.log('Создание новой карты из модального окна');
                 modal.remove();
-                this.addNewMap();
+                if (this.mapModule && this.mapModule.addNewMap) {
+                    this.mapModule.addNewMap();
+                } else {
+                    this.addNewMap();
+                }
             });
         } else {
             console.error('Кнопка создания новой карты не найдена!');
@@ -1458,7 +1466,11 @@ function setupNavigation() {
             // Если карта уже активна (показывает плюсик), создаем новую карту
             if (navButton.classList.contains('active')) {
                 console.log('Клик по активной карте (плюсик) - создаем новую карту');
-                window.roadToDreamApp.addNewMap();
+                if (window.roadToDreamApp.mapModule && window.roadToDreamApp.mapModule.addNewMap) {
+                    window.roadToDreamApp.mapModule.addNewMap();
+                } else {
+                    window.roadToDreamApp.addNewMap();
+                }
                 return;
             } else {
                 console.log('Клик по неактивной карте - переключаемся на карту');

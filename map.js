@@ -412,34 +412,45 @@ class MapModule {
     // Создание новой карты
     createMap() {
         console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
+        console.log('Создание карты с данными:', this.app.newGoalData);
         
-        // Создаем новую карту с демо-данными
+        if (!this.app.newGoalData) {
+            console.error('Нет данных для создания карты');
+            return;
+        }
+        
+        // Создаем новую карту
         const newMap = {
-            id: Date.now().toString(),
-            goal: 'Изучить новый навык',
-            description: 'Освоить основы программирования',
-            totalSteps: 7,
+            id: Date.now().toString(), // Уникальный ID
+            goal: this.app.newGoalData.title,
+            description: this.app.newGoalData.description,
+            periodType: this.app.newGoalData.periodType,
+            periodDays: this.app.newGoalData.periodDays,
+            customPeriod: this.app.newGoalData.customPeriod,
+            deadline: this.app.newGoalData.deadline,
             currentStep: 0,
-            steps: [
-                { task: 'Изучить основы синтаксиса' },
-                { task: 'Попрактиковаться с переменными' },
-                { task: 'Изучить условные операторы' },
-                { task: 'Освоить циклы' },
-                { task: 'Поработать с функциями' },
-                { task: 'Создать первый проект' },
-                { task: 'Запустить проект и протестировать' }
-            ],
+            totalSteps: this.app.newGoalData.periodDays,
+            steps: this.app.generateMapSteps(),
             createdAt: new Date().toISOString()
         };
         
-        this.app.currentMap = newMap;
-        this.app.currentMapId = newMap.id;
+        // Добавляем карту в массив
         this.app.maps.push(newMap);
         
-        // Сохраняем в localStorage
+        // Делаем новую карту текущей
+        this.app.currentMapId = newMap.id;
+        this.app.currentMap = newMap;
+        
+        console.log('Карта создана. Всего карт:', this.app.maps.length);
+        console.log('Текущая карта ID:', this.app.currentMapId);
+        
+        // Сохраняем карты в localStorage
         this.app.saveMapsToStorage();
         
-        // Перерендериваем экран
+        // Закрываем модальное окно
+        this.app.closePeriodBreakdownModal();
+        
+        // Возвращаемся на главный экран карты
         this.renderMapScreen();
     }
 
@@ -448,7 +459,11 @@ class MapModule {
         console.log('🎯 Добавляем новую карту...');
         
         // Показываем модальное окно создания карты
-        this.app.showCreateMapModal();
+        if (this.app.showCreateMapModal) {
+            this.app.showCreateMapModal();
+        } else {
+            console.error('showCreateMapModal не найден в основном приложении');
+        }
     }
 
     // Переключение на карту
