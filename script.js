@@ -1090,7 +1090,8 @@ class RoadToDreamApp {
         console.log('Показать модальное окно выбора карт. Количество карт:', this.maps.length);
         
         if (this.maps.length <= 1) {
-            console.log('Карт мало, нечего выбирать');
+            console.log('Карт мало, сразу создаем новую карту');
+            this.addNewMap();
             return;
         }
         
