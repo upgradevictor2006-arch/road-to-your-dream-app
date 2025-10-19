@@ -413,7 +413,8 @@ class MapModule {
         selectBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const mapId = btn.getAttribute('data-map-id');
-                this.app.switchToMap(mapId);
+                console.log('Клик по кнопке выбора карты, ID:', mapId);
+                this.switchToMap(mapId); // Вызываем функцию из map.js, а не из app
                 closeModal();
             });
         });
