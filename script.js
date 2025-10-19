@@ -27,14 +27,6 @@ class RoadToDreamApp {
             this.caravanModule = null;
         }
         
-        // Инициализируем модуль профиля
-        if (typeof UserProfile !== 'undefined') {
-            this.userProfileModule = new UserProfile(this);
-            console.log('Модуль профиля инициализирован');
-        } else {
-            console.error('UserProfile не найден! Проверьте загрузку profile.js');
-            this.userProfileModule = null;
-        }
         
         // Инициализируем модуль карты
         if (typeof MapModule !== 'undefined') {
