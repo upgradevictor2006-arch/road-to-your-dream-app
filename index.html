@@ -21,8 +21,25 @@
     
     <!-- Отладочная информация -->
     <div style="position: fixed; top: 10px; left: 10px; background: rgba(255, 0, 0, 0.3); color: white; padding: 5px; z-index: 9999; font-size: 12px; pointer-events: none; border-radius: 5px;">
-        Версия: v30 - ПРОЗРАЧНЫЙ ДЕБАГ!
+        Версия: v31 - КНОПКА ОЧИСТКИ!
     </div>
+    
+    <!-- Кнопка очистки данных для тестирования -->
+    <button id="clear-data-btn" style="position: fixed; top: 10px; right: 10px; background: rgba(255, 0, 0, 0.7); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; cursor: pointer; z-index: 9999;" onclick="clearAllData()">
+        Очистить данные
+    </button>
+    
+    <script>
+    function clearAllData() {
+        if (confirm('Очистить все сохраненные данные?')) {
+            localStorage.removeItem('roadToDreamMaps');
+            localStorage.removeItem('roadToDreamCurrentMapId');
+            localStorage.removeItem('currentMap');
+            alert('Данные очищены! Перезагрузите страницу.');
+            location.reload();
+        }
+    }
+    </script>
 
     <!-- Панель навигации -->
     <nav id="navigation">
