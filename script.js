@@ -1090,6 +1090,13 @@ class RoadToDreamApp {
     showMapSelectionModal() {
         console.log('Показать модальное окно выбора карт. Количество карт:', this.maps.length);
         
+        // Используем модуль карты для показа модального окна
+        if (this.mapModule && this.mapModule.showMapSelectionModal) {
+            console.log('Используем модуль карты для показа модального окна');
+            this.mapModule.showMapSelectionModal();
+            return;
+        }
+        
         if (this.maps.length <= 1) {
             console.log('Карт мало, сразу создаем новую карту');
             this.addNewMap();
@@ -1160,7 +1167,11 @@ class RoadToDreamApp {
             btn.addEventListener('click', (e) => {
                 const mapId = e.target.getAttribute('data-map-id');
                 console.log('Выбрана карта с ID:', mapId);
-                this.switchToMap(mapId);
+                if (this.mapModule && this.mapModule.switchToMap) {
+                    this.mapModule.switchToMap(mapId);
+                } else {
+                    this.switchToMap(mapId);
+                }
                 modal.remove();
             });
         });
