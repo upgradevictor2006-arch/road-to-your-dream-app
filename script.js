@@ -1,4 +1,7 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
+// ВЕРСИЯ: v18 - ДОБАВЛЕНА КНОПКА ПОДТВЕРЖДЕНИЯ ШАГОВ
+
+console.log('🚀 Загружен script.js версии 18 с кнопкой подтверждения шагов!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -105,6 +108,15 @@ class RoadToDreamApp {
     renderMapWithStepsStrip() {
         const appContainer = document.getElementById('app-container');
         const progress = Math.round((this.currentMap.currentStep / this.currentMap.totalSteps) * 100);
+        const isCompleted = this.currentMap.currentStep >= this.currentMap.totalSteps;
+        const currentStepData = this.currentMap.steps[this.currentMap.currentStep];
+        
+        console.log('Рендерим карту:', {
+            currentStep: this.currentMap.currentStep,
+            totalSteps: this.currentMap.totalSteps,
+            isCompleted: isCompleted,
+            progress: progress
+        });
         
         appContainer.innerHTML = `
             <div class="map-screen">
@@ -126,11 +138,32 @@ class RoadToDreamApp {
                     </div>
                 </div>
                 
+                <!-- Детали текущего шага -->
+                ${!isCompleted ? `
+                <div class="current-step-details">
+                    <h3>Текущий шаг</h3>
+                    <div class="step-info">
+                        <div class="step-number-large">День ${this.currentMap.currentStep + 1}</div>
+                        <div class="step-description">${currentStepData?.task || 'Выполните запланированные действия для этого дня'}</div>
+                    </div>
+                </div>
+                ` : ''}
+                
                 <!-- Кнопки управления -->
                 <div class="map-actions">
+                    ${!isCompleted ? `
                     <button class="complete-step-button" id="complete-step-btn">
-                        Отметить сегодняшний день
+                        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                        Подтвердить выполнение дня
                     </button>
+                    ` : `
+                    <div class="completion-message">
+                        <div class="celebration-icon">🎉</div>
+                        <div class="completion-text">Поздравляем! Цель достигнута!</div>
+                    </div>
+                    `}
                     <button class="reset-map-button" id="reset-map-btn">
                         Создать новую карту
                     </button>
@@ -139,11 +172,17 @@ class RoadToDreamApp {
         `;
         
         // Добавляем обработчик для кнопки завершения шага
-        const completeButton = document.getElementById('complete-step-btn');
-        if (completeButton) {
-            completeButton.addEventListener('click', () => {
-                this.completeCurrentStep();
-            });
+        if (!isCompleted) {
+            const completeButton = document.getElementById('complete-step-btn');
+            console.log('Кнопка завершения найдена:', completeButton);
+            if (completeButton) {
+                completeButton.addEventListener('click', () => {
+                    console.log('Клик по кнопке завершения шага');
+                    this.showStepConfirmationModal();
+                });
+            } else {
+                console.error('Кнопка завершения шага не найдена!');
+            }
         }
         
         // Добавляем обработчик для кнопки сброса карты
@@ -405,7 +444,7 @@ class RoadToDreamApp {
 
     // Настройка обработчиков событий для выбора периода
     setupPeriodSelectionEvents() {
-        const nextBtn = document.getElementById('period-next-btn');
+        const nextBtn = document.getElementById('period-back-btn')
         const backBtn = document.getElementById('period-back-btn');
         const deadlineBtn = document.getElementById('deadline-btn');
         const durationBtn = document.getElementById('duration-btn');
@@ -1105,6 +1144,82 @@ class RoadToDreamApp {
         return html;
     }
     
+    // Показать модальное окно подтверждения шага
+    showStepConfirmationModal() {
+        const currentStepIndex = this.currentMap.currentStep;
+        const currentStep = this.currentMap.steps[currentStepIndex];
+        
+        const modalHTML = `
+            <div class="modal-overlay active" id="step-confirmation-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Подтверждение выполнения</h2>
+                        <p class="modal-subtitle">Вы действительно выполнили задачи дня ${currentStepIndex + 1}?</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="step-confirmation-info">
+                            <div class="step-confirmation-number">День ${currentStepIndex + 1}</div>
+                            <div class="step-confirmation-task">${currentStep?.task || 'Запланированные действия для этого дня'}</div>
+                        </div>
+                        <div class="confirmation-warning">
+                            <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <div class="warning-text">Это действие нельзя отменить. Убедитесь, что вы действительно выполнили все запланированные задачи.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="confirmation-cancel-btn">Отмена</button>
+                        <button class="btn btn-primary" id="confirmation-confirm-btn">
+                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                            Подтвердить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Настройка обработчиков событий
+        this.setupStepConfirmationEvents();
+    }
+    
+    // Настройка обработчиков событий для подтверждения шага
+    setupStepConfirmationEvents() {
+        const cancelBtn = document.getElementById('confirmation-cancel-btn');
+        const confirmBtn = document.getElementById('confirmation-confirm-btn');
+        const modal = document.getElementById('step-confirmation-modal');
+        
+        cancelBtn.addEventListener('click', () => {
+            this.closeStepConfirmationModal();
+        });
+        
+        confirmBtn.addEventListener('click', () => {
+            this.completeCurrentStep();
+            this.closeStepConfirmationModal();
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeStepConfirmationModal();
+            }
+        });
+    }
+    
+    // Закрыть модальное окно подтверждения шага
+    closeStepConfirmationModal() {
+        const modal = document.getElementById('step-confirmation-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
     // Завершение текущего шага
     completeCurrentStep() {
         if (this.currentMap.currentStep >= this.currentMap.totalSteps) {
@@ -1112,9 +1227,11 @@ class RoadToDreamApp {
             return;
         }
         
+        console.log('Завершаем шаг:', this.currentMap.currentStep);
+        
         // Отмечаем текущий шаг как завершенный
         this.currentMap.steps[this.currentMap.currentStep].completed = true;
-            this.currentMap.currentStep++;
+        this.currentMap.currentStep++;
             
         // Сохраняем прогресс
         this.saveMapProgress();
@@ -1123,7 +1240,7 @@ class RoadToDreamApp {
         this.animateStepsStripShift();
             
         // Обновляем интерфейс
-            setTimeout(() => {
+        setTimeout(() => {
             this.renderMapScreen();
         }, 800);
     }
