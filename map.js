@@ -330,12 +330,17 @@ class MapModule {
     // Показать модальное окно выбора карты
     showMapSelectionModal() {
         console.log('🎯 Показываем модальное окно выбора карты...');
+        console.log('Количество карт:', this.app.maps.length);
+        console.log('Карты:', this.app.maps);
         
         if (this.app.maps.length <= 1) {
+            console.log('Карт мало, сразу создаем новую');
             // Если карт мало, сразу создаем новую
             this.addNewMap();
             return;
         }
+        
+        console.log('Показываем модальное окно выбора карт');
         
         const modalHTML = `
             <div class="modal-overlay" id="map-selection-modal">
@@ -482,7 +487,7 @@ class MapModule {
             this.app.currentMap = map;
             this.app.currentMapId = mapId;
             this.app.saveMapsToStorage();
-            this.renderMapScreen();
+            console.log('Переключились на карту:', map.goal);
         }
     }
 }
