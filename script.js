@@ -112,6 +112,7 @@ class RoadToDreamApp {
 
     // Показать модальное окно создания карты
     showCreateMapModal() {
+        console.log('🎯 showCreateMapModal вызван в script.js');
         const modalHTML = `
             <div class="modal-overlay active" id="create-map-modal">
                 <div class="modal-content">

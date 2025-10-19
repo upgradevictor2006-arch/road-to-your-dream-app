@@ -319,6 +319,7 @@ class MapModule {
     // Обработка создания карты
     handleCreateMap() {
         console.log('🎯 Обработка создания новой карты...');
+        console.log('handleCreateMap вызван из модуля карты');
         
         // Сразу показываем модальное окно создания карты
         this.addNewMap();
@@ -457,12 +458,16 @@ class MapModule {
     // Добавление новой карты
     addNewMap() {
         console.log('🎯 Добавляем новую карту...');
+        console.log('Проверяем доступность app:', !!this.app);
+        console.log('Проверяем доступность showCreateMapModal:', !!this.app.showCreateMapModal);
         
         // Показываем модальное окно создания карты
-        if (this.app.showCreateMapModal) {
+        if (this.app && this.app.showCreateMapModal) {
+            console.log('Вызываем showCreateMapModal...');
             this.app.showCreateMapModal();
         } else {
             console.error('showCreateMapModal не найден в основном приложении');
+            console.log('Доступные методы app:', Object.getOwnPropertyNames(this.app));
         }
     }
 
