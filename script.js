@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 26 - ИСПРАВЛЕНА НАВИГАЦИЯ!');
-console.log('🔧 ИСПРАВЛЕНА КНОПКА-ПЛЮСИК И МОДАЛЬНОЕ ОКНО ВЫБОРА КАРТ!');
+console.log('🚀 Загружен script.js версии 27 - СОХРАНЕНИЕ КАРТ!');
+console.log('🔧 ДОБАВЛЕНО СОХРАНЕНИЕ КАРТ В LOCALSTORAGE И ИСПРАВЛЕН КЛИК ПО НАЗВАНИЮ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -14,6 +14,9 @@ class RoadToDreamApp {
         this.currentMap = null; // Текущая карта
         this.maps = []; // Массив всех карт
         this.currentMapId = null; // ID текущей карты
+        
+        // Загружаем сохраненные карты
+        this.loadMapsFromStorage();
         
         // Инициализируем модуль каравана
         if (typeof CaravanModule !== 'undefined') {
@@ -170,7 +173,11 @@ class RoadToDreamApp {
         // Добавляем обработчик для клика по названию карты
         const mapTitle = document.getElementById('map-title');
         if (mapTitle) {
-            mapTitle.addEventListener('click', () => {
+            // Удаляем старые обработчики
+            mapTitle.replaceWith(mapTitle.cloneNode(true));
+            const newMapTitle = document.getElementById('map-title');
+            
+            newMapTitle.addEventListener('click', () => {
                 console.log('Клик по названию карты. Количество карт:', this.maps.length);
                 this.showMapSelectionModal();
             });
@@ -1087,6 +1094,9 @@ class RoadToDreamApp {
         console.log('Карта создана. Всего карт:', this.maps.length);
         console.log('Текущая карта ID:', this.currentMapId);
         
+        // Сохраняем карты в localStorage
+        this.saveMapsToStorage();
+        
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
@@ -1107,6 +1117,7 @@ class RoadToDreamApp {
         if (map) {
             this.currentMapId = mapId;
             this.currentMap = map;
+            this.saveMapsToStorage(); // Сохраняем текущую карту
             this.renderMapScreen();
             console.log('Переключились на карту:', map.goal);
         }
@@ -1115,6 +1126,47 @@ class RoadToDreamApp {
     // Получить текущую карту
     getCurrentMap() {
         return this.maps.find(m => m.id === this.currentMapId);
+    }
+    
+    // Сохранить карты в localStorage
+    saveMapsToStorage() {
+        try {
+            localStorage.setItem('roadToDreamMaps', JSON.stringify(this.maps));
+            localStorage.setItem('roadToDreamCurrentMapId', this.currentMapId || '');
+            console.log('Карты сохранены в localStorage');
+        } catch (error) {
+            console.error('Ошибка сохранения карт:', error);
+        }
+    }
+    
+    // Загрузить карты из localStorage
+    loadMapsFromStorage() {
+        try {
+            const savedMaps = localStorage.getItem('roadToDreamMaps');
+            const savedCurrentMapId = localStorage.getItem('roadToDreamCurrentMapId');
+            
+            if (savedMaps) {
+                this.maps = JSON.parse(savedMaps);
+                console.log('Загружено карт из localStorage:', this.maps.length);
+            }
+            
+            if (savedCurrentMapId && this.maps.length > 0) {
+                this.currentMapId = savedCurrentMapId;
+                this.currentMap = this.maps.find(m => m.id === this.currentMapId);
+                if (this.currentMap) {
+                    console.log('Восстановлена текущая карта:', this.currentMap.goal);
+                } else {
+                    // Если сохраненная карта не найдена, берем первую
+                    this.currentMapId = this.maps[0].id;
+                    this.currentMap = this.maps[0];
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки карт:', error);
+            this.maps = [];
+            this.currentMapId = null;
+            this.currentMap = null;
+        }
     }
     
     // Показать модальное окно выбора карт
