@@ -13,12 +13,17 @@ class MapModule {
 
     // Рендеринг экрана карты
     renderMapScreen() {
+        console.log('🎯 renderMapScreen вызван в map.js');
+        console.log('Текущая карта:', this.app.currentMap);
+        
         const appContainer = document.getElementById('app-container');
         
         // Проверяем, есть ли созданная карта
         if (this.app.currentMap) {
+            console.log('Рендерим карту с шагами');
             this.renderMapWithStepsStrip();
         } else {
+            console.log('Рендерим пустой экран карты');
             this.renderEmptyMapScreen();
         }
     }
@@ -488,13 +493,18 @@ class MapModule {
         
         const map = this.app.maps.find(m => m.id === mapId);
         if (map) {
+            console.log('Найдена карта для переключения:', map.goal);
             this.app.currentMap = map;
             this.app.currentMapId = mapId;
             this.app.saveMapsToStorage();
             console.log('Переключились на карту:', map.goal);
+            console.log('Текущая карта после переключения:', this.app.currentMap);
             
             // Рендерим карту после переключения
+            console.log('Вызываем renderMapScreen...');
             this.renderMapScreen();
+        } else {
+            console.error('Карта с ID', mapId, 'не найдена');
         }
     }
 }
