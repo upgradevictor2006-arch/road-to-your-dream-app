@@ -1090,6 +1090,141 @@ body {
     box-shadow: 0 2px 8px rgba(244, 189, 65, 0.5);
 }
 
+/* Кликабельное название карты */
+.map-title.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.map-title.clickable:hover {
+    color: var(--accent-color);
+    transform: scale(1.02);
+}
+
+.map-title.clickable::after {
+    content: '⇄';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.map-title.clickable:hover::after {
+    opacity: 1;
+}
+
+/* Модальное окно выбора карт */
+.map-selection-modal {
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.maps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.map-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+
+.map-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.map-item.current {
+    border-color: var(--accent-color);
+    background: rgba(244, 189, 65, 0.1);
+}
+
+.map-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.map-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.map-item-progress {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.map-item-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.map-item-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.select-map-btn {
+    background: var(--button-gradient);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.select-map-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 189, 65, 0.3);
+}
+
+.map-selection-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.add-new-map-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-new-map-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
 /* Сообщение о завершении */
 .completion-message {
     text-align: center;

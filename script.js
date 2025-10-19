@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 23 - БЕЗ ЗЕЛЕНЫХ ШАГОВ!');
-console.log('🔧 ВЫПОЛНЕННЫЕ ШАГИ ТЕПЕРЬ ИСЧЕЗАЮТ С ЭКРАНА!');
+console.log('🚀 Загружен script.js версии 24 - МНОЖЕСТВЕННЫЕ КАРТЫ!');
+console.log('🔧 ТЕПЕРЬ МОЖНО СОЗДАВАТЬ НЕСКОЛЬКО КАРТ И ПЕРЕКЛЮЧАТЬСЯ МЕЖДУ НИМИ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -12,6 +12,8 @@ class RoadToDreamApp {
         this.currentScreen = 'map';
         this.newGoalData = null; // Данные создаваемой цели
         this.currentMap = null; // Текущая карта
+        this.maps = []; // Массив всех карт
+        this.currentMapId = null; // ID текущей карты
         
         // Инициализируем модуль каравана
         if (typeof CaravanModule !== 'undefined') {
@@ -124,7 +126,7 @@ class RoadToDreamApp {
             <div class="map-screen">
                 <!-- Заголовок карты -->
                 <div class="map-header">
-                    <h2 class="map-title">${this.currentMap.goal}</h2>
+                    <h2 class="map-title clickable" id="map-title">${this.currentMap.goal}</h2>
                     <div class="map-progress">
                         <div class="progress-text">Прогресс: ${this.currentMap.currentStep}/${this.currentMap.totalSteps} дней (${progress}%)</div>
                         <div class="progress-bar">
@@ -165,11 +167,19 @@ class RoadToDreamApp {
             });
         });
         
-        // Добавляем обработчик для кнопки сброса карты
+        // Добавляем обработчик для клика по названию карты
+        const mapTitle = document.getElementById('map-title');
+        if (mapTitle) {
+            mapTitle.addEventListener('click', () => {
+                this.showMapSelectionModal();
+            });
+        }
+        
+        // Добавляем обработчик для кнопки создания новой карты
         const resetButton = document.getElementById('reset-map-btn');
         if (resetButton) {
             resetButton.addEventListener('click', () => {
-                this.resetMap();
+                this.addNewMap();
             });
         }
     }
@@ -1051,8 +1061,9 @@ class RoadToDreamApp {
         console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
         console.log('Создание карты с данными:', this.newGoalData);
         
-        // Сохраняем данные карты
-        this.currentMap = {
+        // Создаем новую карту
+        const newMap = {
+            id: Date.now().toString(), // Уникальный ID
             goal: this.newGoalData.title,
             description: this.newGoalData.description,
             periodType: this.newGoalData.periodType,
@@ -1062,57 +1073,121 @@ class RoadToDreamApp {
             currentStep: 0,
             totalSteps: this.newGoalData.periodDays,
             steps: this.generateMapSteps(),
+            createdAt: new Date().toISOString()
         };
+        
+        // Добавляем карту в массив
+        this.maps.push(newMap);
+        
+        // Делаем новую карту текущей
+        this.currentMapId = newMap.id;
+        this.currentMap = newMap;
         
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
         // Возвращаемся на главный экран карты
         this.renderMapScreen();
-        
-        // ТЕСТОВАЯ КНОПКА - добавляем поверх всего интерфейса
-        this.createTestButton();
     }
     
-    // Создать тестовую кнопку
-    createTestButton() {
-        // Удаляем старую тестовую кнопку, если она есть
-        const existingTestBtn = document.getElementById('test-complete-btn');
-        if (existingTestBtn) {
-            existingTestBtn.remove();
+    // Добавить новую карту
+    addNewMap() {
+        console.log('Добавление новой карты');
+        this.newGoalData = null;
+        this.showGoalCreationModal();
+    }
+    
+    // Переключить на другую карту
+    switchToMap(mapId) {
+        const map = this.maps.find(m => m.id === mapId);
+        if (map) {
+            this.currentMapId = mapId;
+            this.currentMap = map;
+            this.renderMapScreen();
+            console.log('Переключились на карту:', map.goal);
+        }
+    }
+    
+    // Получить текущую карту
+    getCurrentMap() {
+        return this.maps.find(m => m.id === this.currentMapId);
+    }
+    
+    // Показать модальное окно выбора карт
+    showMapSelectionModal() {
+        if (this.maps.length <= 1) {
+            // Если карт мало, просто создаем новую
+            this.addNewMap();
+            return;
         }
         
-        // Создаем новую тестовую кнопку
-        const testButton = document.createElement('button');
-        testButton.id = 'test-complete-btn';
-        testButton.innerHTML = '✅ ТЕСТ: Подтвердить шаг';
-        testButton.style.cssText = `
-            position: fixed !important;
-            top: 100px !important;
-            right: 20px !important;
-            background: #ff4444 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 10px !important;
-            padding: 15px 20px !important;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-            z-index: 99999 !important;
-            box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5) !important;
-            font-family: Arial, sans-serif !important;
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content map-selection-modal">
+                <div class="modal-header">
+                    <h3>Выберите карту</h3>
+                    <button class="modal-close" id="close-map-selection">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="maps-list">
+                        ${this.maps.map(map => `
+                            <div class="map-item ${map.id === this.currentMapId ? 'current' : ''}" data-map-id="${map.id}">
+                                <div class="map-item-header">
+                                    <h4 class="map-item-title">${map.goal}</h4>
+                                    <div class="map-item-progress">
+                                        ${map.currentStep}/${map.totalSteps} дней
+                                    </div>
+                                </div>
+                                <div class="map-item-description">${map.description}</div>
+                                <div class="map-item-actions">
+                                    <button class="select-map-btn" data-map-id="${map.id}">
+                                        ${map.id === this.currentMapId ? 'Текущая' : 'Выбрать'}
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="map-selection-actions">
+                        <button class="add-new-map-btn" id="add-new-map-from-selection">
+                            + Создать новую карту
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
         
-        // Добавляем обработчик
-        testButton.addEventListener('click', () => {
-            console.log('🎯 ТЕСТОВАЯ КНОПКА НАЖАТА!');
-            this.completeCurrentStep();
+        document.body.appendChild(modal);
+        
+        // Добавляем обработчики
+        const closeBtn = document.getElementById('close-map-selection');
+        closeBtn.addEventListener('click', () => {
+            modal.remove();
         });
         
-        // Добавляем кнопку в body
-        document.body.appendChild(testButton);
-        console.log('🎯 ТЕСТОВАЯ КНОПКА СОЗДАНА И ДОБАВЛЕНА В DOM!');
+        const selectButtons = modal.querySelectorAll('.select-map-btn');
+        selectButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mapId = e.target.getAttribute('data-map-id');
+                this.switchToMap(mapId);
+                modal.remove();
+            });
+        });
+        
+        const addNewBtn = document.getElementById('add-new-map-from-selection');
+        addNewBtn.addEventListener('click', () => {
+            modal.remove();
+            this.addNewMap();
+        });
+        
+        // Закрытие по клику на фон
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
+    
 
     // Генерация шагов для карты
     generateMapSteps() {
@@ -1428,10 +1503,38 @@ function updateActiveNavButton(activeButton) {
     const allNavButtons = document.querySelectorAll('.nav-btn');
     allNavButtons.forEach(button => {
         button.classList.remove('active');
+        
+        // Восстанавливаем оригинальную иконку карты если она была изменена
+        const mapButton = button.querySelector('[data-screen="map"]');
+        if (mapButton) {
+            const icon = mapButton.querySelector('.nav-icon');
+            if (icon) {
+                icon.innerHTML = `
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                `;
+            }
+        }
     });
     
     // Добавляем класс active к текущей кнопке
     activeButton.classList.add('active');
+    
+    // Если активна кнопка карты, меняем иконку на плюсик
+    const targetScreenId = activeButton.getAttribute('data-screen');
+    if (targetScreenId === 'map') {
+        const icon = activeButton.querySelector('.nav-icon');
+        if (icon) {
+            icon.innerHTML = `
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+            `;
+        }
+    }
 }
 
 // Функции будут добавлены по мере необходимости
