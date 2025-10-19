@@ -29,11 +29,14 @@ class RoadToDreamApp {
         
         
         // Инициализируем модуль карты
+        console.log('Проверяем доступность MapModule:', typeof MapModule);
+        console.log('MapModule в window:', typeof window.MapModule);
         if (typeof MapModule !== 'undefined') {
             this.mapModule = new MapModule(this);
             console.log('Модуль карты инициализирован');
         } else {
             console.error('MapModule не найден! Проверьте загрузку map.js');
+            console.log('Доступные глобальные объекты:', Object.keys(window).filter(key => key.includes('Module')));
             this.mapModule = null;
         }
         

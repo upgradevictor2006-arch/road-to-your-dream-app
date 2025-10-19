@@ -3,6 +3,8 @@
 //   Отдельный файл для избежания конфликтов
 // ============================================
 
+console.log('🗺️ Загружается map.js...');
+
 class MapModule {
     constructor(app) {
         this.app = app;
@@ -486,8 +488,14 @@ class MapModule {
 }
 
 // Экспортируем класс для использования в основном приложении
+console.log('🗺️ Экспортируем MapModule...');
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MapModule;
+    console.log('🗺️ MapModule экспортирован через module.exports');
 } else if (typeof window !== 'undefined') {
     window.MapModule = MapModule;
+    console.log('🗺️ MapModule экспортирован в window.MapModule');
+    console.log('🗺️ Проверка: window.MapModule =', typeof window.MapModule);
+} else {
+    console.error('🗺️ Не удалось экспортировать MapModule!');
 }
