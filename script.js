@@ -1617,15 +1617,16 @@ function setupNavigation() {
         return;
     }
     
-        // Если это кнопка карты и на ней плюсик, создаем новую карту
+        // Если это кнопка карты, проверяем активна ли она
         if (targetScreenId === 'map' && window.roadToDreamApp) {
-            const icon = navButton.querySelector('.nav-icon');
-            const isPlusIcon = icon && icon.innerHTML.includes('circle cx="12"');
-            
-            if (isPlusIcon) {
-                // Создаем новую карту вместо переключения экрана
+            // Если карта уже активна (показывает плюсик), создаем новую карту
+            if (navButton.classList.contains('active')) {
+                console.log('Клик по активной карте (плюсик) - создаем новую карту');
                 window.roadToDreamApp.addNewMap();
                 return;
+            } else {
+                console.log('Клик по неактивной карте - переключаемся на карту');
+                // Обычное переключение на экран карты
             }
         }
         
@@ -1647,28 +1648,37 @@ function switchToScreen(screenId) {
     }
 }
 
-// Функция обновления активной кнопки навигации
-function updateActiveNavButton(activeButton) {
-    // Убираем класс active со всех кнопок
-    const allNavButtons = document.querySelectorAll('.nav-btn');
-    allNavButtons.forEach(button => {
-        button.classList.remove('active');
-        
-        // Оставляем иконку карты как плюсик всегда
-        if (button.getAttribute('data-screen') === 'map') {
-            const icon = button.querySelector('.nav-icon');
-            if (icon) {
-                icon.innerHTML = `
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                `;
+    // Функция обновления активной кнопки навигации
+    function updateActiveNavButton(activeButton) {
+        // Убираем класс active со всех кнопок
+        const allNavButtons = document.querySelectorAll('.nav-btn');
+        allNavButtons.forEach(button => {
+            button.classList.remove('active');
+            
+            // Обновляем иконку карты в зависимости от активного экрана
+            if (button.getAttribute('data-screen') === 'map') {
+                const icon = button.querySelector('.nav-icon');
+                if (icon) {
+                    if (activeButton.getAttribute('data-screen') === 'map') {
+                        // Если карта активна - показываем плюсик
+                        icon.innerHTML = `
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        `;
+                    } else {
+                        // Если карта не активна - показываем обычную иконку карты
+                        icon.innerHTML = `
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                        `;
+                    }
+                }
             }
-        }
-    });
-    
-    // Добавляем класс active к текущей кнопке
-    activeButton.classList.add('active');
-}
+        });
+        
+        // Добавляем класс active к текущей кнопке
+        activeButton.classList.add('active');
+    }
 
 // Функции будут добавлены по мере необходимости
 
