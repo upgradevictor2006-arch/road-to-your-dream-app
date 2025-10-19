@@ -3,27 +3,21 @@
 //   Отдельный файл для избежания конфликтов
 // ============================================
 
-console.log('🗺️ Загружается map.js...');
 
 class MapModule {
     constructor(app) {
         this.app = app;
-        console.log('🗺️ MapModule инициализирован');
     }
 
     // Рендеринг экрана карты
     renderMapScreen() {
-        console.log('🎯 renderMapScreen вызван в map.js');
-        console.log('Текущая карта:', this.app.currentMap);
         
         const appContainer = document.getElementById('app-container');
         
         // Проверяем, есть ли созданная карта
         if (this.app.currentMap) {
-            console.log('Рендерим карту с шагами');
             this.renderMapWithStepsStrip();
         } else {
-            console.log('Рендерим пустой экран карты');
             this.renderEmptyMapScreen();
         }
     }
@@ -62,18 +56,11 @@ class MapModule {
     
     // Рендеринг карты с лентой шагов
     renderMapWithStepsStrip() {
-        console.log('🎯 ФУНКЦИЯ renderMapWithStepsStrip ВЫЗВАНА!');
         const appContainer = document.getElementById('app-container');
         const progress = Math.round((this.app.currentMap.currentStep / this.app.currentMap.totalSteps) * 100);
         const isCompleted = this.app.currentMap.currentStep >= this.app.currentMap.totalSteps;
         const currentStepData = this.app.currentMap.steps[this.app.currentMap.currentStep];
         
-        console.log('Рендерим карту:', {
-            currentStep: this.app.currentMap.currentStep,
-            totalSteps: this.app.currentMap.totalSteps,
-            isCompleted: isCompleted,
-            progress: progress
-        });
         
         appContainer.innerHTML = `
             <div class="map-screen">
@@ -112,7 +99,6 @@ class MapModule {
         
         // Добавляем обработчики для встроенных кнопок подтверждения шагов
         const inlineButtons = document.querySelectorAll('.confirm-step-btn-inline');
-        console.log('Найдено встроенных кнопок:', inlineButtons.length);
         inlineButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -139,7 +125,6 @@ class MapModule {
 
     // Рендеринг ленты шагов
     renderStepsStrip() {
-        console.log('🎯 Рендерим ленту шагов...');
         if (!this.app.currentMap || !this.app.currentMap.steps) {
             return '';
         }
@@ -147,11 +132,6 @@ class MapModule {
         const steps = this.app.currentMap.steps;
         const currentStepIndex = this.app.currentMap.currentStep;
         
-        console.log('Данные для рендеринга ленты:', {
-            totalSteps: steps.length,
-            currentStepIndex: currentStepIndex,
-            steps: steps
-        });
         
         // Показываем только текущий и следующие шаги (убираем завершенные)
         const visibleSteps = steps.slice(currentStepIndex);
@@ -189,10 +169,8 @@ class MapModule {
 
     // Показать модальное окно подтверждения шага
     showStepConfirmationModal() {
-        console.log('🎯 Показываем модальное окно подтверждения шага...');
         
         if (!this.app.currentMap || this.app.currentMap.currentStep >= this.app.currentMap.totalSteps) {
-            console.log('Нет активного шага для подтверждения');
             return;
         }
         
@@ -253,17 +231,14 @@ class MapModule {
 
     // Завершить текущий шаг
     completeCurrentStep() {
-        console.log('🎯 Завершаем текущий шаг...');
         
         if (!this.app.currentMap || this.app.currentMap.currentStep >= this.app.currentMap.totalSteps) {
-            console.log('Нет активного шага для завершения');
             return;
         }
         
         // Увеличиваем текущий шаг
         this.app.currentMap.currentStep++;
         
-        console.log('Текущий шаг обновлен:', this.app.currentMap.currentStep);
         
         // Сохраняем изменения
         this.app.saveMapsToStorage();
@@ -279,7 +254,6 @@ class MapModule {
 
     // Показать сообщение о завершении
     showCompletionMessage() {
-        console.log('🎉 Показываем сообщение о завершении цели!');
         
         const modalHTML = `
             <div class="modal-overlay active" id="completion-modal">
@@ -325,8 +299,6 @@ class MapModule {
 
     // Обработка создания карты
     handleCreateMap() {
-        console.log('🎯 Обработка создания новой карты...');
-        console.log('handleCreateMap вызван из модуля карты');
         
         // Сразу показываем модальное окно создания карты
         this.addNewMap();
@@ -334,19 +306,13 @@ class MapModule {
 
     // Показать модальное окно выбора карты
     showMapSelectionModal() {
-        console.log('🎯 Показываем модальное окно выбора карты...');
-        console.log('Количество карт:', this.app.maps.length);
-        console.log('Карты:', this.app.maps);
-        console.log('Проверяем условие maps.length <= 1:', this.app.maps.length <= 1);
         
         if (this.app.maps.length <= 1) {
-            console.log('Карт мало, сразу создаем новую');
             // Если карт мало, сразу создаем новую
             this.addNewMap();
             return;
         }
         
-        console.log('Показываем модальное окно выбора карт');
         
         const modalHTML = `
             <div class="modal-overlay" id="map-selection-modal">
@@ -388,9 +354,7 @@ class MapModule {
             const modal = document.getElementById('map-selection-modal');
             if (modal) {
                 modal.classList.add('active');
-                console.log('Модальное окно активировано');
             } else {
-                console.error('Модальное окно не найдено для активации');
             }
         }, 10);
         
@@ -413,7 +377,6 @@ class MapModule {
         selectBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const mapId = btn.getAttribute('data-map-id');
-                console.log('Клик по кнопке выбора карты, ID:', mapId);
                 this.switchToMap(mapId); // Вызываем функцию из map.js, а не из app
                 closeModal();
             });
@@ -429,11 +392,8 @@ class MapModule {
 
     // Создание новой карты
     createMap() {
-        console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
-        console.log('Создание карты с данными:', this.app.newGoalData);
         
         if (!this.app.newGoalData) {
-            console.error('Нет данных для создания карты');
             return;
         }
         
@@ -459,8 +419,6 @@ class MapModule {
         this.app.currentMapId = newMap.id;
         this.app.currentMap = newMap;
         
-        console.log('Карта создана. Всего карт:', this.app.maps.length);
-        console.log('Текущая карта ID:', this.app.currentMapId);
         
         // Сохраняем карты в localStorage
         this.app.saveMapsToStorage();
@@ -474,51 +432,33 @@ class MapModule {
 
     // Добавление новой карты
     addNewMap() {
-        console.log('🎯 Добавляем новую карту...');
-        console.log('Проверяем доступность app:', !!this.app);
-        console.log('Проверяем доступность showCreateMapModal:', !!this.app.showCreateMapModal);
         
         // Показываем модальное окно создания карты
         if (this.app && this.app.showCreateMapModal) {
-            console.log('Вызываем showCreateMapModal...');
             this.app.showCreateMapModal();
         } else {
-            console.error('showCreateMapModal не найден в основном приложении');
-            console.log('Доступные методы app:', Object.getOwnPropertyNames(this.app));
         }
     }
 
     // Переключение на карту
     switchToMap(mapId) {
-        console.log('🎯 Переключаемся на карту:', mapId);
         
         const map = this.app.maps.find(m => m.id === mapId);
         if (map) {
-            console.log('Найдена карта для переключения:', map.goal);
             this.app.currentMap = map;
             this.app.currentMapId = mapId;
             this.app.saveMapsToStorage();
-            console.log('Переключились на карту:', map.goal);
-            console.log('Текущая карта после переключения:', this.app.currentMap);
             
             // Рендерим карту после переключения
-            console.log('Вызываем renderMapScreen...');
             this.renderMapScreen();
         } else {
-            console.error('Карта с ID', mapId, 'не найдена');
         }
     }
 }
 
 // Экспортируем класс для использования в основном приложении
-console.log('🗺️ Экспортируем MapModule...');
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MapModule;
-    console.log('🗺️ MapModule экспортирован через module.exports');
 } else if (typeof window !== 'undefined') {
     window.MapModule = MapModule;
-    console.log('🗺️ MapModule экспортирован в window.MapModule');
-    console.log('🗺️ Проверка: window.MapModule =', typeof window.MapModule);
-} else {
-    console.error('🗺️ Не удалось экспортировать MapModule!');
 }
