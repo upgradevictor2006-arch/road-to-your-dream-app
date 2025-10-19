@@ -6,6 +6,7 @@
     <title>Road to Your Dream</title>
     <link rel="stylesheet" href="style.css?v=29&t=2025">
     <link rel="stylesheet" href="caravan.css?v=1">
+    <link rel="stylesheet" href="profile.css?v=1">
     <meta name="description" content="Достигайте своих целей с помощью интерактивной карты мечты">
     <meta name="theme-color" content="#6366f1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +22,7 @@
     
     <!-- Отладочная информация -->
     <div style="position: fixed; top: 10px; left: 10px; background: rgba(255, 0, 0, 0.3); color: white; padding: 5px; z-index: 9999; font-size: 12px; pointer-events: none; border-radius: 5px;">
-        Версия: v36 - ВОЗВРАТ К ПРОСТОМУ ПЛЮСИКУ!
+        Версия: v37 - ДОБАВЛЕН ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ!
     </div>
     
     <!-- Кнопка очистки данных для тестирования -->
@@ -59,17 +60,18 @@
             </svg>
             <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-btn" data-screen="garage" aria-label="Гараж">
+        <button class="nav-btn" data-screen="profile" aria-label="Профиль">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            <span class="nav-label">Гараж</span>
+            <span class="nav-label">Профиль</span>
         </button>
     </nav>
 
     <!-- Подключение модулей -->
     <script src="caravan.js?v=1"></script>
+    <script src="profile.js?v=1"></script>
     <script src="script.js?v=29&t=2025&noanim=1"></script>
 </body>
 </html>
