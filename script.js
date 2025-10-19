@@ -45,6 +45,15 @@ class RoadToDreamApp {
             this.mapModule = null;
         }
         
+        // Инициализируем модуль гаража
+        if (typeof GarageModule !== 'undefined') {
+            this.garageModule = new GarageModule(this);
+            console.log('Модуль гаража инициализирован');
+        } else {
+            console.error('GarageModule не найден! Проверьте загрузку garage.js');
+            this.garageModule = null;
+        }
+        
         this.init();
     }
 
@@ -84,10 +93,12 @@ class RoadToDreamApp {
                 }
                 break;
             case 'garage':
-                this.renderGarageScreen();
-                break;
-            case 'profile':
-                this.renderProfileScreen();
+                if (this.garageModule) {
+                    this.garageModule.renderGarageScreen();
+                } else {
+                    console.error('Модуль гаража не инициализирован!');
+                    this.renderGarageScreen(); // Fallback
+                }
                 break;
         }
     }
@@ -1402,173 +1413,6 @@ class RoadToDreamApp {
     `;
     }
     
-    // Рендеринг экрана профиля
-    renderProfileScreen() {
-        console.log('🎯 Рендерим экран профиля...');
-        const appContainer = document.getElementById('app-container');
-        appContainer.innerHTML = `
-            <div class="profile-screen">
-                <!-- Премиальный Header Профиля -->
-                <div class="profile-header-premium">
-                    <div class="profile-background"></div>
-                    <div class="profile-content">
-                        <div class="profile-avatar-container">
-                            <div class="avatar-ring"></div>
-                            <div class="avatar-ring-inner"></div>
-                            <img id="user-avatar-img" class="profile-avatar" src="" alt="Аватар пользователя">
-                            <div class="level-badge">
-                                <span id="user-level">1</span>
-                            </div>
-                        </div>
-                        <div class="profile-info">
-                            <h1 id="user-name" class="profile-name">Загрузка...</h1>
-                            <p class="profile-subtitle">Исследователь целей</p>
-                            <div class="level-progress-container">
-                                <div class="level-info">
-                                    <span>Уровень <span id="current-level">1</span></span>
-                                    <span><span id="current-exp">0</span>/<span id="next-level-exp">100</span> опыта</span>
-                                </div>
-                                <div class="level-progress-bar">
-                                    <div id="level-progress" class="level-progress-fill" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Быстрая статистика -->
-                <div class="quick-stats">
-                    <div class="quick-stat-card">
-                        <div class="stat-icon-new">🎯</div>
-                        <div class="stat-value-new" id="completed-goals">0</div>
-                        <div class="stat-label-new">Целей завершено</div>
-                    </div>
-                    <div class="quick-stat-card">
-                        <div class="stat-icon-new">🔥</div>
-                        <div class="stat-value-new" id="current-streak">0</div>
-                        <div class="stat-label-new">Дней подряд</div>
-                    </div>
-                    <div class="quick-stat-card">
-                        <div class="stat-icon-new">👣</div>
-                        <div class="stat-value-new" id="total-steps">0</div>
-                        <div class="stat-label-new">Всего шагов</div>
-                    </div>
-                </div>
-
-                <!-- Календарь активности -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3>Активность</h3>
-                        <span class="badge-count">7 дней</span>
-                    </div>
-                    <div class="week-calendar">
-                        <div class="calendar-day">
-                            <div class="day-label">Пн</div>
-                            <div class="day-indicator active"></div>
-                        </div>
-                        <div class="calendar-day">
-                            <div class="day-label">Вт</div>
-                            <div class="day-indicator active"></div>
-                        </div>
-                        <div class="calendar-day">
-                            <div class="day-label">Ср</div>
-                            <div class="day-indicator active"></div>
-                        </div>
-                        <div class="calendar-day today">
-                            <div class="day-label">Чт</div>
-                            <div class="day-indicator"></div>
-                        </div>
-                        <div class="calendar-day">
-                            <div class="day-label">Пт</div>
-                            <div class="day-indicator"></div>
-                        </div>
-                        <div class="calendar-day">
-                            <div class="day-label">Сб</div>
-                            <div class="day-indicator"></div>
-                        </div>
-                        <div class="calendar-day">
-                            <div class="day-label">Вс</div>
-                            <div class="day-indicator"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Достижения -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3>Достижения</h3>
-                        <span class="badge-count">2/5</span>
-                    </div>
-                    <div class="achievements-grid">
-                        <div class="achievement-card unlocked">
-                            <div class="achievement-icon-large">🎯</div>
-                            <div class="achievement-name">Первая цель</div>
-                            <div class="achievement-desc">Завершите свою первую цель</div>
-                            <div class="achievement-progress">Получено!</div>
-                        </div>
-                        <div class="achievement-card unlocked">
-                            <div class="achievement-icon-large">🔥</div>
-                            <div class="achievement-name">Страстный</div>
-                            <div class="achievement-desc">7 дней активности подряд</div>
-                            <div class="achievement-progress">Получено!</div>
-                        </div>
-                        <div class="achievement-card in-progress">
-                            <div class="achievement-icon-large">💎</div>
-                            <div class="achievement-name">Перфекционист</div>
-                            <div class="achievement-desc">Завершите 10 целей</div>
-                            <div class="progress-bar-small">
-                                <div class="progress-fill-small" style="width: 30%"></div>
-                            </div>
-                            <div class="achievement-progress">3/10</div>
-                        </div>
-                        <div class="achievement-card locked">
-                            <div class="achievement-icon-large">🏆</div>
-                            <div class="achievement-name">Легенда</div>
-                            <div class="achievement-desc">Достигните 10 уровня</div>
-                            <div class="achievement-progress">Заблокировано</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Реферальная программа -->
-                <div class="section-card referral-card-new">
-                    <div class="referral-banner">
-                        <div class="referral-icon">👥</div>
-                        <div class="referral-content">
-                            <h3>Пригласите друзей</h3>
-                            <p>Получайте бонусы за каждого друга</p>
-                        </div>
-                    </div>
-                    <div class="referral-stats">
-                        <div class="referral-stat">
-                            <span class="stat-number" id="referral-count">0</span>
-                            <span class="stat-text">Друзей приглашено</span>
-                        </div>
-                        <div class="referral-stat">
-                            <span class="stat-number" id="referral-bonus">0</span>
-                            <span class="stat-text">Бонусов получено</span>
-                        </div>
-                    </div>
-                    <button id="invite-btn" class="btn-premium">
-                        <span class="btn-icon">📤</span>
-                        Пригласить друзей
-                    </button>
-                </div>
-
-                <!-- Мотивационная цитата -->
-                <div class="quote-card">
-                    <div class="quote-icon">💫</div>
-                    <div class="quote-text-new">Путешествие в тысячу миль начинается с одного шага.</div>
-                    <div class="quote-author-new">— Лао-цзы</div>
-                </div>
-            </div>
-        `;
-        
-        // Инициализируем профиль после рендеринга
-        if (this.userProfileModule) {
-            this.userProfileModule.initialize();
-        }
-    }
 
     // Настройка Telegram WebApp
     setupTelegramWebApp() {
@@ -1654,30 +1498,36 @@ function switchToScreen(screenId) {
         const allNavButtons = document.querySelectorAll('.nav-btn');
         allNavButtons.forEach(button => {
             button.classList.remove('active');
-            
-            // Обновляем иконку карты в зависимости от активного экрана
-            if (button.getAttribute('data-screen') === 'map') {
-                const icon = button.querySelector('.nav-icon');
-                if (icon) {
-                    if (activeButton.getAttribute('data-screen') === 'map') {
-                        // Если карта активна - показываем плюсик
-                        icon.innerHTML = `
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        `;
-                    } else {
-                        // Если карта не активна - показываем обычную иконку карты
-                        icon.innerHTML = `
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                        `;
-                    }
-                }
-            }
         });
         
         // Добавляем класс active к текущей кнопке
         activeButton.classList.add('active');
+        
+        // Обновляем иконки после установки активной кнопки
+        updateMapIcon();
+    }
+    
+    // Функция обновления иконки карты
+    function updateMapIcon() {
+        const mapButton = document.querySelector('[data-screen="map"]');
+        if (!mapButton) return;
+        
+        const icon = mapButton.querySelector('.nav-icon');
+        if (!icon) return;
+        
+        if (mapButton.classList.contains('active')) {
+            // Если карта активна - показываем плюсик
+            icon.innerHTML = `
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            `;
+        } else {
+            // Если карта не активна - показываем обычную иконку карты
+            icon.innerHTML = `
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            `;
+        }
     }
 
 // Функции будут добавлены по мере необходимости

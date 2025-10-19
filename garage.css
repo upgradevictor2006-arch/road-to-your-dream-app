@@ -1,0 +1,108 @@
+/* ============================================
+   СТИЛИ ГАРАЖА - ОТДЕЛЬНЫЙ ФАЙЛ
+   Отдельный файл для избежания конфликтов
+   ============================================ */
+
+.garage-screen {
+    padding: 24px 20px 140px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-primary);
+}
+
+.garage-screen h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.garage-screen p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.garage-features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold-primary);
+    box-shadow: 0 8px 25px rgba(244, 189, 65, 0.2);
+}
+
+.feature-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.feature-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.feature-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Адаптивность для гаража */
+@media (max-width: 768px) {
+    .garage-screen {
+        padding: 20px 16px 140px 16px;
+    }
+    
+    .garage-screen h1 {
+        font-size: 24px;
+    }
+    
+    .garage-features {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .feature-card {
+        padding: 16px;
+    }
+    
+    .feature-icon {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .garage-screen {
+        padding: 16px 12px 140px 12px;
+    }
+    
+    .garage-screen h1 {
+        font-size: 20px;
+    }
+    
+    .feature-card {
+        padding: 12px;
+    }
+    
+    .feature-icon {
+        font-size: 24px;
+    }
+}
