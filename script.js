@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 21 - ТЕСТОВАЯ КНОПКА!');
-console.log('🔧 ТЕСТОВАЯ КНОПКА ДОЛЖНА БЫТЬ ВИДНА В ПРАВОМ ВЕРХНЕМ УГЛУ!');
+console.log('🚀 Загружен script.js версии 22 - ВСТРОЕННАЯ КНОПКА!');
+console.log('🔧 КНОПКА "ПОДТВЕРДИТЬ ШАГ" ТЕПЕРЬ ВСТРОЕНА В ЛЕНТУ ШАГОВ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -140,32 +140,14 @@ class RoadToDreamApp {
                     </div>
                 </div>
                 
-                <!-- Детали текущего шага -->
-                ${!isCompleted ? `
-                <div class="current-step-details">
-                    <h3>Текущий шаг</h3>
-                    <div class="step-info">
-                        <div class="step-number-large">День ${this.currentMap.currentStep + 1}</div>
-                        <div class="step-description">${currentStepData?.task || 'Выполните запланированные действия для этого дня'}</div>
-                    </div>
-                </div>
-                ` : ''}
-                
                 <!-- Кнопки управления -->
                 <div class="map-actions">
-                    ${!isCompleted ? `
-                    <button class="complete-step-button" id="complete-step-btn">
-                        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20,6 9,17 4,12"></polyline>
-                        </svg>
-                        Подтвердить выполнение дня
-                    </button>
-                    ` : `
+                    ${isCompleted ? `
                     <div class="completion-message">
                         <div class="celebration-icon">🎉</div>
                         <div class="completion-text">Поздравляем! Цель достигнута!</div>
                     </div>
-                    `}
+                    ` : ''}
                     <button class="reset-map-button" id="reset-map-btn">
                         Создать новую карту
                     </button>
@@ -173,19 +155,15 @@ class RoadToDreamApp {
             </div>
         `;
         
-        // Добавляем обработчик для кнопки завершения шага
-        if (!isCompleted) {
-            const completeButton = document.getElementById('complete-step-btn');
-            console.log('Кнопка завершения найдена:', completeButton);
-            if (completeButton) {
-                completeButton.addEventListener('click', () => {
-                    console.log('Клик по кнопке завершения шага');
-                    this.showStepConfirmationModal();
-                });
-            } else {
-                console.error('Кнопка завершения шага не найдена!');
-            }
-        }
+        // Добавляем обработчики для встроенных кнопок подтверждения шагов
+        const inlineButtons = document.querySelectorAll('.confirm-step-btn-inline');
+        console.log('Найдено встроенных кнопок:', inlineButtons.length);
+        inlineButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                console.log('Клик по встроенной кнопке подтверждения шага');
+                this.showStepConfirmationModal();
+            });
+        });
         
         // Добавляем обработчик для кнопки сброса карты
         const resetButton = document.getElementById('reset-map-btn');
@@ -1179,10 +1157,17 @@ class RoadToDreamApp {
             const isCompleted = step.completed;
             
             html += `
-                <div class="step-square ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}" 
-                     data-step="${i}">
-                    <span class="step-number">${step.day}</span>
-                    ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
+                <div class="step-container">
+                    <div class="step-square ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}" 
+                         data-step="${i}">
+                        <span class="step-number">${step.day}</span>
+                        ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
+                    </div>
+                    ${isCurrent && !isCompleted ? `
+                        <button class="confirm-step-btn-inline" data-step-index="${i}">
+                            Подтвердить шаг
+                        </button>
+                    ` : ''}
                 </div>
             `;
         }
