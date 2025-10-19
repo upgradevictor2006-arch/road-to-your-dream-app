@@ -1,0 +1,478 @@
+/* ============================================
+   СТИЛИ КАРТЫ МЕЧТЫ - ОТДЕЛЬНЫЙ ФАЙЛ
+   Отдельный файл для избежания конфликтов
+   ============================================ */
+
+/* Стили для экрана пустой карты */
+.empty-map-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-primary);
+    padding: 40px 24px 120px 24px;
+}
+
+/* Мотивационная цитата */
+.motivational-quote {
+    margin-bottom: 60px;
+}
+
+.quote-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.quote-author {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 400;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* Призыв к действию */
+.call-to-action {
+    margin-bottom: 40px;
+}
+
+.cta-question {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 32px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* Кнопка создания карты */
+.create-map-button {
+    background: var(--accent-gradient);
+    color: var(--primary-bg-color);
+    border: none;
+    border-radius: 16px;
+    padding: 16px 32px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(244, 189, 65, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.create-map-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(244, 189, 65, 0.4);
+}
+
+.create-map-button:active {
+    transform: translateY(0);
+}
+
+/* Стили для экрана карты с шагами */
+.map-screen {
+    padding: 24px 20px 140px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-primary);
+}
+
+.map-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    text-align: center;
+    line-height: 1.3;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.map-title.clickable {
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.map-title.clickable:hover {
+    color: var(--gold-primary);
+    transform: scale(1.02);
+}
+
+.map-title.clickable::after {
+    content: "👆";
+    position: absolute;
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.map-title.clickable:hover::after {
+    opacity: 1;
+}
+
+/* Лента шагов */
+.steps-strip {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding: 8px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.steps-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.step-container {
+    flex-shrink: 0;
+    position: relative;
+}
+
+.step-square {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.step-square:hover {
+    border-color: var(--gold-primary);
+    background: rgba(244, 189, 65, 0.1);
+}
+
+.step-square.current {
+    background: var(--accent-gradient);
+    border-color: var(--gold-primary);
+    color: var(--primary-bg-color);
+    box-shadow: 0 4px 20px rgba(244, 189, 65, 0.4);
+    animation: pulse 2s infinite;
+}
+
+.step-square.completed {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.step-number {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+/* Действия карты */
+.map-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    z-index: 10;
+}
+
+.complete-step-button {
+    background: var(--accent-gradient);
+    color: var(--primary-bg-color);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(244, 189, 65, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.complete-step-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 189, 65, 0.4);
+}
+
+.complete-step-button:active {
+    transform: translateY(0);
+}
+
+.reset-map-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.reset-map-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--gold-primary);
+}
+
+/* Детали текущего шага */
+.current-step-details {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-step-details h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.step-number-large {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.step-description {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Кнопка подтверждения шага */
+.confirm-step-btn-inline {
+    background: var(--accent-gradient);
+    color: var(--primary-bg-color);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(244, 189, 65, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+.confirm-step-btn-inline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 189, 65, 0.4);
+}
+
+.confirm-step-btn-inline:active {
+    transform: translateY(0);
+}
+
+/* Модальное окно подтверждения шага */
+.step-confirmation-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.step-confirmation-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    margin-bottom: 8px;
+}
+
+.step-confirmation-task {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.confirmation-warning {
+    background: rgba(244, 189, 65, 0.1);
+    border: 1px solid rgba(244, 189, 65, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.warning-icon {
+    font-size: 24px;
+    color: var(--gold-primary);
+}
+
+.warning-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Кнопка подтверждения в модальном окне */
+.confirm-step-btn {
+    background: var(--accent-gradient);
+    color: var(--primary-bg-color);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(244, 189, 65, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    width: 100%;
+}
+
+.confirm-step-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 189, 65, 0.4);
+}
+
+/* Анимация пульсации */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 25px rgba(244, 189, 65, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(244, 189, 65, 0.8);
+    }
+}
+
+/* Адаптивность для карты */
+@media (max-width: 768px) {
+    .empty-map-screen {
+        padding: 20px 16px 120px 16px;
+    }
+    
+    .quote-text {
+        font-size: 20px;
+    }
+    
+    .cta-question {
+        font-size: 18px;
+    }
+    
+    .create-map-button {
+        padding: 14px 28px;
+        font-size: 16px;
+    }
+    
+    .map-screen {
+        padding: 20px 16px 140px 16px;
+    }
+    
+    .map-title {
+        font-size: 24px;
+    }
+    
+    .steps-strip {
+        gap: 8px;
+    }
+    
+    .step-square {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+    
+    .step-number {
+        font-size: 16px;
+    }
+    
+    .map-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .complete-step-button,
+    .reset-map-button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .current-step-details {
+        padding: 16px;
+    }
+    
+    .current-step-details h3 {
+        font-size: 18px;
+    }
+    
+    .step-number-large {
+        font-size: 20px;
+    }
+    
+    .step-description {
+        font-size: 14px;
+    }
+    
+    .step-confirmation-number {
+        font-size: 40px;
+    }
+    
+    .step-confirmation-task {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .empty-map-screen {
+        padding: 16px 12px 120px 12px;
+    }
+    
+    .quote-text {
+        font-size: 18px;
+    }
+    
+    .cta-question {
+        font-size: 16px;
+    }
+    
+    .map-title {
+        font-size: 20px;
+    }
+    
+    .step-square {
+        width: 45px;
+        height: 45px;
+        font-size: 14px;
+    }
+    
+    .step-number {
+        font-size: 14px;
+    }
+    
+    .current-step-details {
+        padding: 12px;
+    }
+    
+    .step-number-large {
+        font-size: 18px;
+    }
+    
+    .step-description {
+        font-size: 13px;
+    }
+}

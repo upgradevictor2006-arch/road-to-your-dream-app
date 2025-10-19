@@ -36,6 +36,15 @@ class RoadToDreamApp {
             this.userProfileModule = null;
         }
         
+        // Инициализируем модуль карты
+        if (typeof MapModule !== 'undefined') {
+            this.mapModule = new MapModule(this);
+            console.log('Модуль карты инициализирован');
+        } else {
+            console.error('MapModule не найден! Проверьте загрузку map.js');
+            this.mapModule = null;
+        }
+        
         this.init();
     }
 
@@ -59,7 +68,12 @@ class RoadToDreamApp {
         
         switch(this.currentScreen) {
             case 'map':
-                this.renderMapScreen();
+                if (this.mapModule) {
+                    this.mapModule.renderMapScreen();
+                } else {
+                    console.error('Модуль карты не инициализирован!');
+                    this.renderMapScreen(); // Fallback
+                }
                 break;
             case 'caravan':
                 if (this.caravanModule) {
@@ -78,137 +92,20 @@ class RoadToDreamApp {
         }
     }
 
-    // Рендеринг экрана карты
+    // Рендеринг экрана карты (fallback)
     renderMapScreen() {
-        const appContainer = document.getElementById('app-container');
-        
-        // Проверяем, есть ли созданная карта
-        if (this.currentMap) {
-            this.renderMapWithStepsStrip();
-        } else {
-            this.renderEmptyMapScreen();
-        }
-    }
-    
-    // Рендеринг пустого экрана карты
-    renderEmptyMapScreen() {
+        console.log('⚠️ Используется fallback renderMapScreen - модуль карты не загружен');
         const appContainer = document.getElementById('app-container');
         appContainer.innerHTML = `
-            <div class="empty-map-screen">
-                <!-- Мотивационная цитата -->
-                <div class="motivational-quote">
-                    <div class="quote-text">Путешествие в тысячу миль начинается с одного шага.</div>
-                    <div class="quote-author">— Лао-цзы</div>
-                </div>
-                
-                <!-- Призыв к действию -->
-                <div class="call-to-action">
-                    <div class="cta-question">Готов начать путь к своей мечте?</div>
-                    <button class="create-map-button" id="create-map-btn">
-                        <span class="plus-icon">+</span>
-                        Создать новую карту
-                    </button>
-                    <div class="cta-description">Определи свою цель, разбей её на шаги и начни двигаться вперед</div>
-                </div>
+            <div class="screen-content">
+                <h2>🗺️ Карта</h2>
+                <p>Модуль карты не загружен. Проверьте подключение map.js</p>
             </div>
         `;
-        
-        // Добавляем обработчик для кнопки
-        const createButton = document.getElementById('create-map-btn');
-        if (createButton) {
-            createButton.addEventListener('click', () => {
-                this.handleCreateMap();
-            });
-        }
     }
     
     // Рендеринг карты с лентой шагов
-    renderMapWithStepsStrip() {
-        console.log('🎯 ФУНКЦИЯ renderMapWithStepsStrip ВЫЗВАНА!');
-        const appContainer = document.getElementById('app-container');
-        const progress = Math.round((this.currentMap.currentStep / this.currentMap.totalSteps) * 100);
-        const isCompleted = this.currentMap.currentStep >= this.currentMap.totalSteps;
-        const currentStepData = this.currentMap.steps[this.currentMap.currentStep];
-        
-        console.log('Рендерим карту:', {
-            currentStep: this.currentMap.currentStep,
-            totalSteps: this.currentMap.totalSteps,
-            isCompleted: isCompleted,
-            progress: progress
-        });
-        
-        appContainer.innerHTML = `
-            <div class="map-screen">
-                <!-- Заголовок карты -->
-                <div class="map-header">
-                    <h2 class="map-title clickable" id="map-title">${this.currentMap.goal}</h2>
-                    <div class="map-progress">
-                        <div class="progress-text">Прогресс: ${this.currentMap.currentStep}/${this.currentMap.totalSteps} дней (${progress}%)</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Область карты с лентой шагов -->
-                <div class="map-container">
-                    <div class="steps-strip" id="steps-strip">
-                        ${this.renderStepsStrip()}
-                    </div>
-                </div>
-                
-                <!-- Кнопки управления -->
-                <div class="map-actions">
-                    ${isCompleted ? `
-                    <div class="completion-message">
-                        <div class="celebration-icon">🎉</div>
-                        <div class="completion-text">Поздравляем! Цель достигнута!</div>
-                    </div>
-                    ` : ''}
-                    <button class="reset-map-button" id="reset-map-btn">
-                        Создать новую карту
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Добавляем обработчики для встроенных кнопок подтверждения шагов
-        const inlineButtons = document.querySelectorAll('.confirm-step-btn-inline');
-        console.log('Найдено встроенных кнопок:', inlineButtons.length);
-        inlineButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                console.log('Клик по встроенной кнопке подтверждения шага');
-                this.showStepConfirmationModal();
-            });
-        });
-        
-        // Добавляем обработчик для клика по названию карты
-        const mapTitle = document.getElementById('map-title');
-        if (mapTitle) {
-            // Удаляем старые обработчики
-            mapTitle.replaceWith(mapTitle.cloneNode(true));
-            const newMapTitle = document.getElementById('map-title');
-            
-            newMapTitle.addEventListener('click', () => {
-                console.log('Клик по названию карты. Количество карт:', this.maps.length);
-                this.showMapSelectionModal();
-            });
-        }
-        
-        // Добавляем обработчик для кнопки создания новой карты
-        const resetButton = document.getElementById('reset-map-btn');
-        if (resetButton) {
-            resetButton.addEventListener('click', () => {
-                this.addNewMap();
-            });
-        }
-    }
     
-    // Обработчик создания новой карты
-    handleCreateMap() {
-        console.log('Создание новой карты...');
-        this.showCreateMapModal();
-    }
 
     // Показать модальное окно создания карты
     showCreateMapModal() {
