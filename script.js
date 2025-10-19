@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 27 - СОХРАНЕНИЕ КАРТ!');
-console.log('🔧 ДОБАВЛЕНО СОХРАНЕНИЕ КАРТ В LOCALSTORAGE И ИСПРАВЛЕН КЛИК ПО НАЗВАНИЮ!');
+console.log('🚀 Загружен script.js версии 28 - ИСПРАВЛЕНО МОДАЛЬНОЕ ОКНО!');
+console.log('🔧 ИСПРАВЛЕНО ОТОБРАЖЕНИЕ МОДАЛЬНОГО ОКНА ВЫБОРА КАРТ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -1174,9 +1174,7 @@ class RoadToDreamApp {
         console.log('Показать модальное окно выбора карт. Количество карт:', this.maps.length);
         
         if (this.maps.length <= 1) {
-            // Если карт мало, просто создаем новую
-            console.log('Карт мало, создаем новую');
-            this.addNewMap();
+            console.log('Карт мало, нечего выбирать');
             return;
         }
         
@@ -1219,31 +1217,51 @@ class RoadToDreamApp {
         `;
         
         document.body.appendChild(modal);
+        console.log('Модальное окно добавлено в DOM');
+        
+        // Добавляем класс active для отображения модального окна
+        setTimeout(() => {
+            modal.classList.add('active');
+            console.log('Класс active добавлен к модальному окну');
+        }, 10);
         
         // Добавляем обработчики
         const closeBtn = document.getElementById('close-map-selection');
-        closeBtn.addEventListener('click', () => {
-            modal.remove();
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                console.log('Закрытие модального окна');
+                modal.remove();
+            });
+        } else {
+            console.error('Кнопка закрытия не найдена!');
+        }
         
         const selectButtons = modal.querySelectorAll('.select-map-btn');
+        console.log('Найдено кнопок выбора:', selectButtons.length);
         selectButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mapId = e.target.getAttribute('data-map-id');
+                console.log('Выбрана карта с ID:', mapId);
                 this.switchToMap(mapId);
                 modal.remove();
             });
         });
         
         const addNewBtn = document.getElementById('add-new-map-from-selection');
-        addNewBtn.addEventListener('click', () => {
-            modal.remove();
-            this.addNewMap();
-        });
+        if (addNewBtn) {
+            addNewBtn.addEventListener('click', () => {
+                console.log('Создание новой карты из модального окна');
+                modal.remove();
+                this.addNewMap();
+            });
+        } else {
+            console.error('Кнопка создания новой карты не найдена!');
+        }
         
         // Закрытие по клику на фон
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
+                console.log('Закрытие модального окна по клику на фон');
                 modal.remove();
             }
         });
