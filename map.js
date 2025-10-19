@@ -332,6 +332,7 @@ class MapModule {
         console.log('🎯 Показываем модальное окно выбора карты...');
         console.log('Количество карт:', this.app.maps.length);
         console.log('Карты:', this.app.maps);
+        console.log('Проверяем условие maps.length <= 1:', this.app.maps.length <= 1);
         
         if (this.app.maps.length <= 1) {
             console.log('Карт мало, сразу создаем новую');
@@ -382,6 +383,9 @@ class MapModule {
             const modal = document.getElementById('map-selection-modal');
             if (modal) {
                 modal.classList.add('active');
+                console.log('Модальное окно активировано');
+            } else {
+                console.error('Модальное окно не найдено для активации');
             }
         }, 10);
         
