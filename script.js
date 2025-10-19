@@ -1577,16 +1577,14 @@ function updateActiveNavButton(activeButton) {
     allNavButtons.forEach(button => {
         button.classList.remove('active');
         
-        // Восстанавливаем оригинальную иконку карты если она была изменена
+        // Оставляем иконку карты как плюсик всегда
         if (button.getAttribute('data-screen') === 'map') {
             const icon = button.querySelector('.nav-icon');
             if (icon) {
                 icon.innerHTML = `
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14,2 14,8 20,8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10,9 9,9 8,9"></polyline>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
                 `;
             }
         }
@@ -1594,19 +1592,6 @@ function updateActiveNavButton(activeButton) {
     
     // Добавляем класс active к текущей кнопке
     activeButton.classList.add('active');
-    
-    // Если активна кнопка карты, меняем иконку на плюсик
-    const targetScreenId = activeButton.getAttribute('data-screen');
-    if (targetScreenId === 'map') {
-        const icon = activeButton.querySelector('.nav-icon');
-        if (icon) {
-            icon.innerHTML = `
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="16"></line>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-            `;
-        }
-    }
 }
 
 // Функции будут добавлены по мере необходимости
