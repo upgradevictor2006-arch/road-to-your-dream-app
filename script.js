@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 24 - МНОЖЕСТВЕННЫЕ КАРТЫ!');
-console.log('🔧 ТЕПЕРЬ МОЖНО СОЗДАВАТЬ НЕСКОЛЬКО КАРТ И ПЕРЕКЛЮЧАТЬСЯ МЕЖДУ НИМИ!');
+console.log('🚀 Загружен script.js версии 25 - ИСПРАВЛЕНЫ ОШИБКИ!');
+console.log('🔧 ИСПРАВЛЕНА ФУНКЦИЯ СОЗДАНИЯ КАРТЫ И ИКОНКА ПЛЮСИКА!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -1094,7 +1094,7 @@ class RoadToDreamApp {
     addNewMap() {
         console.log('Добавление новой карты');
         this.newGoalData = null;
-        this.showGoalCreationModal();
+        this.showCreateMapModal();
     }
     
     // Переключить на другую карту
@@ -1505,9 +1505,8 @@ function updateActiveNavButton(activeButton) {
         button.classList.remove('active');
         
         // Восстанавливаем оригинальную иконку карты если она была изменена
-        const mapButton = button.querySelector('[data-screen="map"]');
-        if (mapButton) {
-            const icon = mapButton.querySelector('.nav-icon');
+        if (button.getAttribute('data-screen') === 'map') {
+            const icon = button.querySelector('.nav-icon');
             if (icon) {
                 icon.innerHTML = `
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
