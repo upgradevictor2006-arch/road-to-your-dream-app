@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 25 - ИСПРАВЛЕНЫ ОШИБКИ!');
-console.log('🔧 ИСПРАВЛЕНА ФУНКЦИЯ СОЗДАНИЯ КАРТЫ И ИКОНКА ПЛЮСИКА!');
+console.log('🚀 Загружен script.js версии 26 - ИСПРАВЛЕНА НАВИГАЦИЯ!');
+console.log('🔧 ИСПРАВЛЕНА КНОПКА-ПЛЮСИК И МОДАЛЬНОЕ ОКНО ВЫБОРА КАРТ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -171,6 +171,7 @@ class RoadToDreamApp {
         const mapTitle = document.getElementById('map-title');
         if (mapTitle) {
             mapTitle.addEventListener('click', () => {
+                console.log('Клик по названию карты. Количество карт:', this.maps.length);
                 this.showMapSelectionModal();
             });
         }
@@ -1083,6 +1084,9 @@ class RoadToDreamApp {
         this.currentMapId = newMap.id;
         this.currentMap = newMap;
         
+        console.log('Карта создана. Всего карт:', this.maps.length);
+        console.log('Текущая карта ID:', this.currentMapId);
+        
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
@@ -1115,11 +1119,16 @@ class RoadToDreamApp {
     
     // Показать модальное окно выбора карт
     showMapSelectionModal() {
+        console.log('Показать модальное окно выбора карт. Количество карт:', this.maps.length);
+        
         if (this.maps.length <= 1) {
             // Если карт мало, просто создаем новую
+            console.log('Карт мало, создаем новую');
             this.addNewMap();
             return;
         }
+        
+        console.log('Показываем модальное окно выбора карт');
         
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -1479,6 +1488,18 @@ function setupNavigation() {
         return;
     }
     
+        // Если это кнопка карты и на ней плюсик, создаем новую карту
+        if (targetScreenId === 'map' && window.roadToDreamApp) {
+            const icon = navButton.querySelector('.nav-icon');
+            const isPlusIcon = icon && icon.innerHTML.includes('circle cx="12"');
+            
+            if (isPlusIcon) {
+                // Создаем новую карту вместо переключения экрана
+                window.roadToDreamApp.addNewMap();
+                return;
+            }
+        }
+        
         // Переключаем экран
         switchToScreen(targetScreenId);
         
