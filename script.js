@@ -1,7 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
 // ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 19 - исправлена кнопка "Далее"!');
+console.log('🚀 Загружен script.js версии 21 - ТЕСТОВАЯ КНОПКА!');
+console.log('🔧 ТЕСТОВАЯ КНОПКА ДОЛЖНА БЫТЬ ВИДНА В ПРАВОМ ВЕРХНЕМ УГЛУ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -106,6 +107,7 @@ class RoadToDreamApp {
     
     // Рендеринг карты с лентой шагов
     renderMapWithStepsStrip() {
+        console.log('🎯 ФУНКЦИЯ renderMapWithStepsStrip ВЫЗВАНА!');
         const appContainer = document.getElementById('app-container');
         const progress = Math.round((this.currentMap.currentStep / this.currentMap.totalSteps) * 100);
         const isCompleted = this.currentMap.currentStep >= this.currentMap.totalSteps;
@@ -1068,6 +1070,7 @@ class RoadToDreamApp {
 
     // Создать карту
     createMap() {
+        console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
         console.log('Создание карты с данными:', this.newGoalData);
         
         // Сохраняем данные карты
@@ -1088,6 +1091,49 @@ class RoadToDreamApp {
         
         // Возвращаемся на главный экран карты
         this.renderMapScreen();
+        
+        // ТЕСТОВАЯ КНОПКА - добавляем поверх всего интерфейса
+        this.createTestButton();
+    }
+    
+    // Создать тестовую кнопку
+    createTestButton() {
+        // Удаляем старую тестовую кнопку, если она есть
+        const existingTestBtn = document.getElementById('test-complete-btn');
+        if (existingTestBtn) {
+            existingTestBtn.remove();
+        }
+        
+        // Создаем новую тестовую кнопку
+        const testButton = document.createElement('button');
+        testButton.id = 'test-complete-btn';
+        testButton.innerHTML = '✅ ТЕСТ: Подтвердить шаг';
+        testButton.style.cssText = `
+            position: fixed !important;
+            top: 100px !important;
+            right: 20px !important;
+            background: #ff4444 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 15px 20px !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            z-index: 99999 !important;
+            box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5) !important;
+            font-family: Arial, sans-serif !important;
+        `;
+        
+        // Добавляем обработчик
+        testButton.addEventListener('click', () => {
+            console.log('🎯 ТЕСТОВАЯ КНОПКА НАЖАТА!');
+            this.completeCurrentStep();
+        });
+        
+        // Добавляем кнопку в body
+        document.body.appendChild(testButton);
+        console.log('🎯 ТЕСТОВАЯ КНОПКА СОЗДАНА И ДОБАВЛЕНА В DOM!');
     }
 
     // Генерация шагов для карты
