@@ -1,7 +1,7 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
-// ВЕРСИЯ: v18 - ДОБАВЛЕНА КНОПКА ПОДТВЕРЖДЕНИЯ ШАГОВ
+// ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
 
-console.log('🚀 Загружен script.js версии 18 с кнопкой подтверждения шагов!');
+console.log('🚀 Загружен script.js версии 19 - исправлена кнопка "Далее"!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -444,7 +444,7 @@ class RoadToDreamApp {
 
     // Настройка обработчиков событий для выбора периода
     setupPeriodSelectionEvents() {
-        const nextBtn = document.getElementById('period-back-btn')
+        const nextBtn = document.getElementById('period-next-btn');
         const backBtn = document.getElementById('period-back-btn');
         const deadlineBtn = document.getElementById('deadline-btn');
         const durationBtn = document.getElementById('duration-btn');
