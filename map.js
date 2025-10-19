@@ -492,6 +492,9 @@ class MapModule {
             this.app.currentMapId = mapId;
             this.app.saveMapsToStorage();
             console.log('Переключились на карту:', map.goal);
+            
+            // Рендерим карту после переключения
+            this.renderMapScreen();
         }
     }
 }
