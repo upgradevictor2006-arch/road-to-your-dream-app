@@ -673,11 +673,29 @@ class CaravanModule {
 
     // Показать модальное окно создания цели
     showGoalCreationModal() {
-        console.log('Показываем создание цели');
+        console.log('Показываем создание цели для каравана');
         // Закрываем текущее модальное окно
         this.closeCreateCaravanModal();
         
-        // Показываем модальное окно создания цели
+        // Используем логику создания карты из основного приложения
+        if (this.mainApp && this.mainApp.showCreateMapModal) {
+            // Сохраняем информацию о караване для последующего использования
+            this.mainApp.caravanCreationData = {
+                caravanName: this.caravanCreationData.name,
+                isCaravanGoal: true
+            };
+            
+            // Запускаем процесс создания карты
+            this.mainApp.showCreateMapModal();
+        } else {
+            console.error('Основное приложение не найдено!');
+            // Fallback к старому методу
+            this.showGoalCreationModalFallback();
+        }
+    }
+
+    // Fallback метод для создания цели (старая логика)
+    showGoalCreationModalFallback() {
         const modal = document.getElementById('create-goal-modal');
         if (modal) {
             modal.classList.add('active');

@@ -121,12 +121,22 @@ class RoadToDreamApp {
     // Показать модальное окно создания карты
     showCreateMapModal() {
         console.log('🎯 showCreateMapModal вызван в script.js');
+        
+        // Определяем заголовок и подзаголовок в зависимости от контекста
+        let title = 'Создание новой карты';
+        let subtitle = 'Опишите свою цель';
+        
+        if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
+            title = `Создание цели для каравана "${this.caravanCreationData.caravanName}"`;
+            subtitle = 'Опишите общую цель для вашего каравана';
+        }
+        
         const modalHTML = `
             <div class="modal-overlay active" id="create-map-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="modal-title">Создание новой карты</h2>
-                        <p class="modal-subtitle">Опишите свою цель</p>
+                        <h2 class="modal-title">${title}</h2>
+                        <p class="modal-subtitle">${subtitle}</p>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
@@ -1006,7 +1016,10 @@ class RoadToDreamApp {
             currentStep: 0,
             totalSteps: this.newGoalData.periodDays,
             steps: this.generateMapSteps(),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            // Добавляем информацию о караване, если это цель каравана
+            isCaravanGoal: this.caravanCreationData && this.caravanCreationData.isCaravanGoal,
+            caravanName: this.caravanCreationData ? this.caravanCreationData.caravanName : null
         };
         
         // Добавляем карту в массив
@@ -1025,8 +1038,52 @@ class RoadToDreamApp {
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
-        // Возвращаемся на главный экран карты
-        this.renderMapScreen();
+        // Если это цель каравана, создаем караван и переходим к нему
+        if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
+            this.createCaravanWithGoal(newMap);
+        } else {
+            // Возвращаемся на главный экран карты
+            this.renderMapScreen();
+        }
+        
+        // Очищаем данные каравана
+        this.caravanCreationData = null;
+    }
+
+    // Создать караван с целью
+    createCaravanWithGoal(mapData) {
+        console.log('🚐 Создание каравана с целью:', mapData);
+        
+        if (this.caravanModule) {
+            // Создаем караван с привязанной картой
+            const caravanData = {
+                name: mapData.caravanName,
+                type: 'goal',
+                goal: mapData.goal,
+                description: mapData.description,
+                mapId: mapData.id, // Привязываем карту к каравану
+                createdAt: new Date().toISOString()
+            };
+            
+            // Добавляем караван через модуль каравана
+            const newCaravan = this.caravanModule.addCaravan(caravanData);
+            
+            console.log('Караван создан:', newCaravan);
+            
+            // Переключаемся на экран каравана
+            this.currentScreen = 'caravan';
+            this.renderCurrentScreen();
+            
+            // Показываем уведомление об успехе
+            if (this.caravanModule.showNotification) {
+                this.caravanModule.showNotification(
+                    `Караван "${newCaravan.name}" с целью "${mapData.goal}" успешно создан!`, 
+                    'success'
+                );
+            }
+        } else {
+            console.error('Модуль каравана не найден!');
+        }
     }
     
     // Добавить новую карту

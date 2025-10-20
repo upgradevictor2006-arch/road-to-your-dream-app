@@ -25,17 +25,36 @@ class MapModule {
     // Рендеринг пустого экрана карты
     renderEmptyMapScreen() {
         const appContainer = document.getElementById('app-container');
+        
+        // Получаем все карты, включая цели караванов
+        const allMaps = this.app.maps || [];
+        const hasMaps = allMaps.length > 0;
+        
         appContainer.innerHTML = `
-            <div class="empty-map-screen">
-                <!-- Мотивационная цитата -->
-                <div class="motivational-quote">
-                    <div class="quote-text">Путешествие в тысячу миль начинается с одного шага.</div>
-                    <div class="quote-author">— Лао-цзы</div>
+            <div class="map-screen">
+                <!-- Заголовок -->
+                <div class="map-header">
+                    <h2 class="map-title">🗺️ Карта</h2>
+                    <p class="map-subtitle">Ваши цели и прогресс</p>
                 </div>
+                
+                ${hasMaps ? `
+                    <!-- Список карт -->
+                    <div class="maps-list">
+                        <h3 class="maps-list-title">Ваши карты</h3>
+                        ${this.renderMapsList(allMaps)}
+                    </div>
+                ` : `
+                    <!-- Мотивационная цитата -->
+                    <div class="motivational-quote">
+                        <div class="quote-text">Путешествие в тысячу миль начинается с одного шага.</div>
+                        <div class="quote-author">— Лао-цзы</div>
+                    </div>
+                `}
                 
                 <!-- Призыв к действию -->
                 <div class="call-to-action">
-                    <div class="cta-question">Готов начать путь к своей мечте?</div>
+                    <div class="cta-question">${hasMaps ? 'Создать новую карту?' : 'Готов начать путь к своей мечте?'}</div>
                     <button class="create-map-button" id="create-map-btn">
                         <span class="plus-icon">+</span>
                         Создать новую карту
@@ -44,6 +63,11 @@ class MapModule {
                 </div>
             </div>
         `;
+        
+        // Добавляем обработчики для карт
+        if (hasMaps) {
+            this.setupMapListEvents();
+        }
         
         // Добавляем обработчик для кнопки
         const createButton = document.getElementById('create-map-btn');
@@ -302,6 +326,61 @@ class MapModule {
         
         // Сразу показываем модальное окно создания карты
         this.addNewMap();
+    }
+
+    // Рендеринг списка карт
+    renderMapsList(maps) {
+        return maps.map(map => `
+            <div class="map-card" data-map-id="${map.id}">
+                <div class="map-card-header">
+                    <div class="map-card-title">
+                        ${map.isCaravanGoal ? '🚐' : '🎯'} ${map.goal}
+                        ${map.isCaravanGoal ? `<span class="caravan-badge">Караван: ${map.caravanName}</span>` : ''}
+                    </div>
+                    <div class="map-card-progress">
+                        <div class="progress-text">${map.currentStep}/${map.totalSteps} шагов</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(map.currentStep / map.totalSteps) * 100}%"></div>
+                        </div>
+                    </div>
+                </div>
+                ${map.description ? `<div class="map-card-description">${map.description}</div>` : ''}
+                <div class="map-card-meta">
+                    <div class="map-card-date">Создано: ${this.formatDate(map.createdAt)}</div>
+                    <div class="map-card-type">${map.isCaravanGoal ? 'Цель каравана' : 'Личная цель'}</div>
+                </div>
+                <div class="map-card-actions">
+                    <button class="btn-map-action" data-map-id="${map.id}">
+                        Открыть
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Настройка обработчиков для списка карт
+    setupMapListEvents() {
+        const appContainer = document.getElementById('app-container');
+        if (!appContainer) return;
+
+        // Обработчик для кнопок открытия карт
+        appContainer.addEventListener('click', (e) => {
+            const mapActionBtn = e.target.closest('.btn-map-action');
+            if (mapActionBtn) {
+                const mapId = mapActionBtn.dataset.mapId;
+                this.switchToMap(mapId);
+            }
+        });
+    }
+
+    // Форматирование даты
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
     }
 
     // Показать модальное окно выбора карты
