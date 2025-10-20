@@ -172,8 +172,10 @@ class RoadToDreamApp {
         // Добавляем модальное окно в body
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-        // Настраиваем обработчики событий
-        this.setupCreateMapModalEvents();
+        // Настраиваем обработчики событий с небольшой задержкой
+        setTimeout(() => {
+            this.setupCreateMapModalEvents();
+        }, 50);
         
         // Проверяем начальное состояние после загрузки
         setTimeout(() => {
@@ -235,9 +237,20 @@ class RoadToDreamApp {
         // Валидация ввода
         if (goalInput && nextBtn) {
             console.log('🔧 Устанавливаем обработчик валидации для поля ввода');
+            console.log('🔧 Элементы для валидации:', {
+                goalInput: goalInput,
+                nextBtn: nextBtn,
+                goalInputId: goalInput.id,
+                nextBtnId: nextBtn.id
+            });
+            
             goalInput.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
+                console.log('📝 Текущее состояние кнопки до изменения:', {
+                    disabled: nextBtn.disabled,
+                    opacity: nextBtn.style.opacity
+                });
                 
                 nextBtn.disabled = value.length < 3;
                 
@@ -248,6 +261,11 @@ class RoadToDreamApp {
                     nextBtn.style.opacity = '0.5';
                     console.log('❌ Кнопка "Далее" деактивирована');
                 }
+                
+                console.log('📝 Новое состояние кнопки:', {
+                    disabled: nextBtn.disabled,
+                    opacity: nextBtn.style.opacity
+                });
             });
             
             // Проверяем начальное состояние кнопки
