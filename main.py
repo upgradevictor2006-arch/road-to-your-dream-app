@@ -429,23 +429,6 @@ async def get_user_data_internal(telegram_id: int):
         logger.error(f"Ошибка при получении данных пользователя: {e}")
         return None
 
-# Функции для работы с Telegram WebApp
-def verify_telegram_auth(auth_data: TelegramAuthData) -> bool:
-    """Проверяет подлинность данных авторизации Telegram WebApp"""
-    # В реальном приложении здесь должна быть проверка подписи
-    # Для упрощения пока возвращаем True
-    return True
-
-def extract_telegram_user_data(auth_data: TelegramAuthData) -> dict:
-    """Извлекает данные пользователя из Telegram WebApp"""
-    return {
-        "telegram_id": auth_data.telegram_id,
-        "username": auth_data.username,
-        "first_name": auth_data.first_name,
-        "last_name": auth_data.last_name,
-        "photo_url": auth_data.photo_url
-    }
-
 # Pydantic модели
 class UserCreate(BaseModel):
     telegram_id: int
@@ -559,6 +542,23 @@ class TelegramAuthData(BaseModel):
     photo_url: Optional[str] = None
     auth_date: Optional[int] = None
     hash: Optional[str] = None
+
+# Функции для работы с Telegram WebApp
+def verify_telegram_auth(auth_data: TelegramAuthData) -> bool:
+    """Проверяет подлинность данных авторизации Telegram WebApp"""
+    # В реальном приложении здесь должна быть проверка подписи
+    # Для упрощения пока возвращаем True
+    return True
+
+def extract_telegram_user_data(auth_data: TelegramAuthData) -> dict:
+    """Извлекает данные пользователя из Telegram WebApp"""
+    return {
+        "telegram_id": auth_data.telegram_id,
+        "username": auth_data.username,
+        "first_name": auth_data.first_name,
+        "last_name": auth_data.last_name,
+        "photo_url": auth_data.photo_url
+    }
 
 # Эндпоинты
 @app.get("/")
