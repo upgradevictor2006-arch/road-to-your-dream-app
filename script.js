@@ -19,11 +19,12 @@ class RoadToDreamApp {
         this.loadMapsFromStorage();
         
         // Инициализируем модуль каравана
+        console.log('🔧 Проверяем доступность CaravanModule:', typeof CaravanModule);
         if (typeof CaravanModule !== 'undefined') {
             this.caravanModule = new CaravanModule(this);
-            console.log('Модуль каравана инициализирован');
+            console.log('✅ Модуль каравана инициализирован:', this.caravanModule);
         } else {
-            console.error('CaravanModule не найден! Проверьте загрузку caravan.js');
+            console.error('❌ CaravanModule не найден! Проверьте загрузку caravan.js');
             this.caravanModule = null;
         }
         
@@ -1204,6 +1205,8 @@ class RoadToDreamApp {
     createCaravanWithGoal(mapData, caravanCreationData = null) {
         console.log('🚐 Создание каравана с целью:', mapData);
         console.log('🚐 Данные каравана из параметра:', caravanCreationData);
+        console.log('🚐 Проверяем caravanModule:', this.caravanModule);
+        console.log('🚐 Тип caravanModule:', typeof this.caravanModule);
         
         if (this.caravanModule) {
             // Создаем караван с привязанной картой
@@ -1248,7 +1251,13 @@ class RoadToDreamApp {
             
             console.log('✅ Караван с целью создан. Возвращаемся к списку караванов.');
         } else {
-            console.error('Модуль каравана не найден!');
+            console.error('❌ Модуль каравана не найден!');
+            console.error('❌ this.caravanModule:', this.caravanModule);
+            console.error('❌ Доступные модули:', {
+                mapModule: this.mapModule,
+                garageModule: this.garageModule,
+                caravanModule: this.caravanModule
+            });
         }
     }
     
