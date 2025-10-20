@@ -1209,17 +1209,19 @@ class RoadToDreamApp {
             
             console.log('Караван создан:', newCaravan);
             
-            // Переключаемся на экран каравана
+            // Возвращаемся к списку караванов
             this.currentScreen = 'caravan';
             this.renderCurrentScreen();
             
             // Показываем уведомление об успехе
             if (this.caravanModule.showNotification) {
                 this.caravanModule.showNotification(
-                    `Караван "${newCaravan.name}" с целью "${mapData.goal}" успешно создан!`, 
+                    `Караван "${newCaravan.name}" с целью "${mapData.goal}" успешно создан! Цель добавлена в раздел "Карта".`, 
                     'success'
                 );
             }
+            
+            console.log('✅ Караван с целью создан. Возвращаемся к списку караванов.');
         } else {
             console.error('Модуль каравана не найден!');
         }
