@@ -1179,7 +1179,9 @@ class RoadToDreamApp {
         
         // Если это цель каравана, создаем караван и остаемся на вкладке караван
         if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
-            this.createCaravanWithGoal(newMap);
+            // Сохраняем данные каравана перед очисткой
+            const caravanData = { ...this.caravanCreationData };
+            this.createCaravanWithGoal(newMap, caravanData);
         } else {
             // Возвращаемся на главный экран карты только для личных целей
             this.renderMapScreen();
@@ -1190,19 +1192,22 @@ class RoadToDreamApp {
     }
 
     // Создать караван с целью
-    createCaravanWithGoal(mapData) {
+    createCaravanWithGoal(mapData, caravanCreationData = null) {
         console.log('🚐 Создание каравана с целью:', mapData);
+        console.log('🚐 Данные каравана из параметра:', caravanCreationData);
         
         if (this.caravanModule) {
             // Создаем караван с привязанной картой
             const caravanData = {
-                name: mapData.caravanName,
+                name: mapData.caravanName || caravanCreationData?.caravanName || 'Новый караван',
                 type: 'goal',
                 goal: mapData.goal,
                 description: mapData.description,
                 mapId: mapData.id, // Привязываем карту к каравану
                 createdAt: new Date().toISOString()
             };
+            
+            console.log('🚐 Создаем объект каравана:', caravanData);
             
             // Добавляем караван через модуль каравана
             const newCaravan = this.caravanModule.addCaravan(caravanData);
