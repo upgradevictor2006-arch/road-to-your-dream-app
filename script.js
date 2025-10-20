@@ -1188,11 +1188,19 @@ class RoadToDreamApp {
         this.closePeriodBreakdownModal();
         
         // Если это цель каравана, создаем караван и остаемся на вкладке караван
+        console.log('🔍 Проверяем данные каравана в createMap:');
+        console.log('🔍 this.caravanCreationData:', this.caravanCreationData);
+        console.log('🔍 typeof this.caravanCreationData:', typeof this.caravanCreationData);
+        console.log('🔍 this.caravanCreationData?.isCaravanGoal:', this.caravanCreationData?.isCaravanGoal);
+        
         if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
+            console.log('✅ Это цель каравана, создаем караван');
             // Сохраняем данные каравана перед очисткой
             const caravanData = { ...this.caravanCreationData };
+            console.log('✅ Сохраняем данные каравана:', caravanData);
             this.createCaravanWithGoal(newMap, caravanData);
         } else {
+            console.log('❌ Это НЕ цель каравана, переходим к карте');
             // Возвращаемся на главный экран карты только для личных целей
             this.renderMapScreen();
         }

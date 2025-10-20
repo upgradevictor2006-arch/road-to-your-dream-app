@@ -471,42 +471,16 @@ class MapModule {
 
     // Создание новой карты
     createMap() {
+        console.log('🗺️ MapModule.createMap() вызвана');
         
         if (!this.app.newGoalData) {
+            console.log('❌ newGoalData не найдены');
             return;
         }
         
-        // Создаем новую карту
-        const newMap = {
-            id: Date.now().toString(), // Уникальный ID
-            goal: this.app.newGoalData.title,
-            description: this.app.newGoalData.description,
-            periodType: this.app.newGoalData.periodType,
-            periodDays: this.app.newGoalData.periodDays,
-            customPeriod: this.app.newGoalData.customPeriod,
-            deadline: this.app.newGoalData.deadline,
-            currentStep: 0,
-            totalSteps: this.app.newGoalData.periodDays,
-            steps: this.app.generateMapSteps(),
-            createdAt: new Date().toISOString()
-        };
-        
-        // Добавляем карту в массив
-        this.app.maps.push(newMap);
-        
-        // Делаем новую карту текущей
-        this.app.currentMapId = newMap.id;
-        this.app.currentMap = newMap;
-        
-        
-        // Сохраняем карты в localStorage
-        this.app.saveMapsToStorage();
-        
-        // Закрываем модальное окно
-        this.app.closePeriodBreakdownModal();
-        
-        // Возвращаемся на главный экран карты
-        this.renderMapScreen();
+        // Вызываем основную функцию создания карты из приложения
+        console.log('🔄 Вызываем this.app.createMap() для обработки логики каравана');
+        this.app.createMap();
     }
 
     // Добавление новой карты
