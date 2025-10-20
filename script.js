@@ -235,14 +235,14 @@ class RoadToDreamApp {
         }
 
         cancelBtn.addEventListener('click', () => {
-            this.closeCreateMapModal();
-            
             // Если это создание цели для каравана, возвращаемся к каравану
             if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
                 this.currentScreen = 'caravan';
                 this.renderCurrentScreen();
-                this.caravanCreationData = null;
             }
+            
+            // Закрываем модальное окно и очищаем данные каравана
+            this.closeCreateMapModal(true);
         });
 
         // Валидация ввода
@@ -329,13 +329,13 @@ class RoadToDreamApp {
         const modal = document.getElementById('create-map-modal');
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                this.closeCreateMapModal();
+                this.closeCreateMapModal(true);
             }
         });
     }
 
     // Закрыть модальное окно создания карты
-    closeCreateMapModal() {
+    closeCreateMapModal(clearCaravanData = false) {
         const modal = document.getElementById('create-map-modal');
         if (modal) {
             modal.classList.remove('active');
@@ -344,8 +344,11 @@ class RoadToDreamApp {
             }, 300);
         }
         
-        // Очищаем данные каравана при закрытии модального окна
-        this.caravanCreationData = null;
+        // Очищаем данные каравана только если явно указано
+        if (clearCaravanData) {
+            console.log('🧹 Очищаем данные каравана при закрытии модального окна');
+            this.caravanCreationData = null;
+        }
     }
 
     // Переход к следующему шагу
@@ -371,8 +374,14 @@ class RoadToDreamApp {
 
         console.log('✅ Данные цели сохранены:', this.newGoalData);
         
-        // Закрываем текущее модальное окно
-        this.closeCreateMapModal();
+        // Закрываем только модальное окно, но НЕ очищаем данные каравана
+        const modal = document.getElementById('create-map-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
         
         // Переходим к следующему шагу (выбор периода)
         console.log('🔄 Переходим к выбору периода...');
