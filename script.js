@@ -174,6 +174,22 @@ class RoadToDreamApp {
 
         // Настраиваем обработчики событий
         this.setupCreateMapModalEvents();
+        
+        // Проверяем начальное состояние после загрузки
+        setTimeout(() => {
+            const goalInput = document.getElementById('goal-title');
+            const nextBtn = document.getElementById('next-btn');
+            
+            console.log('🔍 Проверка состояния после загрузки модального окна:');
+            console.log('🔍 Поле ввода:', goalInput);
+            console.log('🔍 Кнопка "Далее":', nextBtn);
+            console.log('🔍 Значение поля:', goalInput?.value);
+            console.log('🔍 Состояние кнопки:', {
+                disabled: nextBtn?.disabled,
+                opacity: nextBtn?.style.opacity,
+                text: nextBtn?.textContent
+            });
+        }, 100);
     }
 
     // Настройка обработчиков событий для модального окна
@@ -192,8 +208,13 @@ class RoadToDreamApp {
 
         // Обработчики кнопок
         if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                console.log('🎯 Кнопка "Далее" нажата');
+            console.log('🔧 Устанавливаем обработчик клика для кнопки "Далее"');
+            nextBtn.addEventListener('click', (e) => {
+                console.log('🎯 Кнопка "Далее" нажата!');
+                console.log('🎯 Event:', e);
+                console.log('🎯 Target:', e.target);
+                e.preventDefault();
+                e.stopPropagation();
                 this.nextStep();
             });
         } else {
@@ -213,6 +234,7 @@ class RoadToDreamApp {
 
         // Валидация ввода
         if (goalInput && nextBtn) {
+            console.log('🔧 Устанавливаем обработчик валидации для поля ввода');
             goalInput.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
@@ -227,14 +249,34 @@ class RoadToDreamApp {
                     console.log('❌ Кнопка "Далее" деактивирована');
                 }
             });
+            
+            // Проверяем начальное состояние кнопки
+            console.log('🔍 Начальное состояние кнопки "Далее":', {
+                disabled: nextBtn.disabled,
+                opacity: nextBtn.style.opacity,
+                text: nextBtn.textContent
+            });
+        } else {
+            console.error('❌ Не удалось установить валидацию:', {
+                goalInput: !!goalInput,
+                nextBtn: !!nextBtn
+            });
         }
 
         // Обработка Enter
-        goalInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !nextBtn.disabled) {
-                this.nextStep();
-            }
-        });
+        if (goalInput) {
+            console.log('🔧 Устанавливаем обработчик Enter для поля ввода');
+            goalInput.addEventListener('keypress', (e) => {
+                console.log('⌨️ Клавиша нажата:', e.key);
+                if (e.key === 'Enter' && !nextBtn.disabled) {
+                    console.log('⌨️ Enter нажат, кнопка активна, вызываем nextStep');
+                    e.preventDefault();
+                    this.nextStep();
+                } else {
+                    console.log('⌨️ Enter нажат, но кнопка неактивна или другая клавиша');
+                }
+            });
+        }
 
         // Закрытие по клику на overlay
         const modal = document.getElementById('create-map-modal');
