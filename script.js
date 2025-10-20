@@ -1438,8 +1438,6 @@ class RoadToDreamApp {
                     <div class="profile-background"></div>
                     <div class="profile-content">
                         <div class="profile-avatar-container">
-                            <div class="avatar-ring"></div>
-                            <div class="avatar-ring-inner"></div>
                             <img id="user-avatar-img" class="profile-avatar" src="" alt="Аватар пользователя">
                             <div class="level-badge">
                                 <span id="user-level">1</span>
