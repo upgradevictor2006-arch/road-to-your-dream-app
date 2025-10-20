@@ -1468,14 +1468,6 @@ class CaravanModule {
                                     <span class="menu-icon">✏️</span>
                                     Редактировать описание
                                 </button>
-                                <button class="menu-item" data-caravan-id="${caravan.id}">
-                                    <span class="menu-icon">👥</span>
-                                    Управление участниками
-                                </button>
-                                <button class="menu-item" data-caravan-id="${caravan.id}">
-                                    <span class="menu-icon">🔗</span>
-                                    Поделиться ссылкой
-                                </button>
                                 <hr class="menu-divider">
                                 <button class="menu-item danger" data-caravan-id="${caravan.id}">
                                     <span class="menu-icon">🗑️</span>
@@ -1622,10 +1614,24 @@ class CaravanModule {
         if (caravan && caravan.mapId) {
             // Переключаемся на вкладку карты и открываем нужную карту
             if (this.mainApp) {
+                console.log('Переключаемся на карту каравана:', caravan.mapId);
+                
+                // Устанавливаем текущую карту
+                this.mainApp.currentMapId = caravan.mapId;
+                this.mainApp.currentMap = this.mainApp.maps.find(map => map.id === caravan.mapId);
+                
+                // Переключаемся на вкладку карты
                 this.mainApp.currentScreen = 'map';
                 this.mainApp.renderCurrentScreen();
-                // Здесь можно добавить логику для открытия конкретной карты
-                console.log('Переключились на карту каравана:', caravan.mapId);
+                
+                // Обновляем активную вкладку в навигации
+                const mapNavButton = document.querySelector('[data-screen="map"]');
+                if (mapNavButton && typeof updateActiveNavButton === 'function') {
+                    updateActiveNavButton(mapNavButton);
+                }
+                
+                console.log('✅ Открыли карту каравана:', caravan.mapId);
+                this.showNotification(`Открыта карта каравана "${caravan.name}"`, 'success');
             }
         } else {
             console.log('У каравана нет привязанной карты');
