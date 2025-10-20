@@ -1209,7 +1209,7 @@ class RoadToDreamApp {
             
             console.log('Караван создан:', newCaravan);
             
-            // Возвращаемся к списку караванов
+            // Возвращаемся к списку караванов и перерендериваем экран
             this.currentScreen = 'caravan';
             this.renderCurrentScreen();
             
@@ -1217,6 +1217,11 @@ class RoadToDreamApp {
             const caravanNavButton = document.querySelector('[data-screen="caravan"]');
             if (caravanNavButton) {
                 updateActiveNavButton(caravanNavButton);
+            }
+            
+            // Перерендериваем экран каравана, чтобы показать новый караван в списке
+            if (this.caravanModule) {
+                this.caravanModule.renderCaravanScreen();
             }
             
             // Показываем уведомление об успехе

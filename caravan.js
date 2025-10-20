@@ -1375,6 +1375,8 @@ class CaravanModule {
 
     // Добавить новый караван
     addCaravan(caravanData) {
+        console.log('🚐 Добавляем новый караван:', caravanData);
+        
         const newCaravan = {
             id: Date.now().toString(),
             name: caravanData.name,
@@ -1385,8 +1387,14 @@ class CaravanModule {
             status: 'active'
         };
         
+        console.log('🚐 Создан объект каравана:', newCaravan);
+        
         this.caravans.unshift(newCaravan); // Добавляем в начало списка
+        console.log('🚐 Караван добавлен в массив. Всего караванов:', this.caravans.length);
+        
         this.saveCaravans();
+        console.log('🚐 Караваны сохранены в localStorage');
+        
         return newCaravan;
     }
 
