@@ -41,11 +41,14 @@ class RoadToDreamApp {
         }
         
         // Инициализируем модуль гаража
+        console.log('Проверяем доступность GarageModule:', typeof GarageModule);
+        console.log('GarageModule в window:', typeof window.GarageModule);
         if (typeof GarageModule !== 'undefined') {
             this.garageModule = new GarageModule(this);
-            console.log('Модуль гаража инициализирован');
+            console.log('✅ Модуль гаража инициализирован');
         } else {
-            console.error('GarageModule не найден! Проверьте загрузку garage.js');
+            console.error('❌ GarageModule не найден! Проверьте загрузку garage.js');
+            console.log('Доступные глобальные объекты:', Object.keys(window).filter(key => key.includes('Module')));
             this.garageModule = null;
         }
         
@@ -88,10 +91,12 @@ class RoadToDreamApp {
                 }
                 break;
             case 'garage':
+                console.log('🎯 Переключаемся на экран гаража...');
                 if (this.garageModule) {
+                    console.log('✅ Модуль гаража найден, рендерим...');
                     this.garageModule.renderGarageScreen();
                 } else {
-                    console.error('Модуль гаража не инициализирован!');
+                    console.error('❌ Модуль гаража не инициализирован!');
                     this.renderGarageScreen(); // Fallback
                 }
                 break;
@@ -1418,15 +1423,85 @@ class RoadToDreamApp {
     }
 
 
-    // Рендеринг экрана гаража
+    // Рендеринг экрана гаража (fallback)
     renderGarageScreen() {
+        console.log('⚠️ Используется fallback renderGarageScreen - модуль гаража не загружен');
         const appContainer = document.getElementById('app-container');
+        if (!appContainer) {
+            console.error('❌ Контейнер app-container не найден в fallback!');
+            return;
+        }
+        
         appContainer.innerHTML = `
-            <div class="screen-content">
-                <h2>🏠 Гараж</h2>
-                <p>Здесь будет реализован экран гаража/профиля</p>
+            <div class="garage-screen">
+                <div class="profile-header-premium">
+                    <div class="profile-background"></div>
+                    <div class="profile-content">
+                        <div class="profile-avatar-container">
+                            <div class="avatar-ring"></div>
+                            <div class="avatar-ring-inner"></div>
+                            <img id="user-avatar-img" class="profile-avatar" src="" alt="Аватар пользователя">
+                            <div class="level-badge">
+                                <span id="user-level">1</span>
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h1 id="user-name" class="profile-name">Пользователь</h1>
+                            <p class="profile-subtitle">Исследователь целей</p>
+                            <div class="level-progress-container">
+                                <div class="level-info">
+                                    <span>Уровень <span id="current-level">1</span></span>
+                                    <span><span id="current-exp">0</span>/<span id="next-level-exp">100</span> опыта</span>
+                                </div>
+                                <div class="level-progress-bar">
+                                    <div id="level-progress" class="level-progress-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-    `;
+                </div>
+                <div class="quick-stats">
+                    <div class="quick-stat-card">
+                        <div class="stat-icon-new">🎯</div>
+                        <div class="stat-value-new" id="completed-goals">0</div>
+                        <div class="stat-label-new">Целей завершено</div>
+                    </div>
+                    <div class="quick-stat-card">
+                        <div class="stat-icon-new">🔥</div>
+                        <div class="stat-value-new" id="current-streak">0</div>
+                        <div class="stat-label-new">Дней подряд</div>
+                    </div>
+                    <div class="quick-stat-card">
+                        <div class="stat-icon-new">👣</div>
+                        <div class="stat-value-new" id="total-steps">0</div>
+                        <div class="stat-label-new">Всего шагов</div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Модуль гаража не загружен</h3>
+                        <span class="badge-count">Fallback</span>
+                    </div>
+                    <p>Проверьте загрузку garage.js файла</p>
+                </div>
+            </div>
+        `;
+        
+        // Устанавливаем простой аватар
+        const avatarImg = document.getElementById('user-avatar-img');
+        if (avatarImg) {
+            const svg = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="avatarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#f4bd41;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#007bff;stop-opacity:1" />
+</linearGradient>
+</defs>
+<circle cx="50" cy="50" r="50" fill="url(#avatarGradient)"/>
+<text x="50" y="60" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="#1a1a1a">U</text>
+</svg>`;
+            avatarImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+        }
     }
     
 
