@@ -532,15 +532,19 @@ class CaravanModule {
     // Обработка выбора типа каравана
     handleCaravanTypeSelection(type) {
         console.log('Обработка выбора типа:', type);
+        console.log('Данные создания каравана:', this.caravanCreationData);
+        console.log('Основное приложение доступно:', !!this.mainApp);
         
         // Сохраняем выбранный тип
         this.caravanCreationData.type = type;
         
         if (type === 'goal') {
             // Для цели переходим к созданию цели (как в Моих целях)
+            console.log('Переходим к созданию цели...');
             this.showGoalCreationModal();
         } else if (type === 'challenge') {
             // Для челленджа переходим к настройке периода и задания
+            console.log('Переходим к созданию челленджа...');
             this.showChallengeCreationModal();
         }
     }
@@ -674,21 +678,35 @@ class CaravanModule {
     // Показать модальное окно создания цели
     showGoalCreationModal() {
         console.log('Показываем создание цели для каравана');
-        // Закрываем текущее модальное окно
-        this.closeCreateCaravanModal();
+        console.log('Данные каравана:', this.caravanCreationData);
+        console.log('Основное приложение:', this.mainApp);
         
         // Используем логику создания карты из основного приложения
         if (this.mainApp && this.mainApp.showCreateMapModal) {
+            console.log('Основное приложение найдено, сохраняем данные каравана...');
+            
             // Сохраняем информацию о караване для последующего использования
             this.mainApp.caravanCreationData = {
                 caravanName: this.caravanCreationData.name,
                 isCaravanGoal: true
             };
             
+            console.log('Данные каравана сохранены в основном приложении:', this.mainApp.caravanCreationData);
+            
+            // Закрываем только шаг 2 (выбор типа), но не все модальные окна
+            const step2Modal = document.getElementById('create-caravan-step2-modal');
+            if (step2Modal) {
+                console.log('Закрываем шаг 2 модального окна каравана');
+                step2Modal.classList.remove('active');
+            }
+            
             // Запускаем процесс создания карты
+            console.log('Запускаем процесс создания карты...');
             this.mainApp.showCreateMapModal();
         } else {
             console.error('Основное приложение не найдено!');
+            console.error('this.mainApp:', this.mainApp);
+            console.error('showCreateMapModal:', this.mainApp?.showCreateMapModal);
             // Fallback к старому методу
             this.showGoalCreationModalFallback();
         }

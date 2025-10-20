@@ -189,6 +189,13 @@ class RoadToDreamApp {
 
         cancelBtn.addEventListener('click', () => {
             this.closeCreateMapModal();
+            
+            // Если это создание цели для каравана, возвращаемся к каравану
+            if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
+                this.currentScreen = 'caravan';
+                this.renderCurrentScreen();
+                this.caravanCreationData = null;
+            }
         });
 
         // Валидация ввода
@@ -224,10 +231,13 @@ class RoadToDreamApp {
         const modal = document.getElementById('create-map-modal');
         if (modal) {
             modal.classList.remove('active');
-                setTimeout(() => {
+            setTimeout(() => {
                 modal.remove();
             }, 300);
         }
+        
+        // Очищаем данные каравана при закрытии модального окна
+        this.caravanCreationData = null;
     }
 
     // Переход к следующему шагу
