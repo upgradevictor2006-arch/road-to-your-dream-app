@@ -397,10 +397,27 @@ class CaravanModule {
 
         // Обработчик для кнопок караванов
         appContainer.addEventListener('click', (e) => {
+            // Обработка новых больших кнопок
+            const primaryBtn = e.target.closest('.btn-caravan-primary');
+            const secondaryBtn = e.target.closest('.btn-caravan-secondary');
+            
+            if (primaryBtn) {
+                const caravanId = primaryBtn.dataset.caravanId;
+                const action = primaryBtn.dataset.action;
+                console.log('Кнопка "Открыть карту" нажата, ID:', caravanId);
+                this.handleCaravanAction(caravanId, action);
+            } else if (secondaryBtn) {
+                const caravanId = secondaryBtn.dataset.caravanId;
+                const action = secondaryBtn.dataset.action;
+                console.log('Кнопка "Добавить участников" нажата, ID:', caravanId);
+                this.handleCaravanAction(caravanId, action);
+            }
+            
+            // Обработка старых кнопок для совместимости
             const caravanBtn = e.target.closest('.btn-caravan-action');
             if (caravanBtn) {
                 const caravanId = caravanBtn.dataset.caravanId;
-                console.log('Кнопка каравана нажата, ID:', caravanId);
+                console.log('Старая кнопка каравана нажата, ID:', caravanId);
                 this.viewCaravan(caravanId);
             }
         });
@@ -1475,8 +1492,13 @@ class CaravanModule {
                     <div class="caravan-date">${this.formatDate(caravan.createdAt)}</div>
                 </div>
                 <div class="caravan-actions">
-                    <button class="btn-caravan-action" data-caravan-id="${caravan.id}">
-                        Открыть
+                    <button class="btn-caravan-primary" data-caravan-id="${caravan.id}" data-action="open-map">
+                        <span class="btn-icon">🗺️</span>
+                        <span class="btn-text">Открыть карту</span>
+                    </button>
+                    <button class="btn-caravan-secondary" data-caravan-id="${caravan.id}" data-action="add-members">
+                        <span class="btn-icon">👥</span>
+                        <span class="btn-text">Добавить участников</span>
                     </button>
                 </div>
             </div>
@@ -1575,6 +1597,50 @@ class CaravanModule {
             }
         `;
         document.head.appendChild(fadeOutStyle);
+    }
+
+    // Обработка действий кнопок каравана
+    handleCaravanAction(caravanId, action) {
+        console.log('Обработка действия каравана:', { caravanId, action });
+        
+        switch (action) {
+            case 'open-map':
+                this.openCaravanMap(caravanId);
+                break;
+            case 'add-members':
+                this.addCaravanMembers(caravanId);
+                break;
+            default:
+                console.log('Неизвестное действие:', action);
+        }
+    }
+
+    // Открыть карту каравана
+    openCaravanMap(caravanId) {
+        console.log('Открываем карту каравана:', caravanId);
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (caravan && caravan.mapId) {
+            // Переключаемся на вкладку карты и открываем нужную карту
+            if (this.mainApp) {
+                this.mainApp.currentScreen = 'map';
+                this.mainApp.renderCurrentScreen();
+                // Здесь можно добавить логику для открытия конкретной карты
+                console.log('Переключились на карту каравана:', caravan.mapId);
+            }
+        } else {
+            console.log('У каравана нет привязанной карты');
+            this.showNotification('У этого каравана нет привязанной карты', 'error');
+        }
+    }
+
+    // Добавить участников в караван
+    addCaravanMembers(caravanId) {
+        console.log('Добавляем участников в караван:', caravanId);
+        const caravan = this.caravans.find(c => c.id === caravanId);
+        if (caravan) {
+            this.currentManagingCaravan = caravan;
+            this.showCaravanManagementModal();
+        }
     }
 
     // Просмотр каравана (заглушка)
