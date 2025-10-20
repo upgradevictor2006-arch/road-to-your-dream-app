@@ -731,7 +731,8 @@ class CaravanModule {
             <div class="modal-overlay active" id="challenge-period-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">Период челленджа</h3>
+                        <h3 class="modal-title">Разбивка на периоды</h3>
+                        <p class="modal-subtitle">Организуйте свой челлендж по периодам</p>
                     </div>
                     <div class="modal-body">
                         <div class="challenge-period-section">
@@ -777,6 +778,16 @@ class CaravanModule {
                                             <input type="radio" name="duration" value="90" id="dur-90">
                                             <label for="dur-90">3 месяца</label>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Разбивка на периоды -->
+                            <div id="challenge-breakdown-section" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Разбивка на подпериоды</label>
+                                    <div class="breakdown-container" id="challenge-breakdown-container">
+                                        <!-- Разбивка будет добавлена динамически -->
                                     </div>
                                 </div>
                             </div>
@@ -844,6 +855,204 @@ class CaravanModule {
         this.showStep3();
     }
 
+    // Генерация разбивки на периоды для челленджа
+    generateChallengeBreakdown(totalDays) {
+        const breakdown = this.generatePeriodBreakdown(totalDays);
+        const container = document.getElementById('challenge-breakdown-container');
+        if (container) {
+            container.innerHTML = this.renderBreakdownHTML(breakdown);
+            this.setupBreakdownItemHandlers();
+        }
+    }
+
+    // Генерация структуры разбивки периода (адаптировано из script.js)
+    generatePeriodBreakdown(totalDays) {
+        let breakdown = [];
+
+        if (totalDays >= 365) {
+            // Год и больше - разбиваем на месяцы
+            const years = Math.floor(totalDays / 365);
+            const remainingDays = totalDays % 365;
+            
+            for (let i = 0; i < years; i++) {
+                const yearDays = Math.min(365, totalDays - (i * 365));
+                breakdown.push({
+                    id: `year-${i}`,
+                    type: 'year',
+                    title: `Год ${i + 1}`,
+                    task: '',
+                    days: yearDays,
+                    children: this.generateMonthBreakdown(yearDays)
+                });
+            }
+        } else if (totalDays >= 90) {
+            // 3 месяца и больше - разбиваем на месяцы
+            breakdown = this.generateMonthBreakdown(totalDays);
+        } else if (totalDays >= 30) {
+            // Месяц и больше - разбиваем на недели
+            breakdown = this.generateWeekBreakdown(totalDays);
+        } else if (totalDays >= 7) {
+            // Неделя и больше - разбиваем на дни
+            breakdown = this.generateDayBreakdown(totalDays);
+        } else {
+            // Менее недели - просто дни
+            for (let i = 1; i <= totalDays; i++) {
+                breakdown.push({
+                    id: `day-${i}`,
+                    type: 'day',
+                    title: `День ${i}`,
+                    task: '',
+                    days: 1
+                });
+            }
+        }
+
+        return breakdown;
+    }
+
+    // Генерация разбивки по месяцам
+    generateMonthBreakdown(totalDays) {
+        const breakdown = [];
+        const months = Math.ceil(totalDays / 30);
+        
+        for (let i = 0; i < months; i++) {
+            const monthDays = Math.min(30, totalDays - (i * 30));
+            breakdown.push({
+                id: `month-${i}`,
+                type: 'month',
+                title: `Месяц ${i + 1}`,
+                task: '',
+                days: monthDays,
+                children: this.generateWeekBreakdown(monthDays)
+            });
+        }
+        
+        return breakdown;
+    }
+
+    // Генерация разбивки по неделям
+    generateWeekBreakdown(totalDays) {
+        const breakdown = [];
+        const weeks = Math.ceil(totalDays / 7);
+        
+        for (let i = 0; i < weeks; i++) {
+            const weekDays = Math.min(7, totalDays - (i * 7));
+            breakdown.push({
+                id: `week-${i}`,
+                type: 'week',
+                title: `Неделя ${i + 1}`,
+                task: '',
+                days: weekDays,
+                children: this.generateDayBreakdown(weekDays)
+            });
+        }
+        
+        return breakdown;
+    }
+
+    // Генерация разбивки по дням
+    generateDayBreakdown(totalDays) {
+        const breakdown = [];
+        
+        for (let i = 1; i <= totalDays; i++) {
+            breakdown.push({
+                id: `day-${i}`,
+                type: 'day',
+                title: `День ${i}`,
+                task: '',
+                days: 1
+            });
+        }
+        
+        return breakdown;
+    }
+
+    // Рендеринг HTML для разбивки (адаптировано из script.js)
+    renderBreakdownHTML(breakdown, level = 0) {
+        return breakdown.map(item => {
+            const hasChildren = item.children && item.children.length > 0;
+            const childrenHTML = hasChildren ? this.renderBreakdownHTML(item.children, level + 1) : '';
+
+            return `
+                <div class="breakdown-item" data-id="${item.id}">
+                    <div class="breakdown-header" data-toggle-id="${item.id}">
+                        <div class="breakdown-left">
+                            <svg class="breakdown-icon ${hasChildren ? '' : 'hidden'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9,18 15,12 9,6"></polyline>
+                            </svg>
+                            <div class="breakdown-content">
+                                <div class="breakdown-title">${item.title}</div>
+                                <div class="breakdown-task">${item.task || ''}</div>
+                            </div>
+                        </div>
+                        <button class="breakdown-edit-btn" data-edit-id="${item.id}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    ${hasChildren ? `
+                        <div class="breakdown-children" id="children-${item.id}">
+                            ${childrenHTML}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Настройка обработчиков для элементов разбивки
+    setupBreakdownItemHandlers() {
+        // Обработчики для сворачивания/разворачивания
+        document.querySelectorAll('.breakdown-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const toggleId = header.getAttribute('data-toggle-id');
+                this.toggleBreakdownItem(toggleId);
+            });
+        });
+
+        // Обработчики для редактирования
+        document.querySelectorAll('.breakdown-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const editId = btn.getAttribute('data-edit-id');
+                this.editBreakdownItem(editId);
+            });
+        });
+    }
+
+    // Переключение состояния элемента разбивки
+    toggleBreakdownItem(itemId) {
+        const item = document.querySelector(`[data-id="${itemId}"]`);
+        const icon = item.querySelector('.breakdown-icon');
+        const children = document.getElementById(`children-${itemId}`);
+        
+        if (children) {
+            const isExpanded = children.classList.contains('expanded');
+            if (isExpanded) {
+                children.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                children.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+    }
+
+    // Редактирование элемента разбивки
+    editBreakdownItem(itemId) {
+        const item = document.querySelector(`[data-id="${itemId}"]`);
+        const taskElement = item.querySelector('.breakdown-task');
+        const currentTask = taskElement.textContent;
+        
+        const newTask = prompt('Введите задачу для этого периода:', currentTask);
+        if (newTask !== null) {
+            taskElement.textContent = newTask;
+        }
+    }
+
     // Настройка обработчиков для периода челленджа
     setupChallengePeriodEvents() {
         const backBtn = document.getElementById('challenge-period-back-btn');
@@ -852,6 +1061,7 @@ class CaravanModule {
         const durationBtn = document.getElementById('challenge-duration-btn');
         const deadlineSection = document.getElementById('challenge-deadline-section');
         const durationSection = document.getElementById('challenge-duration-section');
+        const breakdownSection = document.getElementById('challenge-breakdown-section');
 
         backBtn.addEventListener('click', () => {
             this.closeChallengePeriodModal();
@@ -867,6 +1077,7 @@ class CaravanModule {
             durationBtn.classList.remove('active');
             deadlineSection.style.display = 'block';
             durationSection.style.display = 'none';
+            breakdownSection.style.display = 'none';
         });
 
         durationBtn.addEventListener('click', () => {
@@ -874,6 +1085,33 @@ class CaravanModule {
             deadlineBtn.classList.remove('active');
             deadlineSection.style.display = 'none';
             durationSection.style.display = 'block';
+            breakdownSection.style.display = 'none';
+        });
+
+        // Обработчики для радиокнопок длительности
+        const durationOptions = document.querySelectorAll('input[name="duration"]');
+        durationOptions.forEach(option => {
+            option.addEventListener('change', () => {
+                if (option.checked) {
+                    const days = parseInt(option.value);
+                    this.generateChallengeBreakdown(days);
+                    breakdownSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Обработчик для поля даты дедлайна
+        const deadlineInput = document.getElementById('challenge-deadline');
+        deadlineInput.addEventListener('change', () => {
+            if (deadlineInput.value) {
+                const deadline = new Date(deadlineInput.value);
+                const today = new Date();
+                const days = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                if (days > 0) {
+                    this.generateChallengeBreakdown(days);
+                    breakdownSection.style.display = 'block';
+                }
+            }
         });
     }
 
