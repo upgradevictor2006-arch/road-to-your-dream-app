@@ -1177,11 +1177,11 @@ class RoadToDreamApp {
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
         
-        // Если это цель каравана, создаем караван и переходим к нему
+        // Если это цель каравана, создаем караван и остаемся на вкладке караван
         if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
             this.createCaravanWithGoal(newMap);
         } else {
-            // Возвращаемся на главный экран карты
+            // Возвращаемся на главный экран карты только для личных целей
             this.renderMapScreen();
         }
         
@@ -1212,6 +1212,12 @@ class RoadToDreamApp {
             // Возвращаемся к списку караванов
             this.currentScreen = 'caravan';
             this.renderCurrentScreen();
+            
+            // Обновляем активную вкладку в навигации
+            const caravanNavButton = document.querySelector('[data-screen="caravan"]');
+            if (caravanNavButton) {
+                updateActiveNavButton(caravanNavButton);
+            }
             
             // Показываем уведомление об успехе
             if (this.caravanModule.showNotification) {
