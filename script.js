@@ -178,14 +178,27 @@ class RoadToDreamApp {
 
     // Настройка обработчиков событий для модального окна
     setupCreateMapModalEvents() {
+        console.log('🔧 Настройка обработчиков событий для модального окна создания карты');
+        
         const goalInput = document.getElementById('goal-title');
         const nextBtn = document.getElementById('next-btn');
         const cancelBtn = document.getElementById('cancel-btn');
 
-        // Обработчики кнопок
-        nextBtn.addEventListener('click', () => {
-            this.nextStep();
+        console.log('Элементы найдены:', {
+            goalInput: !!goalInput,
+            nextBtn: !!nextBtn,
+            cancelBtn: !!cancelBtn
         });
+
+        // Обработчики кнопок
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                console.log('🎯 Кнопка "Далее" нажата');
+                this.nextStep();
+            });
+        } else {
+            console.error('❌ Кнопка "Далее" не найдена!');
+        }
 
         cancelBtn.addEventListener('click', () => {
             this.closeCreateMapModal();
@@ -199,16 +212,22 @@ class RoadToDreamApp {
         });
 
         // Валидация ввода
-        goalInput.addEventListener('input', (e) => {
-            const value = e.target.value.trim();
-            nextBtn.disabled = value.length < 3;
-            
-            if (value.length >= 3) {
-                nextBtn.style.opacity = '1';
-    } else {
-                nextBtn.style.opacity = '0.5';
-            }
-        });
+        if (goalInput && nextBtn) {
+            goalInput.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
+                
+                nextBtn.disabled = value.length < 3;
+                
+                if (value.length >= 3) {
+                    nextBtn.style.opacity = '1';
+                    console.log('✅ Кнопка "Далее" активирована');
+                } else {
+                    nextBtn.style.opacity = '0.5';
+                    console.log('❌ Кнопка "Далее" деактивирована');
+                }
+            });
+        }
 
         // Обработка Enter
         goalInput.addEventListener('keypress', (e) => {
@@ -245,9 +264,15 @@ class RoadToDreamApp {
         const goalTitle = document.getElementById('goal-title').value.trim();
         const goalDescription = document.getElementById('goal-description').value.trim();
 
+        console.log('🎯 nextStep вызван');
+        console.log('Название цели:', goalTitle);
+        console.log('Описание цели:', goalDescription);
+        console.log('Данные каравана:', this.caravanCreationData);
+
         if (goalTitle.length < 3) {
-        return;
-    }
+            console.log('❌ Название цели слишком короткое');
+            return;
+        }
     
         // Сохраняем данные цели
         this.newGoalData = {
@@ -255,23 +280,33 @@ class RoadToDreamApp {
             description: goalDescription
         };
 
-        console.log('Данные цели:', this.newGoalData);
+        console.log('✅ Данные цели сохранены:', this.newGoalData);
         
         // Закрываем текущее модальное окно
         this.closeCreateMapModal();
         
         // Переходим к следующему шагу (выбор периода)
+        console.log('🔄 Переходим к выбору периода...');
         this.showPeriodSelectionModal();
     }
 
     // Показать модальное окно выбора периода
     showPeriodSelectionModal() {
+        // Определяем заголовок в зависимости от контекста
+        let title = 'Срок достижения цели';
+        let subtitle = 'Как вы хотите установить срок?';
+        
+        if (this.caravanCreationData && this.caravanCreationData.isCaravanGoal) {
+            title = `Срок достижения цели для каравана "${this.caravanCreationData.caravanName}"`;
+            subtitle = 'Установите общий срок для всех участников каравана';
+        }
+        
         const modalHTML = `
             <div class="modal-overlay active" id="period-selection-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="modal-title">Срок достижения цели</h2>
-                        <p class="modal-subtitle">Как вы хотите установить срок?</p>
+                        <h2 class="modal-title">${title}</h2>
+                        <p class="modal-subtitle">${subtitle}</p>
                     </div>
                     <div class="modal-body">
                         <div class="period-type-selector">
@@ -623,6 +658,10 @@ class RoadToDreamApp {
 
     // Переход к разбивке периода
     nextToPeriodBreakdown() {
+        console.log('🔄 nextToPeriodBreakdown вызван');
+        console.log('Данные цели:', this.newGoalData);
+        console.log('Данные каравана:', this.caravanCreationData);
+        
         const deadlineBtn = document.getElementById('deadline-btn');
         const isDeadlineMode = deadlineBtn.classList.contains('active');
         
@@ -1013,6 +1052,7 @@ class RoadToDreamApp {
     createMap() {
         console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
         console.log('Создание карты с данными:', this.newGoalData);
+        console.log('Данные каравана:', this.caravanCreationData);
         
         // Создаем новую карту
         const newMap = {
