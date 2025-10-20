@@ -473,12 +473,6 @@ class DailyAction(BaseModel):
     action_date: date
     created_at: datetime
 
-class UserData(BaseModel):
-    user: User
-    goals: List[Goal]
-    daily_actions: List[DailyAction]
-    cards: List[Card]
-
 class AIMotivationRequest(BaseModel):
     event: str
 
@@ -542,6 +536,12 @@ class TelegramAuthData(BaseModel):
     photo_url: Optional[str] = None
     auth_date: Optional[int] = None
     hash: Optional[str] = None
+
+class UserData(BaseModel):
+    user: User
+    goals: List[Goal]
+    daily_actions: List[DailyAction]
+    cards: List[Card]
 
 # Функции для работы с Telegram WebApp
 def verify_telegram_auth(auth_data: TelegramAuthData) -> bool:
