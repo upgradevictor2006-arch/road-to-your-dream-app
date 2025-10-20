@@ -191,6 +191,17 @@ class RoadToDreamApp {
                 opacity: nextBtn?.style.opacity,
                 text: nextBtn?.textContent
             });
+            
+            // Тестируем валидацию программно
+            if (goalInput && nextBtn) {
+                console.log('🧪 Тестируем валидацию программно...');
+                goalInput.value = 'Тест';
+                goalInput.dispatchEvent(new Event('input', { bubbles: true }));
+                console.log('🧪 После тестового ввода состояние кнопки:', {
+                    disabled: nextBtn.disabled,
+                    opacity: nextBtn.style.opacity
+                });
+            }
         }, 100);
     }
 
@@ -244,6 +255,7 @@ class RoadToDreamApp {
                 nextBtnId: nextBtn.id
             });
             
+            // Основной обработчик input
             goalInput.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
                 console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
@@ -266,6 +278,23 @@ class RoadToDreamApp {
                     disabled: nextBtn.disabled,
                     opacity: nextBtn.style.opacity
                 });
+            });
+            
+            // Дополнительный обработчик через делегирование событий
+            document.addEventListener('input', (e) => {
+                if (e.target && e.target.id === 'goal-title') {
+                    console.log('🔄 Обработчик делегирования сработал для поля цели');
+                    const value = e.target.value.trim();
+                    const nextBtnDel = document.getElementById('next-btn');
+                    if (nextBtnDel) {
+                        nextBtnDel.disabled = value.length < 3;
+                        nextBtnDel.style.opacity = value.length >= 3 ? '1' : '0.5';
+                        console.log('🔄 Делегирование: кнопка обновлена', {
+                            disabled: nextBtnDel.disabled,
+                            opacity: nextBtnDel.style.opacity
+                        });
+                    }
+                }
             });
             
             // Проверяем начальное состояние кнопки
