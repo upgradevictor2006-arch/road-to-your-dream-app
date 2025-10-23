@@ -433,12 +433,19 @@ async def get_user_data_internal(telegram_id: int):
 class UserCreate(BaseModel):
     telegram_id: int
     username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    photo_url: Optional[str] = None
 
 class User(BaseModel):
     id: str
     telegram_id: int
     username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    photo_url: Optional[str] = None
     created_at: datetime
+    updated_at: datetime
 
 class GoalCreate(BaseModel):
     goal_type: str
@@ -466,11 +473,6 @@ class DailyAction(BaseModel):
     action_date: date
     created_at: datetime
 
-class UserData(BaseModel):
-    user: User
-    goals: List[Goal]
-    daily_actions: List[DailyAction]
-
 class AIMotivationRequest(BaseModel):
     event: str
 
@@ -488,6 +490,76 @@ class AIStatsResponse(BaseModel):
     fallback_used: int
     total_requests: int
 
+# Модели для карт
+class CardCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    card_type: str  # 'goal', 'habit', 'task', 'note', 'milestone'
+    priority: Optional[int] = 1  # 1-5
+    due_date: Optional[date] = None
+    tags: Optional[List[str]] = []
+    metadata: Optional[dict] = {}
+
+class CardUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    card_type: Optional[str] = None
+    status: Optional[str] = None  # 'active', 'completed', 'archived', 'deleted'
+    priority: Optional[int] = None
+    due_date: Optional[date] = None
+    tags: Optional[List[str]] = None
+    metadata: Optional[dict] = None
+
+class Card(BaseModel):
+    id: str
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    card_type: str
+    status: str
+    priority: int
+    due_date: Optional[date] = None
+    tags: List[str]
+    metadata: dict
+    created_at: datetime
+    updated_at: datetime
+
+class CardsRequest(BaseModel):
+    telegram_id: int
+    cards: List[CardCreate]
+
+class TelegramAuthData(BaseModel):
+    telegram_id: int
+    username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    photo_url: Optional[str] = None
+    auth_date: Optional[int] = None
+    hash: Optional[str] = None
+
+class UserData(BaseModel):
+    user: User
+    goals: List[Goal]
+    daily_actions: List[DailyAction]
+    cards: List[Card]
+
+# Функции для работы с Telegram WebApp
+def verify_telegram_auth(auth_data: TelegramAuthData) -> bool:
+    """Проверяет подлинность данных авторизации Telegram WebApp"""
+    # В реальном приложении здесь должна быть проверка подписи
+    # Для упрощения пока возвращаем True
+    return True
+
+def extract_telegram_user_data(auth_data: TelegramAuthData) -> dict:
+    """Извлекает данные пользователя из Telegram WebApp"""
+    return {
+        "telegram_id": auth_data.telegram_id,
+        "username": auth_data.username,
+        "first_name": auth_data.first_name,
+        "last_name": auth_data.last_name,
+        "photo_url": auth_data.photo_url
+    }
+
 # Эндпоинты
 @app.get("/")
 async def root():
@@ -502,19 +574,44 @@ async def register_user(user_data: UserCreate):
         existing_user = supabase.table("users").select("*").eq("telegram_id", user_data.telegram_id).execute()
         
         if existing_user.data:
-            # Пользователь существует, возвращаем его
+            # Пользователь существует, обновляем его данные если нужно
             user = existing_user.data[0]
+            update_data = {}
+            
+            # Обновляем поля если они изменились
+            if user_data.first_name and user_data.first_name != user.get("first_name"):
+                update_data["first_name"] = user_data.first_name
+            if user_data.last_name and user_data.last_name != user.get("last_name"):
+                update_data["last_name"] = user_data.last_name
+            if user_data.photo_url and user_data.photo_url != user.get("photo_url"):
+                update_data["photo_url"] = user_data.photo_url
+            if user_data.username and user_data.username != user.get("username"):
+                update_data["username"] = user_data.username
+            
+            if update_data:
+                update_data["updated_at"] = datetime.now().isoformat()
+                updated_user = supabase.table("users").update(update_data).eq("id", user["id"]).execute()
+                if updated_user.data:
+                    user = updated_user.data[0]
+            
             return User(
                 id=user["id"],
                 telegram_id=user["telegram_id"],
                 username=user["username"],
-                created_at=datetime.fromisoformat(user["created_at"].replace('Z', '+00:00'))
+                first_name=user.get("first_name"),
+                last_name=user.get("last_name"),
+                photo_url=user.get("photo_url"),
+                created_at=datetime.fromisoformat(user["created_at"].replace('Z', '+00:00')),
+                updated_at=datetime.fromisoformat(user["updated_at"].replace('Z', '+00:00'))
             )
         else:
             # Создаем нового пользователя
             new_user = supabase.table("users").insert({
                 "telegram_id": user_data.telegram_id,
-                "username": user_data.username
+                "username": user_data.username,
+                "first_name": user_data.first_name,
+                "last_name": user_data.last_name,
+                "photo_url": user_data.photo_url
             }).execute()
             
             if new_user.data:
@@ -523,11 +620,35 @@ async def register_user(user_data: UserCreate):
                     id=user["id"],
                     telegram_id=user["telegram_id"],
                     username=user["username"],
-                    created_at=datetime.fromisoformat(user["created_at"].replace('Z', '+00:00'))
+                    first_name=user.get("first_name"),
+                    last_name=user.get("last_name"),
+                    photo_url=user.get("photo_url"),
+                    created_at=datetime.fromisoformat(user["created_at"].replace('Z', '+00:00')),
+                    updated_at=datetime.fromisoformat(user["updated_at"].replace('Z', '+00:00'))
                 )
             else:
                 raise HTTPException(status_code=500, detail="Ошибка при создании пользователя")
                 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+@app.post("/auth/telegram", response_model=User)
+async def auth_telegram(auth_data: TelegramAuthData):
+    """Авторизация через Telegram WebApp"""
+    try:
+        # Проверяем подлинность данных (в реальном приложении)
+        if not verify_telegram_auth(auth_data):
+            raise HTTPException(status_code=401, detail="Неверные данные авторизации")
+        
+        # Извлекаем данные пользователя
+        user_data = extract_telegram_user_data(auth_data)
+        
+        # Регистрируем или обновляем пользователя
+        user_create = UserCreate(**user_data)
+        return await register_user(user_create)
+        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
@@ -626,12 +747,19 @@ async def get_user_data(telegram_id: int):
         # Получаем ежедневные действия пользователя
         daily_actions = supabase.table("daily_actions").select("*").eq("user_id", user_id).order("action_date", desc=True).execute()
         
+        # Получаем карты пользователя
+        cards = supabase.table("cards").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        
         # Формируем ответ
         user_obj = User(
             id=user_data["id"],
             telegram_id=user_data["telegram_id"],
             username=user_data["username"],
-            created_at=datetime.fromisoformat(user_data["created_at"].replace('Z', '+00:00'))
+            first_name=user_data.get("first_name"),
+            last_name=user_data.get("last_name"),
+            photo_url=user_data.get("photo_url"),
+            created_at=datetime.fromisoformat(user_data["created_at"].replace('Z', '+00:00')),
+            updated_at=datetime.fromisoformat(user_data["updated_at"].replace('Z', '+00:00'))
         )
         
         goals_list = []
@@ -655,11 +783,241 @@ async def get_user_data(telegram_id: int):
                 created_at=datetime.fromisoformat(action["created_at"].replace('Z', '+00:00'))
             ))
         
+        cards_list = []
+        for card in cards.data:
+            cards_list.append(Card(
+                id=card["id"],
+                user_id=card["user_id"],
+                title=card["title"],
+                description=card["description"],
+                card_type=card["card_type"],
+                status=card["status"],
+                priority=card["priority"],
+                due_date=datetime.fromisoformat(card["due_date"]).date() if card["due_date"] else None,
+                tags=card["tags"] or [],
+                metadata=card["metadata"] or {},
+                created_at=datetime.fromisoformat(card["created_at"].replace('Z', '+00:00')),
+                updated_at=datetime.fromisoformat(card["updated_at"].replace('Z', '+00:00'))
+            ))
+        
         return UserData(
             user=user_obj,
             goals=goals_list,
-            daily_actions=actions_list
+            daily_actions=actions_list,
+            cards=cards_list
         )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+# Эндпоинты для работы с картами
+@app.post("/cards")
+async def create_cards(cards_request: CardsRequest, background_tasks: BackgroundTasks):
+    """Создание карт для пользователя"""
+    try:
+        # Находим пользователя
+        user = supabase.table("users").select("id").eq("telegram_id", cards_request.telegram_id).execute()
+        
+        if not user.data:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        user_id = user.data[0]["id"]
+        
+        # Подготавливаем данные для вставки
+        cards_to_insert = []
+        for card in cards_request.cards:
+            cards_to_insert.append({
+                "user_id": user_id,
+                "title": card.title,
+                "description": card.description,
+                "card_type": card.card_type,
+                "priority": card.priority,
+                "due_date": card.due_date.isoformat() if card.due_date else None,
+                "tags": card.tags,
+                "metadata": card.metadata
+            })
+        
+        # Вставляем карты
+        result = supabase.table("cards").insert(cards_to_insert).execute()
+        
+        if result.data:
+            return {"message": f"Создано {len(result.data)} карт", "cards": result.data}
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при создании карт")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+@app.get("/cards/{telegram_id}", response_model=List[Card])
+async def get_user_cards(telegram_id: int, card_type: Optional[str] = None, status: Optional[str] = None):
+    """Получение карт пользователя"""
+    try:
+        # Находим пользователя
+        user = supabase.table("users").select("id").eq("telegram_id", telegram_id).execute()
+        
+        if not user.data:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        user_id = user.data[0]["id"]
+        
+        # Строим запрос
+        query = supabase.table("cards").select("*").eq("user_id", user_id)
+        
+        if card_type:
+            query = query.eq("card_type", card_type)
+        if status:
+            query = query.eq("status", status)
+        
+        # Выполняем запрос
+        result = query.order("created_at", desc=True).execute()
+        
+        cards = []
+        for card in result.data:
+            cards.append(Card(
+                id=card["id"],
+                user_id=card["user_id"],
+                title=card["title"],
+                description=card["description"],
+                card_type=card["card_type"],
+                status=card["status"],
+                priority=card["priority"],
+                due_date=datetime.fromisoformat(card["due_date"]).date() if card["due_date"] else None,
+                tags=card["tags"] or [],
+                metadata=card["metadata"] or {},
+                created_at=datetime.fromisoformat(card["created_at"].replace('Z', '+00:00')),
+                updated_at=datetime.fromisoformat(card["updated_at"].replace('Z', '+00:00'))
+            ))
+        
+        return cards
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+@app.put("/cards/{card_id}")
+async def update_card(card_id: str, card_update: CardUpdate):
+    """Обновление карты"""
+    try:
+        # Проверяем существование карты
+        existing_card = supabase.table("cards").select("*").eq("id", card_id).execute()
+        
+        if not existing_card.data:
+            raise HTTPException(status_code=404, detail="Карта не найдена")
+        
+        # Подготавливаем данные для обновления
+        update_data = {}
+        
+        if card_update.title is not None:
+            update_data["title"] = card_update.title
+        if card_update.description is not None:
+            update_data["description"] = card_update.description
+        if card_update.card_type is not None:
+            update_data["card_type"] = card_update.card_type
+        if card_update.status is not None:
+            update_data["status"] = card_update.status
+        if card_update.priority is not None:
+            update_data["priority"] = card_update.priority
+        if card_update.due_date is not None:
+            update_data["due_date"] = card_update.due_date.isoformat()
+        if card_update.tags is not None:
+            update_data["tags"] = card_update.tags
+        if card_update.metadata is not None:
+            update_data["metadata"] = card_update.metadata
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="Нет данных для обновления")
+        
+        update_data["updated_at"] = datetime.now().isoformat()
+        
+        # Обновляем карту
+        result = supabase.table("cards").update(update_data).eq("id", card_id).execute()
+        
+        if result.data:
+            return {"message": "Карта обновлена", "card": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при обновлении карты")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+@app.delete("/cards/{card_id}")
+async def delete_card(card_id: str):
+    """Удаление карты (мягкое удаление - изменение статуса)"""
+    try:
+        # Проверяем существование карты
+        existing_card = supabase.table("cards").select("*").eq("id", card_id).execute()
+        
+        if not existing_card.data:
+            raise HTTPException(status_code=404, detail="Карта не найдена")
+        
+        # Мягкое удаление - меняем статус на deleted
+        result = supabase.table("cards").update({
+            "status": "deleted",
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", card_id).execute()
+        
+        if result.data:
+            return {"message": "Карта удалена"}
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при удалении карты")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+@app.get("/cards/{telegram_id}/stats")
+async def get_cards_stats(telegram_id: int):
+    """Получение статистики карт пользователя"""
+    try:
+        # Находим пользователя
+        user = supabase.table("users").select("id").eq("telegram_id", telegram_id).execute()
+        
+        if not user.data:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        user_id = user.data[0]["id"]
+        
+        # Получаем все карты пользователя
+        cards = supabase.table("cards").select("*").eq("user_id", user_id).execute()
+        
+        if not cards.data:
+            return {
+                "total_cards": 0,
+                "by_type": {},
+                "by_status": {},
+                "by_priority": {}
+            }
+        
+        # Подсчитываем статистику
+        stats = {
+            "total_cards": len(cards.data),
+            "by_type": {},
+            "by_status": {},
+            "by_priority": {}
+        }
+        
+        for card in cards.data:
+            # По типам
+            card_type = card["card_type"]
+            stats["by_type"][card_type] = stats["by_type"].get(card_type, 0) + 1
+            
+            # По статусам
+            status = card["status"]
+            stats["by_status"][status] = stats["by_status"].get(status, 0) + 1
+            
+            # По приоритетам
+            priority = card["priority"]
+            stats["by_priority"][str(priority)] = stats["by_priority"].get(str(priority), 0) + 1
+        
+        return stats
         
     except HTTPException:
         raise
