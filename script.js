@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
-// ВЕРСИЯ: v19 - ИСПРАВЛЕНА КНОПКА "ДАЛЕЕ" В ВЫБОРЕ ПЕРИОДА
+// ВЕРСИЯ: v30 - ИСПРАВЛЕНО СОЗДАНИЕ КАРТЫ И FALLBACK РЕНДЕРИНГ
 
-console.log('🚀 Загружен script.js версии 29 - УБРАНА АНИМАЦИЯ!');
-console.log('🔧 УБРАНА АНИМАЦИЯ ДВИЖЕНИЯ ШАГОВ ПРИ ПОДТВЕРЖДЕНИИ!');
+console.log('🚀 Загружен script.js версии 30 - ИСПРАВЛЕНО СОЗДАНИЕ КАРТЫ!');
+console.log('🔧 ИСПРАВЛЕНА ЛОГИКА СОЗДАНИЯ КАРТЫ И FALLBACK РЕНДЕРИНГ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -108,12 +108,93 @@ class RoadToDreamApp {
     renderMapScreen() {
         console.log('⚠️ Используется fallback renderMapScreen - модуль карты не загружен');
         const appContainer = document.getElementById('app-container');
+        
+        // Проверяем, есть ли созданные карты
+        const hasMaps = this.maps && this.maps.length > 0;
+        
         appContainer.innerHTML = `
             <div class="screen-content">
-                <h2>🗺️ Карта</h2>
-                <p>Модуль карты не загружен. Проверьте подключение map.js</p>
+                <div class="map-screen">
+                    <div class="map-header">
+                        <h2 class="map-title">🗺️ Карта</h2>
+                        <p class="map-subtitle">Ваши цели и прогресс</p>
+                    </div>
+                    
+                    ${hasMaps ? `
+                        <div class="maps-list">
+                            <h3 class="maps-list-title">Ваши карты</h3>
+                            ${this.maps.map(map => `
+                                <div class="map-card" data-map-id="${map.id}">
+                                    <div class="map-card-header">
+                                        <div class="map-card-title">
+                                            ${map.isCaravanGoal ? '🚐' : '🎯'} ${map.goal}
+                                            ${map.isCaravanGoal ? `<span class="caravan-badge">Караван: ${map.caravanName}</span>` : ''}
+                                        </div>
+                                        <div class="map-card-progress">
+                                            <div class="progress-text">${map.currentStep}/${map.totalSteps} шагов</div>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" style="width: ${(map.currentStep / map.totalSteps) * 100}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    ${map.description ? `<div class="map-card-description">${map.description}</div>` : ''}
+                                    <div class="map-card-meta">
+                                        <div class="map-card-date">Создано: ${new Date(map.createdAt).toLocaleDateString('ru-RU')}</div>
+                                        <div class="map-card-type">${map.isCaravanGoal ? 'Цель каравана' : 'Личная цель'}</div>
+                                    </div>
+                                    <div class="map-card-actions">
+                                        <button class="btn-map-action" data-map-id="${map.id}">
+                                            Открыть
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="motivational-quote">
+                            <div class="quote-text">Путешествие в тысячу миль начинается с одного шага.</div>
+                            <div class="quote-author">— Лао-цзы</div>
+                        </div>
+                    `}
+                    
+                    <div class="call-to-action">
+                        <div class="cta-question">${hasMaps ? 'Создать новую карту?' : 'Готов начать путь к своей мечте?'}</div>
+                        <button class="create-map-button" id="create-map-btn">
+                            <span class="plus-icon">+</span>
+                            Создать новую карту
+                        </button>
+                        <div class="cta-description">Определи свою цель, разбей её на шаги и начни двигаться вперед</div>
+                    </div>
+                    
+                    <div class="fallback-warning">
+                        <div class="warning-icon">⚠️</div>
+                        <div class="warning-text">
+                            Модуль карты не загружен. Некоторые функции могут быть недоступны. 
+                            Проверьте подключение файла map.js
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
+        
+        // Добавляем обработчики для кнопок
+        const createButton = document.getElementById('create-map-btn');
+        if (createButton) {
+            createButton.addEventListener('click', () => {
+                this.addNewMap();
+            });
+        }
+        
+        // Добавляем обработчики для карт
+        if (hasMaps) {
+            const mapActionBtns = document.querySelectorAll('.btn-map-action');
+            mapActionBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mapId = e.target.dataset.mapId;
+                    this.switchToMap(mapId);
+                });
+            });
+        }
     }
     
     // Рендеринг карты с лентой шагов
@@ -1200,9 +1281,15 @@ class RoadToDreamApp {
             console.log('✅ Сохраняем данные каравана:', caravanData);
             this.createCaravanWithGoal(newMap, caravanData);
         } else {
-            console.log('❌ Это НЕ цель каравана, переходим к карте');
-            // Возвращаемся на главный экран карты только для личных целей
-            this.renderMapScreen();
+            console.log('✅ Это личная цель, переходим к карте через модуль');
+            // Используем модуль карты для отображения, а не fallback
+            if (this.mapModule && this.mapModule.renderMapScreen) {
+                console.log('✅ Используем модуль карты для отображения');
+                this.mapModule.renderMapScreen();
+            } else {
+                console.log('⚠️ Модуль карты недоступен, используем fallback');
+                this.renderMapScreen();
+            }
         }
         
         // Очищаем данные каравана
