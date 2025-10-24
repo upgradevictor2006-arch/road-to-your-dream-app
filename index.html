@@ -23,7 +23,7 @@
     
     <!-- Отладочная информация -->
     <div style="position: fixed; top: 10px; left: 10px; background: rgba(255, 0, 0, 0.3); color: white; padding: 5px; z-index: 9999; font-size: 12px; pointer-events: none; border-radius: 5px;">
-               Версия: v73 - ИСПРАВЛЕНА ИНИЦИАЛИЗАЦИЯ МОДУЛЯ КАРТЫ
+               Версия: v75 - ОБНОВЛЕНА КНОПКА ОЧИСТКИ ДАННЫХ
     </div>
     
     <!-- Кнопка очистки данных для тестирования -->
@@ -33,11 +33,12 @@
     
     <script>
     function clearAllData() {
-        if (confirm('Очистить все сохраненные данные?')) {
+        if (confirm('Очистить все сохраненные данные?\n\nЭто удалит:\n• Все карты и цели\n• Все караваны\n• Текущий прогресс')) {
             localStorage.removeItem('roadToDreamMaps');
             localStorage.removeItem('roadToDreamCurrentMapId');
             localStorage.removeItem('currentMap');
-            alert('Данные очищены! Перезагрузите страницу.');
+            localStorage.removeItem('roadToDreamCaravans');
+            alert('Все данные очищены! Перезагрузите страницу.');
             location.reload();
         }
     }
