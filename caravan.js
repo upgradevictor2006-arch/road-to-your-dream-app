@@ -1,6 +1,7 @@
 // Модуль каравана для Telegram Mini App "Road to Your Dream"
+// ВЕРСИЯ: v4 - ДОБАВЛЕНА ПРИВЯЗКА КАРТ К КАРАВАНАМ
 
-console.log('caravan.js загружен');
+console.log('caravan.js v4 загружен - ДОБАВЛЕНА ПРИВЯЗКА КАРТ К КАРАВАНАМ');
 
 class CaravanModule {
     constructor(mainApp) {
@@ -1399,6 +1400,7 @@ class CaravanModule {
             name: caravanData.name,
             goal: caravanData.goal,
             description: caravanData.description,
+            mapId: caravanData.mapId, // Привязываем карту к каравану
             createdAt: new Date().toISOString(),
             members: 1, // Пока что только создатель
             status: 'active'
@@ -1609,34 +1611,53 @@ class CaravanModule {
 
     // Открыть карту каравана
     openCaravanMap(caravanId) {
-        console.log('Открываем карту каравана:', caravanId);
+        console.log('🗺️ Открываем карту каравана:', caravanId);
         const caravan = this.caravans.find(c => c.id === caravanId);
-        if (caravan && caravan.mapId) {
-            // Переключаемся на вкладку карты и открываем нужную карту
-            if (this.mainApp) {
-                console.log('Переключаемся на карту каравана:', caravan.mapId);
-                
-                // Устанавливаем текущую карту
-                this.mainApp.currentMapId = caravan.mapId;
-                this.mainApp.currentMap = this.mainApp.maps.find(map => map.id === caravan.mapId);
-                
-                // Переключаемся на вкладку карты
-                this.mainApp.currentScreen = 'map';
-                this.mainApp.renderCurrentScreen();
-                
-                // Обновляем активную вкладку в навигации
-                const mapNavButton = document.querySelector('[data-screen="map"]');
-                if (mapNavButton && typeof updateActiveNavButton === 'function') {
-                    updateActiveNavButton(mapNavButton);
-                }
-                
-                console.log('✅ Открыли карту каравана:', caravan.mapId);
-                this.showNotification(`Открыта карта каравана "${caravan.name}"`, 'success');
-            }
-        } else {
-            console.log('У каравана нет привязанной карты');
-            this.showNotification('У этого каравана нет привязанной карты', 'error');
+        
+        if (!caravan) {
+            console.error('❌ Караван не найден:', caravanId);
+            this.showNotification('Караван не найден', 'error');
+            return;
         }
+        
+        if (!caravan.mapId) {
+            console.log('⚠️ У каравана нет привязанной карты');
+            this.showNotification('У этого каравана нет привязанной карты', 'error');
+            return;
+        }
+        
+        if (!this.mainApp) {
+            console.error('❌ Основное приложение не найдено');
+            this.showNotification('Ошибка: основное приложение не найдено', 'error');
+            return;
+        }
+        
+        // Находим карту по ID
+        const targetMap = this.mainApp.maps.find(map => map.id === caravan.mapId);
+        if (!targetMap) {
+            console.error('❌ Карта не найдена:', caravan.mapId);
+            this.showNotification('Карта каравана не найдена', 'error');
+            return;
+        }
+        
+        console.log('✅ Найдена карта каравана:', targetMap);
+        
+        // Устанавливаем текущую карту
+        this.mainApp.currentMapId = caravan.mapId;
+        this.mainApp.currentMap = targetMap;
+        
+        // Переключаемся на вкладку карты
+        this.mainApp.currentScreen = 'map';
+        this.mainApp.renderCurrentScreen();
+        
+        // Обновляем активную вкладку в навигации
+        const mapNavButton = document.querySelector('[data-screen="map"]');
+        if (mapNavButton && typeof updateActiveNavButton === 'function') {
+            updateActiveNavButton(mapNavButton);
+        }
+        
+        console.log('✅ Открыли карту каравана:', caravan.mapId);
+        this.showNotification(`Открыта карта каравана "${caravan.name}"`, 'success');
     }
 
     // Добавить участников в караван
