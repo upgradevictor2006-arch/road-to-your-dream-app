@@ -1,8 +1,8 @@
 // JavaScript для Telegram Mini App "Road to Your Dream"
-// ВЕРСИЯ: v31 - ИСПРАВЛЕНО ОТОБРАЖЕНИЕ КАРТЫ ПОСЛЕ СОЗДАНИЯ
+// ВЕРСИЯ: v32 - ИСПРАВЛЕНА ИНИЦИАЛИЗАЦИЯ МОДУЛЯ КАРТЫ
 
-console.log('🚀 Загружен script.js версии 31 - ИСПРАВЛЕНО ОТОБРАЖЕНИЕ КАРТЫ!');
-console.log('🔧 ИСПРАВЛЕНА ПРОБЛЕМА С ОТОБРАЖЕНИЕМ КАРТЫ ПОСЛЕ СОЗДАНИЯ!');
+console.log('🚀 Загружен script.js версии 32 - ИСПРАВЛЕНА ИНИЦИАЛИЗАЦИЯ МОДУЛЯ КАРТЫ!');
+console.log('🔧 ДОБАВЛЕНА ПРОВЕРКА И ПОВТОРНАЯ ИНИЦИАЛИЗАЦИЯ МОДУЛЯ КАРТЫ!');
 
 const BACKEND_BASE_URL = "https://road-to-your-dream-app-imtd.onrender.com";
 
@@ -80,7 +80,20 @@ class RoadToDreamApp {
                     this.mapModule.renderMapScreen();
                 } else {
                     console.error('Модуль карты не инициализирован!');
-                    this.renderMapScreen(); // Fallback
+                    // Попытаемся инициализировать модуль карты если он доступен
+                    if (typeof MapModule !== 'undefined') {
+                        console.log('🔄 Попытка инициализации модуля карты...');
+                        this.mapModule = new MapModule(this);
+                        if (this.mapModule) {
+                            console.log('✅ Модуль карты инициализирован, рендерим...');
+                            this.mapModule.renderMapScreen();
+                        } else {
+                            this.renderMapScreen(); // Fallback
+                        }
+                    } else {
+                        console.error('❌ MapModule недоступен, используем fallback');
+                        this.renderMapScreen(); // Fallback
+                    }
                 }
                 break;
             case 'caravan':
@@ -1282,6 +1295,13 @@ class RoadToDreamApp {
             this.createCaravanWithGoal(newMap, caravanData);
         } else {
             console.log('✅ Это личная цель, переходим к карте');
+            
+            // Проверяем и инициализируем модуль карты если нужно
+            if (!this.mapModule && typeof MapModule !== 'undefined') {
+                console.log('🔄 Инициализируем модуль карты...');
+                this.mapModule = new MapModule(this);
+            }
+            
             // Переключаемся на экран карты и рендерим его
             this.currentScreen = 'map';
             this.renderCurrentScreen();
