@@ -230,10 +230,21 @@ let aiManager = null;
  */
 function getAIManager(baseURL) {
     if (!aiManager) {
-        aiManager = new AIManagerClient(baseURL);
+        try {
+            aiManager = new AIManagerClient(baseURL);
+            console.log('✅ AIManagerClient создан');
+        } catch (error) {
+            console.error('❌ Ошибка создания AIManagerClient:', error);
+            return null;
+        }
     }
     return aiManager;
 }
+
+// Проверка загрузки
+console.log('✅ ai_manager_frontend.js загружен');
+console.log('  - AIManagerClient:', typeof AIManagerClient !== 'undefined' ? '✅' : '❌');
+console.log('  - getAIManager:', typeof getAIManager !== 'undefined' ? '✅' : '❌');
 
 // Экспортируем для использования в других модулях
 if (typeof module !== 'undefined' && module.exports) {

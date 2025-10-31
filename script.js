@@ -2233,7 +2233,25 @@ function switchToScreen(screenId) {
 document.addEventListener('DOMContentLoaded', () => {
     // Настраиваем навигацию
     setupNavigation();
+    
+    // Проверяем загрузку модулей перед инициализацией
+    if (typeof window.apiIntegration === 'undefined') {
+        console.warn('⚠️ frontend_integration.js не загружен. Проверьте подключение в index.html');
+    }
+    
+    if (typeof initAIManagerUI === 'undefined') {
+        console.warn('⚠️ ai_manager_ui.js не загружен. Проверьте подключение в index.html');
+    }
         
-        // Инициализируем основное приложение
-        window.roadToDreamApp = new RoadToDreamApp();
+    // Инициализируем основное приложение
+    window.roadToDreamApp = new RoadToDreamApp();
+    
+    // Проверка после инициализации
+    setTimeout(() => {
+        console.log('🔍 Проверка загруженных модулей:');
+        console.log('  - window.apiIntegration:', typeof window.apiIntegration !== 'undefined' ? '✅' : '❌');
+        console.log('  - window.aiManagerUI:', typeof window.aiManagerUI !== 'undefined' ? '✅' : '❌');
+        console.log('  - initAIManagerUI:', typeof initAIManagerUI !== 'undefined' ? '✅' : '❌');
+        console.log('  - getAIManager:', typeof getAIManager !== 'undefined' ? '✅' : '❌');
+    }, 1000);
 });

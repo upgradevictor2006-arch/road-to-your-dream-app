@@ -670,8 +670,19 @@ let aiManagerUI = null;
  */
 function initAIManagerUI(app) {
     if (!aiManagerUI) {
-        aiManagerUI = new AIManagerUI(app);
+        try {
+            aiManagerUI = new AIManagerUI(app);
+            // Делаем доступным глобально
+            window.aiManagerUI = aiManagerUI;
+            console.log('✅ ai_manager_ui.js загружен, UI ИИ-менеджера инициализирован');
+        } catch (error) {
+            console.error('❌ Ошибка инициализации UI ИИ-менеджера:', error);
+            return null;
+        }
     }
     return aiManagerUI;
 }
+
+// Проверка загрузки при инициализации
+console.log('✅ ai_manager_ui.js загружен');
 

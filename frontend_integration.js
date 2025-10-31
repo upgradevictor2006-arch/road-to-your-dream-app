@@ -210,4 +210,12 @@ class APIIntegration {
 }
 
 // Глобальный экземпляр API
-window.apiIntegration = new APIIntegration();
+try {
+    window.apiIntegration = new APIIntegration();
+    console.log('✅ frontend_integration.js загружен');
+    console.log('✅ API интеграция инициализирована');
+    console.log('  - window.apiIntegration:', typeof window.apiIntegration !== 'undefined' ? '✅' : '❌');
+} catch (error) {
+    console.error('❌ Ошибка инициализации API интеграции:', error);
+    window.apiIntegration = null;
+}
