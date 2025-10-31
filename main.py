@@ -436,10 +436,14 @@ async def get_user_data_internal(telegram_id: int):
         # Получаем ежедневные действия пользователя
         daily_actions = supabase.table("daily_actions").select("*").eq("user_id", user_id).order("action_date", desc=True).execute()
         
+        # Получаем карты пользователя
+        cards = supabase.table("cards").select("*").eq("user_id", user_id).execute()
+        
         return {
             'user': user_data,
             'goals': goals.data,
-            'daily_actions': daily_actions.data
+            'daily_actions': daily_actions.data,
+            'cards': cards.data
         }
         
     except Exception as e:
@@ -1246,7 +1250,8 @@ async def get_navigation(request: NavigationRequest):
             "success": True,
             "next_actions": result.get("next_actions", []),
             "focus": result.get("focus", ""),
-            "warnings": result.get("warnings", [])
+            "warnings": result.get("warnings", []),
+            "no_goals": result.get("no_goals", False)  # Передаем флаг на фронтенд
         }
         
     except HTTPException:
@@ -1324,7 +1329,11 @@ async def analyze_user_progress(request: ProgressAnalysisRequest):
             "weaknesses": result.get("weaknesses", ""),
             "recommendations": result.get("recommendations", []),
             "score": result.get("score", 0),
-            "streak": result.get("streak", 0)
+            "streak": result.get("streak", 0),
+            "days_since_start": result.get("days_since_start", 0),
+            "total_actions": result.get("total_actions", 0),
+            "avg_actions_per_week": result.get("avg_actions_per_week", 0),
+            "goal_completion_rate": result.get("goal_completion_rate", 0)
         }
         
     except HTTPException:

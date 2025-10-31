@@ -200,6 +200,19 @@ class PersonalAIManager:
         active_cards = [c for c in user_data.get('cards', []) if c.get('status') == 'active']
         recent_actions = user_data.get('daily_actions', [])[:7]  # Последние 7 дней
         
+        # Если у пользователя нет активных целей - сразу возвращаем специальный ответ
+        if len(active_goals) == 0:
+            return {
+                "next_actions": [{
+                    "title": "🎯 Поставь свою первую цель",
+                    "description": "Начни свой путь к мечте! Перейди на вкладку 'Карта' и создай свою первую цель. Без цели невозможно двигаться вперед.",
+                    "priority": 5
+                }],
+                "focus": "Сначала нужно определить направление! Создай свою первую цель, чтобы понять, куда двигаться.",
+                "warnings": ["У тебя еще нет активных целей. Без цели невозможно получить персональные рекомендации."],
+                "no_goals": True  # Флаг для фронтенда
+            }
+        
         system_prompt = (
             f"{self.base_system_prompt}"
             "Ты навигатор на пути к мечте. Проанализируй ситуацию пользователя и дай конкретные рекомендации:"
@@ -361,45 +374,115 @@ class PersonalAIManager:
     
     async def analyze_progress(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Анализирует прогресс пользователя и дает рекомендации
+        Анализирует прогресс пользователя на основе данных из базы данных
         
         Args:
-            user_data: Данные пользователя
+            user_data: Данные пользователя из БД (goals, daily_actions, cards, user)
             
         Returns:
-            Словарь с анализом и рекомендациями
+            Словарь с детальным анализом и рекомендациями
         """
-        completed_goals = [g for g in user_data.get('goals', []) if g.get('is_completed', False)]
-        active_goals = [g for g in user_data.get('goals', []) if not g.get('is_completed', False)]
-        actions = user_data.get('daily_actions', [])
+        # Анализируем данные из БД
+        all_goals = user_data.get('goals', [])
+        completed_goals = [g for g in all_goals if g.get('is_completed', False)]
+        active_goals = [g for g in all_goals if not g.get('is_completed', False)]
         
-        # Вычисляем серию дней
-        streak = 0
-        if actions:
-            today = date.today()
-            for i in range(len(actions)):
-                action_date = datetime.fromisoformat(actions[i]['action_date']).date() if isinstance(actions[i]['action_date'], str) else actions[i]['action_date']
-                if action_date == today - timedelta(days=i):
-                    streak += 1
+        # Обрабатываем действия из БД
+        actions = user_data.get('daily_actions', [])
+        all_cards = user_data.get('cards', [])
+        active_cards = [c for c in all_cards if c.get('status') == 'active']
+        completed_cards = [c for c in all_cards if c.get('status') == 'completed']
+        
+        # Получаем дату регистрации пользователя
+        user = user_data.get('user', {})
+        user_created = None
+        if user.get('created_at'):
+            try:
+                if isinstance(user['created_at'], str):
+                    user_created = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).date()
                 else:
+                    user_created = user['created_at'].date() if hasattr(user['created_at'], 'date') else date.today()
+            except:
+                user_created = date.today()
+        else:
+            user_created = date.today()
+        
+        # Правильно вычисляем streak: последовательные дни от сегодня назад
+        streak = 0
+        today = date.today()
+        
+        if actions:
+            # Преобразуем все даты действий в объекты date и сортируем по убыванию
+            action_dates = []
+            for action in actions:
+                action_date = action.get('action_date')
+                if isinstance(action_date, str):
+                    try:
+                        action_dates.append(datetime.fromisoformat(action_date).date())
+                    except:
+                        try:
+                            action_dates.append(datetime.strptime(action_date, '%Y-%m-%d').date())
+                        except:
+                            pass
+                elif hasattr(action_date, 'date'):
+                    action_dates.append(action_date.date() if hasattr(action_date, 'date') else action_date)
+                else:
+                    action_dates.append(action_date)
+            
+            # Убираем дубликаты и сортируем
+            action_dates = sorted(set(action_dates), reverse=True)
+            
+            # Вычисляем streak: идем от сегодня назад, проверяя последовательность
+            check_date = today
+            for action_date in action_dates:
+                if action_date == check_date:
+                    streak += 1
+                    check_date = check_date - timedelta(days=1)
+                elif action_date < check_date:
                     break
+        
+        # Дополнительная статистика из БД
+        days_since_start = (today - user_created).days if user_created else 0
+        total_actions = len(actions)
+        avg_actions_per_week = (total_actions / max(1, days_since_start / 7)) if days_since_start > 0 else 0
+        
+        # Процент выполнения целей
+        goal_completion_rate = (len(completed_goals) / len(all_goals) * 100) if len(all_goals) > 0 else 0
+        
+        # Статистика по картам
+        high_priority_cards = len([c for c in active_cards if c.get('priority', 1) >= 4])
+        
+        # Формируем детальную статистику для ИИ
+        stats_summary = (
+            f"📊 Статистика пользователя:\n"
+            f"- Дней с регистрации: {days_since_start}\n"
+            f"- Всего целей: {len(all_goals)} (выполнено: {len(completed_goals)}, активно: {len(active_goals)})\n"
+            f"- Процент выполнения целей: {goal_completion_rate:.1f}%\n"
+            f"- Всего ежедневных действий: {total_actions}\n"
+            f"- Серия дней (streak): {streak}\n"
+            f"- Средняя активность: {avg_actions_per_week:.1f} действий/неделю\n"
+            f"- Всего карт: {len(all_cards)} (активно: {len(active_cards)}, выполнено: {len(completed_cards)})\n"
+            f"- Высокоприоритетных активных карт: {high_priority_cards}\n"
+        )
         
         system_prompt = (
             f"{self.base_system_prompt}"
-            "Проанализируй прогресс пользователя и дай детальный анализ с рекомендациями. "
+            "Ты аналитик прогресса. Проанализируй статистику пользователя из базы данных и дай детальный анализ. "
+            "Учти: серия дней (streak) - это последовательные дни с момента последнего действия до сегодня. "
             "Верни в формате JSON:"
-            '{"strength": "сильные стороны", "weaknesses": "слабые места", "recommendations": ["рекомендация 1", "рекомендация 2"], "score": число_от_0_до_100}'
+            '{"strength": "сильные стороны (конкретные факты из статистики)", "weaknesses": "слабые места и области для улучшения", "recommendations": ["конкретная рекомендация 1", "конкретная рекомендация 2", "конкретная рекомендация 3"], "score": число_от_0_до_100}'
         )
         
         user_prompt = (
-            f"Выполненных целей: {len(completed_goals)}\n"
-            f"Активных целей: {len(active_goals)}\n"
-            f"Серия дней: {streak}\n"
-            f"Всего действий: {len(actions)}\n\n"
-            "Проанализируй прогресс. Верни ТОЛЬКО JSON."
+            f"{stats_summary}\n"
+            f"Детали:\n"
+            f"- Активные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in active_goals[:3]]) if active_goals else 'Нет активных целей'}\n"
+            f"- Выполненные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in completed_goals[:3]]) if completed_goals else 'Нет выполненных целей'}\n"
+            f"- Последние действия: {min(7, len(actions))} дней назад\n\n"
+            f"Дай детальный анализ прогресса на основе этих реальных данных из базы. Верни ТОЛЬКО JSON."
         )
         
-        response = await self._call_ai(system_prompt, user_prompt, max_tokens=600)
+        response = await self._call_ai(system_prompt, user_prompt, max_tokens=700)
         
         if response:
             try:
@@ -408,24 +491,59 @@ class PersonalAIManager:
                 if json_start >= 0 and json_end > json_start:
                     json_str = response[json_start:json_end]
                     result = json.loads(json_str)
-                    # Добавляем вычисленный streak
+                    # Добавляем вычисленные значения из БД
                     result['streak'] = streak
+                    result['days_since_start'] = days_since_start
+                    result['total_actions'] = total_actions
+                    result['avg_actions_per_week'] = round(avg_actions_per_week, 1)
+                    result['goal_completion_rate'] = round(goal_completion_rate, 1)
                     return result
             except json.JSONDecodeError:
                 logger.warning(f"Не удалось распарсить JSON: {response}")
         
-        # Fallback анализ
-        score = min(100, (len(completed_goals) * 20 + streak * 5 + len(actions) // 7 * 10))
+        # Fallback анализ на основе данных из БД
+        score = min(100, (
+            len(completed_goals) * 15 +  # 15 баллов за каждую выполненную цель
+            streak * 3 +  # 3 балла за каждый день серии
+            min(30, total_actions // 2) +  # до 30 баллов за активность
+            min(20, goal_completion_rate / 5)  # до 20 баллов за процент выполнения
+        ))
+        
+        # Формируем детальные рекомендации на основе реальных данных
+        recommendations = []
+        if len(active_goals) == 0 and len(completed_goals) == 0:
+            recommendations.append("Создай свою первую цель для начала пути к мечте")
+        elif len(active_goals) == 0:
+            recommendations.append("Создай новую цель - у тебя нет активных целей")
+        
+        if streak == 0:
+            recommendations.append("Начни ежедневную серию - выполни действие сегодня")
+        elif streak < 7:
+            recommendations.append(f"Поддерживай свою серию из {streak} дней - не пропускай дни")
+        
+        if goal_completion_rate < 50 and len(all_goals) > 0:
+            recommendations.append("Сфокусируйся на выполнении текущих целей")
+        
+        if high_priority_cards > 5:
+            recommendations.append("У тебя много высокоприоритетных задач - расставь приоритеты")
+        
+        if not recommendations:
+            recommendations = [
+                "Продолжай в том же духе",
+                "Регулярно анализируй свой прогресс",
+                "Ставь новые цели после выполнения текущих"
+            ]
+        
         return {
-            "strength": f"У тебя {len(completed_goals)} выполненных целей и серия из {streak} дней" if streak > 0 else f"У тебя {len(completed_goals)} выполненных целей",
+            "strength": f"У тебя {len(completed_goals)} выполненных целей, серия из {streak} дней и {total_actions} выполненных действий" if streak > 0 and total_actions > 0 else f"У тебя {len(completed_goals)} выполненных целей и {total_actions} выполненных действий",
             "weaknesses": "Продолжай выполнять ежедневные действия для поддержания серии" if streak < 7 else "Отличная работа! Продолжай в том же духе",
-            "recommendations": [
-                "Поддерживай ежедневную серию действий",
-                "Ставь новые цели после выполнения текущих",
-                "Анализируй прогресс раз в неделю"
-            ],
-            "score": score,
-            "streak": streak
+            "recommendations": recommendations[:3],
+            "score": int(score),
+            "streak": streak,
+            "days_since_start": days_since_start,
+            "total_actions": total_actions,
+            "avg_actions_per_week": round(avg_actions_per_week, 1),
+            "goal_completion_rate": round(goal_completion_rate, 1)
         }
     
     def get_stats(self) -> Dict[str, int]:

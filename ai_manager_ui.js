@@ -149,7 +149,7 @@ class AIManagerUI {
         style.textContent = `
             .ai-manager-screen {
                 padding: 20px;
-                padding-bottom: 100px;
+                padding-bottom: 85px;
                 max-width: 600px;
                 margin: 0 auto;
             }
@@ -255,7 +255,7 @@ class AIManagerUI {
                 background: #f8fafc;
                 border-radius: 15px;
                 padding: 20px;
-                margin-bottom: 80px;
+                margin-bottom: 20px;
             }
             
             .ai-chat-section h3 {
@@ -293,7 +293,7 @@ class AIManagerUI {
             .ai-chat-input-container {
                 display: flex;
                 gap: 10px;
-                margin-bottom: 90px;
+                margin-bottom: 10px;
                 position: relative;
                 z-index: 10;
             }
@@ -496,6 +496,14 @@ class AIManagerUI {
             if (result && result.success) {
                 let html = '';
                 
+                // Если у пользователя нет целей - показываем специальное сообщение
+                if (result.no_goals) {
+                    html += '<div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffc107;">';
+                    html += '<p style="margin: 0; font-weight: bold; color: #856404;">⚠️ У тебя еще нет целей!</p>';
+                    html += '<p style="margin: 10px 0 0 0; color: #856404;">Чтобы получить персональные рекомендации, сначала нужно поставить хотя бы одну цель.</p>';
+                    html += '</div>';
+                }
+                
                 if (result.next_actions && result.next_actions.length > 0) {
                     html += '<div class="ai-result-steps"><strong>🎯 Следующие действия:</strong>';
                     result.next_actions.forEach((action, index) => {
@@ -522,7 +530,8 @@ class AIManagerUI {
                     html += `</ul></p>`;
                 }
                 
-                this.showResult('🧭 Навигационные рекомендации', html);
+                const title = result.no_goals ? '🧭 Начни свой путь' : '🧭 Навигационные рекомендации';
+                this.showResult(title, html);
             } else {
                 this.showResult('❌ Ошибка', 'Не удалось получить навигацию');
             }
@@ -606,12 +615,26 @@ class AIManagerUI {
             const result = await this.manager.analyzeProgress();
             
             if (result.success) {
-                let html = `
-                    <p><strong>📊 Оценка:</strong> ${result.score}/100</p>
-                    <p><strong>🔥 Серия дней:</strong> ${result.streak}</p>
-                    <p><strong>✅ Сильные стороны:</strong> ${result.strength}</p>
-                    <p><strong>⚠️ Слабые места:</strong> ${result.weaknesses}</p>
-                `;
+                let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">';
+                html += '<h3 style="margin: 0 0 10px 0; color: #333;">📊 Основные показатели</h3>';
+                html += `<p style="margin: 5px 0;"><strong>Оценка:</strong> <span style="font-size: 1.2em; color: #007bff;">${result.score}/100</span></p>`;
+                html += `<p style="margin: 5px 0;"><strong>🔥 Серия дней:</strong> ${result.streak}</p>`;
+                if (result.days_since_start !== undefined) {
+                    html += `<p style="margin: 5px 0;"><strong>📅 Дней с регистрации:</strong> ${result.days_since_start}</p>`;
+                }
+                if (result.total_actions !== undefined) {
+                    html += `<p style="margin: 5px 0;"><strong>✅ Всего действий:</strong> ${result.total_actions}</p>`;
+                }
+                if (result.avg_actions_per_week !== undefined) {
+                    html += `<p style="margin: 5px 0;"><strong>📈 Активность:</strong> ${result.avg_actions_per_week} действий/неделю</p>`;
+                }
+                if (result.goal_completion_rate !== undefined) {
+                    html += `<p style="margin: 5px 0;"><strong>🎯 Выполнение целей:</strong> ${result.goal_completion_rate}%</p>`;
+                }
+                html += '</div>';
+                
+                html += `<p><strong>✅ Сильные стороны:</strong> ${result.strength}</p>`;
+                html += `<p><strong>⚠️ Слабые места:</strong> ${result.weaknesses}</p>`;
                 
                 if (result.recommendations && result.recommendations.length > 0) {
                     html += '<div class="ai-result-steps"><strong>💡 Рекомендации:</strong>';
