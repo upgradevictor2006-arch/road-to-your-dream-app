@@ -83,9 +83,13 @@
     <script src="caravan.js?v=5"></script>
     <script src="map.js?v=8"></script>
     <script src="garage.js?v=2"></script>
-    <script src="frontend_integration.js?v=1"></script>
-    <script src="ai_manager_frontend.js?v=1"></script>
-    <script src="ai_manager_ui.js?v=1"></script>
+    
+    <!-- API и ИИ модули -->
+    <script src="frontend_integration.js?v=1" onerror="console.error('❌ Ошибка загрузки frontend_integration.js');"></script>
+    <script src="ai_manager_frontend.js?v=1" onerror="console.error('❌ Ошибка загрузки ai_manager_frontend.js');"></script>
+    <script src="ai_manager_ui.js?v=1" onerror="console.error('❌ Ошибка загрузки ai_manager_ui.js');"></script>
+    
+    <!-- Основной скрипт приложения -->
     <script src="script.js?v=78&t=2025&noanim=1"></script>
 </body>
 </html>
