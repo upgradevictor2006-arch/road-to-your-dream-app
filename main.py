@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, date, timedelta
 import os
 from dotenv import load_dotenv
@@ -10,6 +10,9 @@ import uvicorn
 import httpx
 import random
 import logging
+
+# Импортируем новый личный менеджер
+from ai_personal_manager import PersonalAIManager
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -335,6 +338,20 @@ def get_ai_agent():
             logger.error(f"Ошибка создания AI-агента: {e}")
             return None
     return ai_agent
+
+# Глобальный экземпляр личного менеджера
+personal_manager = None
+
+def get_personal_manager():
+    """Получает экземпляр личного менеджера, создает его при необходимости"""
+    global personal_manager
+    if personal_manager is None:
+        try:
+            personal_manager = PersonalAIManager()
+        except Exception as e:
+            logger.error(f"Ошибка создания личного менеджера: {e}")
+            return None
+    return personal_manager
 
 # Функции для проверки триггеров AI
 async def check_ai_triggers(telegram_id: int, event_type: str = None):
@@ -1145,6 +1162,228 @@ async def get_available_events():
         "available_events": events,
         "total_events": len(events)
     }
+
+# ========== НОВЫЕ ЭНДПОИНТЫ ДЛЯ ЛИЧНОГО МЕНЕДЖЕРА ==========
+
+# Pydantic модели для новых эндпоинтов
+class BreakGoalRequest(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    goal_type: Optional[str] = "goal"
+
+class PersonalAdviceRequest(BaseModel):
+    question: str
+    telegram_id: Optional[int] = None
+
+class NavigationRequest(BaseModel):
+    telegram_id: int
+
+class ProgressAnalysisRequest(BaseModel):
+    telegram_id: int
+
+class MotivationRequest(BaseModel):
+    telegram_id: Optional[int] = None
+
+# Эндпоинты для разбиения целей на этапы
+@app.post("/ai/manager/break-goal")
+async def break_goal_into_steps(request: BreakGoalRequest):
+    """
+    Разбивает цель на конкретные этапы
+    
+    Args:
+        request: Запрос с названием и описанием цели
+        
+    Returns:
+        Словарь с этапами и рекомендациями
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        result = await manager.break_goal_into_steps(
+            goal_title=request.title,
+            goal_description=request.description,
+            goal_type=request.goal_type
+        )
+        
+        return {
+            "success": True,
+            "steps": result.get("steps", []),
+            "advice": result.get("advice", ""),
+            "total_steps": len(result.get("steps", []))
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка при разбиении цели: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при разбиении цели: {str(e)}")
+
+# Эндпоинт для получения навигационных советов
+@app.post("/ai/manager/navigation")
+async def get_navigation(request: NavigationRequest):
+    """
+    Получает рекомендации по навигации: что делать дальше
+    
+    Args:
+        request: Запрос с telegram_id пользователя
+        
+    Returns:
+        Рекомендации по навигации
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        # Получаем данные пользователя
+        user_data_dict = await get_user_data_internal(request.telegram_id)
+        if not user_data_dict:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        result = await manager.get_navigation_advice(user_data_dict)
+        
+        return {
+            "success": True,
+            "next_actions": result.get("next_actions", []),
+            "focus": result.get("focus", ""),
+            "warnings": result.get("warnings", [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка при получении навигации: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при получении навигации: {str(e)}")
+
+# Эндпоинт для получения персональных советов
+@app.post("/ai/manager/advice")
+async def get_personal_advice(request: PersonalAdviceRequest):
+    """
+    Получает персональный совет по вопросу пользователя
+    
+    Args:
+        request: Запрос с вопросом и опциональным telegram_id
+        
+    Returns:
+        Персональный совет
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        context = None
+        if request.telegram_id:
+            user_data_dict = await get_user_data_internal(request.telegram_id)
+            if user_data_dict:
+                context = user_data_dict
+        
+        result = await manager.get_personal_advice(
+            question=request.question,
+            context=context
+        )
+        
+        return {
+            "success": True,
+            "advice": result.get("advice", ""),
+            "steps": result.get("steps", []),
+            "motivation": result.get("motivation", "")
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка при получении совета: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при получении совета: {str(e)}")
+
+# Эндпоинт для анализа прогресса
+@app.post("/ai/manager/analyze-progress")
+async def analyze_user_progress(request: ProgressAnalysisRequest):
+    """
+    Анализирует прогресс пользователя
+    
+    Args:
+        request: Запрос с telegram_id пользователя
+        
+    Returns:
+        Анализ прогресса с рекомендациями
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        # Получаем данные пользователя
+        user_data_dict = await get_user_data_internal(request.telegram_id)
+        if not user_data_dict:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        result = await manager.analyze_progress(user_data_dict)
+        
+        return {
+            "success": True,
+            "strength": result.get("strength", ""),
+            "weaknesses": result.get("weaknesses", ""),
+            "recommendations": result.get("recommendations", []),
+            "score": result.get("score", 0),
+            "streak": result.get("streak", 0)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка при анализе прогресса: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при анализе прогресса: {str(e)}")
+
+# Эндпоинт для получения мотивации от личного менеджера
+@app.post("/ai/manager/motivation")
+async def get_manager_motivation(request: MotivationRequest):
+    """
+    Получает мотивационное сообщение от личного менеджера
+    
+    Args:
+        request: Запрос с опциональным telegram_id для контекста
+        
+    Returns:
+        Мотивационное сообщение
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        context = None
+        if request.telegram_id:
+            user_data_dict = await get_user_data_internal(request.telegram_id)
+            if user_data_dict:
+                context = user_data_dict
+        
+        motivation = await manager.get_motivation(context)
+        
+        return {
+            "success": True,
+            "message": motivation
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка при получении мотивации: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при получении мотивации: {str(e)}")
+
+# Эндпоинт для статистики личного менеджера
+@app.get("/ai/manager/stats")
+async def get_manager_stats():
+    """Получить статистику использования личного менеджера"""
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        stats = manager.get_stats()
+        return {
+            "success": True,
+            "stats": stats
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при получении статистики: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
