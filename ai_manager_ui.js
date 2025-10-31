@@ -48,27 +48,27 @@ class AIManagerUI {
                 <div class="ai-manager-content">
                     <!-- Быстрые действия -->
                     <div class="ai-quick-actions">
-                        <button class="ai-action-btn" onclick="aiManagerUI.testBreakGoal()">
+                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testBreakGoal(); }">
                             <span class="ai-btn-icon">🎯</span>
                             <span class="ai-btn-text">Разбить цель на этапы</span>
                         </button>
                         
-                        <button class="ai-action-btn" onclick="aiManagerUI.testNavigation()">
+                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testNavigation(); }">
                             <span class="ai-btn-icon">🧭</span>
                             <span class="ai-btn-text">Что делать дальше?</span>
                         </button>
                         
-                        <button class="ai-action-btn" onclick="aiManagerUI.testAdvice()">
+                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testAdvice(); }">
                             <span class="ai-btn-icon">💡</span>
                             <span class="ai-btn-text">Получить совет</span>
                         </button>
                         
-                        <button class="ai-action-btn" onclick="aiManagerUI.testAnalyzeProgress()">
+                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testAnalyzeProgress(); }">
                             <span class="ai-btn-icon">📊</span>
                             <span class="ai-btn-text">Анализ прогресса</span>
                         </button>
                         
-                        <button class="ai-action-btn" onclick="aiManagerUI.testMotivation()">
+                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testMotivation(); }">
                             <span class="ai-btn-icon">💪</span>
                             <span class="ai-btn-text">Мотивация</span>
                         </button>
@@ -80,16 +80,20 @@ class AIManagerUI {
                     <!-- Чат с ИИ -->
                     <div class="ai-chat-section">
                         <h3>💬 Чат с ИИ-советником</h3>
-                        <div id="ai-chat-messages" class="ai-chat-messages"></div>
+                        <div id="ai-chat-messages" class="ai-chat-messages">
+                            <div class="ai-chat-message ai" style="padding: 12px; background: #e2e8f0; border-radius: 10px; margin-bottom: 15px;">
+                                👋 Привет! Я твой ИИ-помощник. Задай мне вопрос, и я помогу с достижением целей!
+                            </div>
+                        </div>
                         <div class="ai-chat-input-container">
                             <input 
                                 type="text" 
                                 id="ai-chat-input" 
                                 class="ai-chat-input" 
                                 placeholder="Задайте вопрос..."
-                                onkeypress="if(event.key === 'Enter') aiManagerUI.askQuestion()"
+                                onkeypress="if(event.key === 'Enter' && window.aiManagerUI) { window.aiManagerUI.askQuestion(); }"
                             >
-                            <button class="ai-chat-send-btn" onclick="aiManagerUI.askQuestion()">
+                            <button class="ai-chat-send-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.askQuestion(); } else { alert('ИИ-менеджер не загружен. Обновите страницу.'); }">
                                 Отправить
                             </button>
                         </div>
@@ -100,6 +104,38 @@ class AIManagerUI {
         
         // Добавляем стили если их нет
         this.injectStyles();
+        
+        // Привязываем события после рендеринга
+        setTimeout(() => {
+            this.bindChatEvents();
+        }, 100);
+    }
+    
+    /**
+     * Привязывает события чата
+     */
+    bindChatEvents() {
+        const input = document.getElementById('ai-chat-input');
+        const sendBtn = document.querySelector('.ai-chat-send-btn');
+        
+        if (input) {
+            // Обработчик Enter
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.askQuestion();
+                }
+            });
+        }
+        
+        if (sendBtn) {
+            // Обработчик клика
+            sendBtn.addEventListener('click', () => {
+                this.askQuestion();
+            });
+        }
+        
+        console.log('✅ События чата привязаны');
     }
     
     /**
@@ -113,6 +149,7 @@ class AIManagerUI {
         style.textContent = `
             .ai-manager-screen {
                 padding: 20px;
+                padding-bottom: 100px;
                 max-width: 600px;
                 margin: 0 auto;
             }
@@ -218,6 +255,7 @@ class AIManagerUI {
                 background: #f8fafc;
                 border-radius: 15px;
                 padding: 20px;
+                margin-bottom: 80px;
             }
             
             .ai-chat-section h3 {
@@ -255,6 +293,9 @@ class AIManagerUI {
             .ai-chat-input-container {
                 display: flex;
                 gap: 10px;
+                margin-bottom: 90px;
+                position: relative;
+                z-index: 10;
             }
             
             .ai-chat-input {
@@ -585,8 +626,17 @@ class AIManagerUI {
                 this.showResult('❌ Ошибка', 'Не удалось проанализировать прогресс');
             }
         } catch (error) {
-            this.showResult('❌ Ошибка', `Ошибка: ${error.message}`);
-            console.error(error);
+            console.error('Ошибка анализа прогресса:', error);
+            if (error.message && error.message.includes('404')) {
+                this.showResult('⚠️ API недоступен', 
+                    'Эндпоинт не найден. Сервер еще не обновлен. ' +
+                    '<p><strong>Локальная оценка:</strong></p>' +
+                    '<p>• Продолжай выполнять ежедневные действия</p>' +
+                    '<p>• Отмечай прогресс регулярно</p>' +
+                    '<p>• Фокусируйся на одной цели за раз</p>');
+            } else {
+                this.showResult('❌ Ошибка', `Ошибка: ${error.message || 'Неизвестная ошибка'}`);
+            }
         }
     }
     
@@ -604,15 +654,35 @@ class AIManagerUI {
         try {
             const result = await this.manager.getMotivation();
             
-            if (result.success) {
+            if (result && result.success) {
                 this.showResult('💪 Мотивация', `<p>${result.message}</p>`);
             } else {
-                this.showResult('❌ Ошибка', 'Не удалось получить мотивацию');
+                // Fallback мотивация
+                this.showFallbackMotivation();
             }
         } catch (error) {
-            this.showResult('❌ Ошибка', `Ошибка: ${error.message}`);
-            console.error(error);
+            console.error('Ошибка получения мотивации:', error);
+            if (error.message && error.message.includes('404')) {
+                this.showFallbackMotivation();
+            } else {
+                this.showResult('❌ Ошибка', `Ошибка: ${error.message || 'Неизвестная ошибка'}`);
+            }
         }
+    }
+    
+    /**
+     * Fallback мотивация
+     */
+    showFallbackMotivation() {
+        const fallbackMessages = [
+            "🚀 Каждый шаг приближает тебя к мечте. Продолжай двигаться вперед, даже если шаги маленькие!",
+            "💪 Помни: самые великие путешествия начинаются с одного шага. Ты уже в пути!",
+            "🌟 Сложности — это просто повороты на твоей дороге. После каждого поворота открывается новая дорога.",
+            "🔥 Каждый день, когда ты действуешь — это инвестиция в свою мечту. Не останавливайся!",
+            "✨ Мечта становится реальностью, когда маленькие действия становятся привычкой. Ты на правильном пути!"
+        ];
+        const message = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+        this.showResult('💪 Мотивация', `<p>${message}</p><p><small>⚠️ Сервер еще не обновлен. Используется локальная версия.</small></p>`);
     }
     
     /**
@@ -620,15 +690,21 @@ class AIManagerUI {
      */
     async askQuestion() {
         if (!this.manager) {
-            alert('ИИ-менеджер не инициализирован!');
+            alert('ИИ-менеджер не инициализирован! Обновите страницу.');
             return;
         }
         
         const input = document.getElementById('ai-chat-input');
-        if (!input) return;
+        if (!input) {
+            console.error('Поле ввода чата не найдено');
+            return;
+        }
         
         const question = input.value.trim();
-        if (!question) return;
+        if (!question) {
+            alert('Введите вопрос');
+            return;
+        }
         
         // Показываем вопрос пользователя
         this.addChatMessage('user', question);
@@ -641,24 +717,53 @@ class AIManagerUI {
             const result = await this.manager.getAdvice(question);
             
             // Обновляем сообщение загрузки на ответ
-            if (loadingMsg && result.success) {
-                let responseText = result.advice || '';
+            if (loadingMsg && result && result.success) {
+                let responseText = result.advice || 'Продолжай двигаться к своей цели маленькими шагами каждый день.';
                 if (result.steps && result.steps.length > 0) {
-                    responseText += '\n\nШаги:\n' + result.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+                    responseText += '\n\n📋 Шаги:\n' + result.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
                 }
                 if (result.motivation) {
                     responseText += `\n\n💪 ${result.motivation}`;
                 }
                 loadingMsg.textContent = responseText;
             } else {
-                loadingMsg.textContent = 'Извините, произошла ошибка';
+                // Fallback ответ
+                loadingMsg.textContent = this.getFallbackAdvice(question);
             }
         } catch (error) {
+            console.error('Ошибка получения совета:', error);
             if (loadingMsg) {
-                loadingMsg.textContent = `Ошибка: ${error.message}`;
+                if (error.message && error.message.includes('404')) {
+                    loadingMsg.textContent = this.getFallbackAdvice(question) + '\n\n⚠️ Сервер еще не обновлен. Используется локальная версия.';
+                } else {
+                    loadingMsg.textContent = this.getFallbackAdvice(question);
+                }
             }
-            console.error(error);
         }
+    }
+    
+    /**
+     * Fallback совет (если API недоступен)
+     */
+    getFallbackAdvice(question) {
+        const fallbackAdvice = [
+            "Продолжай двигаться к своей цели маленькими шагами каждый день. Постоянство важнее скорости.",
+            "Планируй день заранее, выделяй время на важные задачи, отмечай прогресс.",
+            "Разбей большую цель на маленькие шаги. Выполняй их последовательно, один за другим.",
+            "Помни: каждое маленькое действие приближает тебя к большой мечте. Не останавливайся!"
+        ];
+        
+        // Простая логика выбора совета на основе вопроса
+        const questionLower = question.toLowerCase();
+        if (questionLower.includes('время') || questionLower.includes('организовать')) {
+            return "Планируй свой день заранее:\n1. Составь список задач с вечера\n2. Расставь приоритеты\n3. Выдели время на важные задачи\n4. Выполняй задачи последовательно";
+        } else if (questionLower.includes('мотивация') || questionLower.includes('не могу')) {
+            return "Каждый путешественник проходит через трудные участки. Помни: за каждым холмом открывается новая дорога. Продолжай двигаться вперед!";
+        } else if (questionLower.includes('начать') || questionLower.includes('как начать')) {
+            return "Начни с малого:\n1. Определи одну конкретную цель\n2. Разбей её на 3-5 шагов\n3. Выполни первый шаг сегодня\n4. Продолжай ежедневно";
+        }
+        
+        return fallbackAdvice[Math.floor(Math.random() * fallbackAdvice.length)];
     }
 }
 
