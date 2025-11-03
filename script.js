@@ -2231,6 +2231,22 @@ function switchToScreen(screenId) {
 
 // Инициализация приложения при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем экран загрузки и онбординга
+    if (typeof LoadingScreen !== 'undefined') {
+        const loadingScreen = new LoadingScreen();
+        loadingScreen.init(() => {
+            // После завершения загрузки и онбординга запускаем приложение
+            initializeApp();
+        });
+    } else {
+        // Если LoadingScreen не загружен, запускаем приложение сразу
+        console.warn('⚠️ LoadingScreen не загружен, запускаем приложение без экрана загрузки');
+        initializeApp();
+    }
+});
+
+// Функция инициализации основного приложения
+function initializeApp() {
     // Настраиваем навигацию
     setupNavigation();
     
@@ -2254,4 +2270,4 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('  - initAIManagerUI:', typeof initAIManagerUI !== 'undefined' ? '✅' : '❌');
         console.log('  - getAIManager:', typeof getAIManager !== 'undefined' ? '✅' : '❌');
     }, 1000);
-});
+}

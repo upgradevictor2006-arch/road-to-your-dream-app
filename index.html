@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="caravan.css?v=5">
     <link rel="stylesheet" href="map.css?v=4">
     <link rel="stylesheet" href="garage.css?v=3">
+    <link rel="stylesheet" href="loading.css?v=1">
     <meta name="description" content="Достигайте своих целей с помощью интерактивной карты мечты">
     <meta name="theme-color" content="#6366f1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,11 +34,12 @@
     
     <script>
     function clearAllData() {
-        if (confirm('Очистить все сохраненные данные?\n\nЭто удалит:\n• Все карты и цели\n• Все караваны\n• Текущий прогресс')) {
+        if (confirm('Очистить все сохраненные данные?\n\nЭто удалит:\n• Все карты и цели\n• Все караваны\n• Текущий прогресс\n• Данные онбординга')) {
             localStorage.removeItem('roadToDreamMaps');
             localStorage.removeItem('roadToDreamCurrentMapId');
             localStorage.removeItem('currentMap');
             localStorage.removeItem('roadToDreamCaravans');
+            localStorage.removeItem('roadToDreamOnboardingCompleted');
             alert('Все данные очищены! Перезагрузите страницу.');
             location.reload();
         }
@@ -79,6 +81,9 @@
         </button>
     </nav>
 
+    <!-- Экран загрузки и онбординга -->
+    <script src="loading.js?v=1"></script>
+    
     <!-- Подключение модулей -->
     <script src="caravan.js?v=5"></script>
     <script src="map.js?v=8"></script>
