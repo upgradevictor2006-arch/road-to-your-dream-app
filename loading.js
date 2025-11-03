@@ -45,13 +45,25 @@ class LoadingScreen {
             <div id="loading-screen">
                 <div class="loading-icon-container">
                     <div class="loading-icon">
-                        <img src="ico.svg" alt="Road to Your Dream" onerror="this.style.display='none';">
+                        <img src="ico.svg" alt="Road to Your Dream" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                     </div>
                 </div>
             </div>
         `;
         
         document.body.insertAdjacentHTML('afterbegin', loadingHTML);
+        
+        // Проверяем загрузку изображения
+        const img = document.querySelector('#loading-screen img');
+        if (img) {
+            img.onerror = function() {
+                console.warn('Логотип не загрузился, используем fallback');
+                this.style.display = 'none';
+            };
+            img.onload = function() {
+                console.log('Логотип загружен успешно');
+            };
+        }
         
         // Имитация загрузки (минимум 1.5 секунды для красоты анимации)
         return new Promise((resolve) => {
