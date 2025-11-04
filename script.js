@@ -294,7 +294,7 @@ class RoadToDreamApp {
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" id="cancel-btn">Отмена</button>
-                        <button class="btn btn-primary" id="next-btn" disabled>Далее</button>
+                        <button class="btn btn-primary" id="next-btn" disabled style="opacity: 0.5;">Далее</button>
                     </div>
                 </div>
             </div>
@@ -330,9 +330,19 @@ class RoadToDreamApp {
     setupCreateMapModalEvents() {
         console.log('🔧 Настройка обработчиков событий для модального окна создания карты');
         
-        const goalInput = document.getElementById('goal-title');
-        const nextBtn = document.getElementById('next-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
+        // Ищем элементы внутри активного модального окна создания карты
+        const createMapModal = document.getElementById('create-map-modal');
+        const goalInput = createMapModal ? createMapModal.querySelector('#goal-title') : document.getElementById('goal-title');
+        const nextBtn = createMapModal ? createMapModal.querySelector('#next-btn') : document.getElementById('next-btn');
+        const cancelBtn = createMapModal ? createMapModal.querySelector('#cancel-btn') : document.getElementById('cancel-btn');
+        
+        console.log('🔍 Найденные элементы:', {
+            modal: !!createMapModal,
+            goalInput: !!goalInput,
+            nextBtn: !!nextBtn,
+            cancelBtn: !!cancelBtn,
+            goalInputValue: goalInput?.value
+        });
 
         console.log('Элементы найдены:', {
             goalInput: !!goalInput,
@@ -347,6 +357,40 @@ class RoadToDreamApp {
                 console.log('🎯 Кнопка "Далее" нажата!');
                 console.log('🎯 Event:', e);
                 console.log('🎯 Target:', e.target);
+                console.log('🎯 Кнопка disabled?', nextBtn.disabled);
+                
+                // Дополнительная проверка на случай если кнопка была активирована обходным путем
+                // Ищем поле в активном модальном окне
+                const createMapModal = document.getElementById('create-map-modal');
+                let currentGoalInput = goalInput;
+                if (createMapModal && createMapModal.classList.contains('active')) {
+                    currentGoalInput = createMapModal.querySelector('#goal-title') || goalInput;
+                }
+                
+                const currentValue = currentGoalInput ? currentGoalInput.value.trim() : '';
+                console.log('🔍 Проверка при клике - значение поля:', currentValue);
+                console.log('🔍 Элемент поля:', currentGoalInput);
+                console.log('🔍 Кнопка disabled?', nextBtn.disabled);
+                
+                if (!currentValue || nextBtn.disabled) {
+                    console.log('❌ Кнопка заблокирована или поле пустое, предотвращаем действие');
+                    if (currentGoalInput) {
+                        currentGoalInput.focus();
+                        currentGoalInput.style.borderColor = '#ef4444';
+                        setTimeout(() => {
+                            currentGoalInput.style.borderColor = '';
+                        }, 2000);
+                    }
+                    if (this.caravanModule && this.caravanModule.showNotification) {
+                        this.caravanModule.showNotification('Пожалуйста, введите название цели', 'error');
+                    } else {
+                        alert('Пожалуйста, введите название цели');
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
                 this.nextStep();
@@ -377,29 +421,43 @@ class RoadToDreamApp {
             });
             
             // Основной обработчик input
-            goalInput.addEventListener('input', (e) => {
-                const value = e.target.value.trim();
-                console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
-                console.log('📝 Текущее состояние кнопки до изменения:', {
-                    disabled: nextBtn.disabled,
-                    opacity: nextBtn.style.opacity
+            if (goalInput) {
+                goalInput.addEventListener('input', (e) => {
+                    const value = e.target.value.trim();
+                    console.log('📝 Ввод в поле цели:', value, 'длина:', value.length);
+                    console.log('📝 Элемент поля:', e.target);
+                    console.log('📝 ID поля:', e.target.id);
+                    console.log('📝 Текущее состояние кнопки до изменения:', {
+                        disabled: nextBtn.disabled,
+                        opacity: nextBtn.style.opacity
+                    });
+                    
+                    // Убрано минимальное ограничение символов - проверяем только что поле не пустое
+                    const isEmpty = value.length === 0;
+                    if (nextBtn) {
+                        nextBtn.disabled = isEmpty;
+                        
+                        if (!isEmpty) {
+                            nextBtn.style.opacity = '1';
+                            // Убираем красную рамку если поле заполнено
+                            if (e.target.style.borderColor === 'rgb(239, 68, 68)') {
+                                e.target.style.borderColor = '';
+                            }
+                            console.log('✅ Кнопка "Далее" активирована');
+                        } else {
+                            nextBtn.style.opacity = '0.5';
+                            console.log('❌ Кнопка "Далее" деактивирована');
+                        }
+                        
+                        console.log('📝 Новое состояние кнопки:', {
+                            disabled: nextBtn.disabled,
+                            opacity: nextBtn.style.opacity
+                        });
+                    }
                 });
-                
-                nextBtn.disabled = value.length < 3;
-                
-                if (value.length >= 3) {
-                    nextBtn.style.opacity = '1';
-                    console.log('✅ Кнопка "Далее" активирована');
-                } else {
-                    nextBtn.style.opacity = '0.5';
-                    console.log('❌ Кнопка "Далее" деактивирована');
-                }
-                
-                console.log('📝 Новое состояние кнопки:', {
-                    disabled: nextBtn.disabled,
-                    opacity: nextBtn.style.opacity
-                });
-            });
+            } else {
+                console.error('❌ Поле goal-title не найдено для установки обработчика input');
+            }
             
             // Дополнительный обработчик через делегирование событий
             document.addEventListener('input', (e) => {
@@ -408,21 +466,34 @@ class RoadToDreamApp {
                     const value = e.target.value.trim();
                     const nextBtnDel = document.getElementById('next-btn');
                     if (nextBtnDel) {
-                        nextBtnDel.disabled = value.length < 3;
-                        nextBtnDel.style.opacity = value.length >= 3 ? '1' : '0.5';
+                        // Убрано минимальное ограничение символов - проверяем только что поле не пустое
+                        const isEmpty = value.length === 0;
+                        nextBtnDel.disabled = isEmpty;
+                        nextBtnDel.style.opacity = isEmpty ? '0.5' : '1';
+                        // Убираем красную рамку если поле заполнено
+                        if (!isEmpty && e.target.style.borderColor === 'rgb(239, 68, 68)') {
+                            e.target.style.borderColor = '';
+                        }
                         console.log('🔄 Делегирование: кнопка обновлена', {
                             disabled: nextBtnDel.disabled,
-                            opacity: nextBtnDel.style.opacity
+                            opacity: nextBtnDel.style.opacity,
+                            isEmpty: isEmpty
                         });
                     }
                 }
             });
             
-            // Проверяем начальное состояние кнопки
+            // Проверяем начальное состояние кнопки и устанавливаем его правильно
+            const initialValue = goalInput.value.trim();
+            nextBtn.disabled = initialValue.length === 0;
+            nextBtn.style.opacity = initialValue.length > 0 ? '1' : '0.5';
+            
             console.log('🔍 Начальное состояние кнопки "Далее":', {
                 disabled: nextBtn.disabled,
                 opacity: nextBtn.style.opacity,
-                text: nextBtn.textContent
+                text: nextBtn.textContent,
+                initialValue: initialValue,
+                initialValueLength: initialValue.length
             });
         } else {
             console.error('❌ Не удалось установить валидацию:', {
@@ -474,16 +545,61 @@ class RoadToDreamApp {
 
     // Переход к следующему шагу
     nextStep() {
-        const goalTitle = document.getElementById('goal-title').value.trim();
-        const goalDescription = document.getElementById('goal-description').value.trim();
+        // Ищем поле в активном модальном окне создания карты
+        const createMapModal = document.getElementById('create-map-modal');
+        let goalTitleInput = null;
+        let goalDescriptionInput = null;
+        
+        if (createMapModal && createMapModal.classList.contains('active')) {
+            // Ищем поля внутри активного модального окна
+            goalTitleInput = createMapModal.querySelector('#goal-title');
+            goalDescriptionInput = createMapModal.querySelector('#goal-description');
+        } else {
+            // Fallback: ищем глобально, но предпочитаем поле из активного модального окна
+            goalTitleInput = document.querySelector('#create-map-modal.active #goal-title') || 
+                           document.getElementById('goal-title');
+            goalDescriptionInput = document.querySelector('#create-map-modal.active #goal-description') || 
+                                  document.getElementById('goal-description');
+        }
+        
+        const goalTitle = goalTitleInput ? goalTitleInput.value.trim() : '';
+        const goalDescription = goalDescriptionInput ? goalDescriptionInput.value.trim() : '';
 
         console.log('🎯 nextStep вызван');
+        console.log('🎯 Найденное поле goal-title:', goalTitleInput);
+        console.log('🎯 Значение из поля:', goalTitleInput?.value);
+        console.log('🎯 После trim:', goalTitle);
         console.log('Название цели:', goalTitle);
         console.log('Описание цели:', goalDescription);
         console.log('Данные каравана:', this.caravanCreationData);
 
-        if (goalTitle.length < 3) {
-            console.log('❌ Название цели слишком короткое');
+        // Убрано минимальное ограничение символов - проверяем только что поле не пустое
+        if (!goalTitle) {
+            console.log('❌ Название цели не может быть пустым');
+            // Показываем пользователю понятное сообщение
+            // Ищем поле в активном модальном окне
+            const createMapModal = document.getElementById('create-map-modal');
+            let goalInputForError = null;
+            if (createMapModal && createMapModal.classList.contains('active')) {
+                goalInputForError = createMapModal.querySelector('#goal-title');
+            } else {
+                goalInputForError = document.querySelector('#create-map-modal.active #goal-title') || 
+                                  document.getElementById('goal-title');
+            }
+            
+            if (goalInputForError) {
+                goalInputForError.focus();
+                goalInputForError.style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    goalInputForError.style.borderColor = '';
+                }, 2000);
+            }
+            // Показываем уведомление если есть метод
+            if (this.caravanModule && this.caravanModule.showNotification) {
+                this.caravanModule.showNotification('Пожалуйста, введите название цели', 'error');
+            } else {
+                alert('Пожалуйста, введите название цели');
+            }
             return;
         }
     

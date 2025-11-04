@@ -751,7 +751,8 @@ class CaravanModule {
         const goalTitle = document.getElementById('goal-title').value.trim();
         const nextBtn = document.getElementById('goal-next-btn');
         
-        if (goalTitle.length >= 3) {
+        // Убрано минимальное ограничение символов - проверяем только что поле не пустое
+        if (goalTitle.length > 0) {
             nextBtn.disabled = false;
             nextBtn.style.opacity = '1';
         } else {
@@ -1246,9 +1247,15 @@ class CaravanModule {
                 return;
             }
             
+            // Сохраняем данные челленджа
             this.caravanCreationData.task = task;
+            this.caravanCreationData.type = 'challenge';
+            this.caravanCreationData.goal = task; // Используем task как goal для отображения
+            
+            console.log('✅ Челлендж создан:', this.caravanCreationData);
+            
             this.closeChallengeTaskModal();
-            this.showMembersModal();
+            this.showManageMembersForNewCaravan();
         });
     }
 
@@ -1398,12 +1405,17 @@ class CaravanModule {
         const newCaravan = {
             id: Date.now().toString(),
             name: caravanData.name,
-            goal: caravanData.goal,
-            description: caravanData.description,
+            goal: caravanData.goal || caravanData.goalTitle || caravanData.task || '',
+            description: caravanData.description || '',
             mapId: caravanData.mapId, // Привязываем карту к каравану
+            type: caravanData.type || 'goal', // Тип: 'goal' или 'challenge'
             createdAt: new Date().toISOString(),
             members: 1, // Пока что только создатель
-            status: 'active'
+            status: 'active',
+            // Для челленджей сохраняем дополнительные данные
+            task: caravanData.task,
+            deadline: caravanData.deadline,
+            duration: caravanData.duration
         };
         
         console.log('🚐 Создан объект каравана:', newCaravan);
@@ -1967,8 +1979,23 @@ class CaravanModule {
         // Сохраняем данные перед закрытием модальных окон
         const caravanName = this.caravanCreationData.name;
         
+        // Подготавливаем данные для создания каравана
+        const caravanData = {
+            name: this.caravanCreationData.name,
+            goal: this.caravanCreationData.goal || this.caravanCreationData.goalTitle || this.caravanCreationData.task || '',
+            description: this.caravanCreationData.description || '',
+            type: this.caravanCreationData.type || 'goal',
+            mapId: this.caravanCreationData.mapId,
+            // Для челленджей сохраняем дополнительные данные
+            task: this.caravanCreationData.task,
+            deadline: this.caravanCreationData.deadline,
+            duration: this.caravanCreationData.duration
+        };
+        
+        console.log('🚐 Создаем караван с данными:', caravanData);
+        
         // Создаем караван
-        const newCaravan = this.addCaravan(this.caravanCreationData);
+        const newCaravan = this.addCaravan(caravanData);
         
         // Закрываем все модальные окна
         this.closeManageMembersModal();
