@@ -45,7 +45,7 @@ class LoadingScreen {
             <div id="loading-screen">
                 <div class="loading-icon-container">
                     <div class="loading-icon">
-                        <img src="ico.svg" alt="Road to Your Dream" style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                        <img src="frontend/ico.svg" alt="Road to Your Dream" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                     </div>
                 </div>
             </div>
