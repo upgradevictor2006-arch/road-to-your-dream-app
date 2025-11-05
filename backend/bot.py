@@ -63,7 +63,7 @@ class CleanBot:
                     {
                         "text": "🚀 Открыть мой путь",
                         "web_app": {
-                            "url": "https://upgradevictor2006-arch.github.io/road-to-your-dream-app/"
+                            "url": "https://upgradevictor2006-arch.github.io/road-to-your-dream-app/frontend/"
                         }
                     }
                 ]

@@ -18,10 +18,10 @@ exclude:
   - .gitignore
   - .github/
   - archive/
-  - main.py
-  - bot_ai_agent.py
-  - database_schema.sql
-  - requirements.txt
+  - backend/
+  - config/
+  - docs/
+  - scripts/
   - .env
 
 # Include files

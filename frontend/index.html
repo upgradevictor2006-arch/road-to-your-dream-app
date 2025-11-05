@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Road to Your Dream</title>
-    <link rel="stylesheet" href="frontend/css/style.css?v=31&t=2025">
-    <link rel="stylesheet" href="frontend/css/caravan.css?v=5">
-    <link rel="stylesheet" href="frontend/css/map.css?v=4">
-    <link rel="stylesheet" href="frontend/css/garage.css?v=3">
-    <link rel="stylesheet" href="frontend/css/loading.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=31&t=2025">
+    <link rel="stylesheet" href="css/caravan.css?v=5">
+    <link rel="stylesheet" href="css/map.css?v=4">
+    <link rel="stylesheet" href="css/garage.css?v=3">
     <meta name="description" content="Достигайте своих целей с помощью интерактивной карты мечты">
     <meta name="theme-color" content="#6366f1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +23,7 @@
     
     <!-- Отладочная информация -->
     <div id="version-info" style="position: fixed; top: 10px; left: 10px; background: rgba(255, 0, 0, 0.3); color: white; padding: 5px; z-index: 9999; font-size: 12px; cursor: pointer; border-radius: 5px;" onclick="this.style.display='none'">
-               Версия: v79 - ИСПРАВЛЕНИЯ ЧАТА И FALLBACK (очистите кэш Ctrl+Shift+R!)
+               Версия: v77 - ОБНОВЛЕН КЭШ (очистите кэш браузера!)
     </div>
     
     <!-- Кнопка очистки данных для тестирования -->
@@ -34,12 +33,11 @@
     
     <script>
     function clearAllData() {
-        if (confirm('Очистить все сохраненные данные?\n\nЭто удалит:\n• Все карты и цели\n• Все караваны\n• Текущий прогресс\n• Данные онбординга')) {
+        if (confirm('Очистить все сохраненные данные?\n\nЭто удалит:\n• Все карты и цели\n• Все караваны\n• Текущий прогресс')) {
             localStorage.removeItem('roadToDreamMaps');
             localStorage.removeItem('roadToDreamCurrentMapId');
             localStorage.removeItem('currentMap');
             localStorage.removeItem('roadToDreamCaravans');
-            localStorage.removeItem('roadToDreamOnboardingCompleted');
             alert('Все данные очищены! Перезагрузите страницу.');
             location.reload();
         }
@@ -71,30 +69,12 @@
             </svg>
             <span class="nav-label">Гараж</span>
         </button>
-        <button class="nav-btn" data-screen="ai-manager" aria-label="ИИ-Менеджер">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                <path d="M2 17l10 5 10-5"></path>
-                <path d="M2 12l10 5 10-5"></path>
-            </svg>
-            <span class="nav-label">ИИ</span>
-        </button>
     </nav>
 
-    <!-- Экран загрузки и онбординга -->
-    <script src="frontend/js/loading.js?v=1"></script>
-    
     <!-- Подключение модулей -->
-    <script src="frontend/js/caravan.js?v=5"></script>
-    <script src="frontend/js/map.js?v=8"></script>
-    <script src="frontend/js/garage.js?v=2"></script>
-    
-    <!-- API и ИИ модули -->
-    <script src="frontend/js/frontend_integration.js?v=1" onerror="console.error('❌ Ошибка загрузки frontend_integration.js');"></script>
-    <script src="frontend/js/ai_manager_frontend.js?v=1" onerror="console.error('❌ Ошибка загрузки ai_manager_frontend.js');"></script>
-    <script src="frontend/js/ai_manager_ui.js?v=3" onerror="console.error('❌ Ошибка загрузки ai_manager_ui.js');"></script>
-    
-    <!-- Основной скрипт приложения -->
-    <script src="frontend/js/script.js?v=78&t=2025&noanim=1"></script>
+    <script src="js/caravan.js?v=5"></script>
+    <script src="js/map.js?v=8"></script>
+    <script src="js/garage.js?v=2"></script>
+    <script src="js/script.js?v=77&t=2025&noanim=1"></script>
 </body>
 </html>
