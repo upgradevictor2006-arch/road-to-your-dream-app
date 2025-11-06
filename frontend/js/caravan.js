@@ -1533,11 +1533,58 @@ class CaravanModule {
     }
 
     // Показать уведомление
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info', actionButton = null) {
         // Создаем элемент уведомления
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
-        notification.textContent = message;
+        
+        // Создаем контейнер для сообщения и кнопки
+        const notificationContent = document.createElement('div');
+        notificationContent.style.display = 'flex';
+        notificationContent.style.alignItems = 'center';
+        notificationContent.style.gap = '12px';
+        
+        const messageText = document.createElement('span');
+        messageText.textContent = message;
+        notificationContent.appendChild(messageText);
+        
+        // Если есть кнопка действия, добавляем её
+        if (actionButton && typeof actionButton === 'object') {
+            const actionBtn = document.createElement('button');
+            actionBtn.textContent = actionButton.text || 'Перейти';
+            actionBtn.style.cssText = `
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            `;
+            actionBtn.addEventListener('mouseenter', () => {
+                actionBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+            });
+            actionBtn.addEventListener('mouseleave', () => {
+                actionBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+            });
+            actionBtn.addEventListener('click', () => {
+                if (actionButton.onClick) {
+                    actionButton.onClick();
+                }
+                // Удаляем уведомление при клике
+                notification.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            });
+            notificationContent.appendChild(actionBtn);
+        }
+        
+        notification.appendChild(notificationContent);
         
         // Добавляем стили
         notification.style.cssText = `
@@ -1554,6 +1601,8 @@ class CaravanModule {
             z-index: 10000;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             animation: slideDown 0.3s ease;
+            max-width: 90%;
+            min-width: 300px;
         `;
 
         // Добавляем анимацию
@@ -1569,13 +1618,23 @@ class CaravanModule {
                     transform: translateX(-50%) translateY(0);
                 }
             }
+            @keyframes slideUp {
+                from {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+            }
         `;
         document.head.appendChild(style);
 
         // Добавляем уведомление на страницу
         document.body.appendChild(notification);
 
-        // Удаляем уведомление через 3 секунды
+        // Удаляем уведомление через 5 секунд (больше времени для кнопки)
         setTimeout(() => {
             notification.style.animation = 'slideUp 0.3s ease';
             setTimeout(() => {
@@ -1586,7 +1645,7 @@ class CaravanModule {
                     style.parentNode.removeChild(style);
                 }
             }, 300);
-        }, 3000);
+        }, 5000);
 
         // Добавляем анимацию исчезновения
         const fadeOutStyle = document.createElement('style');
@@ -1978,13 +2037,14 @@ class CaravanModule {
 
         // Сохраняем данные перед закрытием модальных окон
         const caravanName = this.caravanCreationData.name;
+        const caravanType = this.caravanCreationData.type || 'goal';
         
         // Подготавливаем данные для создания каравана
         const caravanData = {
             name: this.caravanCreationData.name,
             goal: this.caravanCreationData.goal || this.caravanCreationData.goalTitle || this.caravanCreationData.task || '',
             description: this.caravanCreationData.description || '',
-            type: this.caravanCreationData.type || 'goal',
+            type: caravanType,
             mapId: this.caravanCreationData.mapId,
             // Для челленджей сохраняем дополнительные данные
             task: this.caravanCreationData.task,
@@ -1994,6 +2054,71 @@ class CaravanModule {
         
         console.log('🚐 Создаем караван с данными:', caravanData);
         
+        // Если это челлендж и карта не была создана, создаем её
+        if (caravanType === 'challenge' && !caravanData.mapId && this.mainApp) {
+            console.log('🎯 Создаем карту для челленджа...');
+            
+            // Рассчитываем количество дней
+            let periodDays = 0;
+            if (this.caravanCreationData.deadline) {
+                // Вычисляем разницу между дедлайном и сегодняшним днем
+                const deadline = new Date(this.caravanCreationData.deadline);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                deadline.setHours(0, 0, 0, 0);
+                const diffTime = deadline - today;
+                periodDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (periodDays < 1) periodDays = 1;
+            } else if (this.caravanCreationData.duration) {
+                periodDays = parseInt(this.caravanCreationData.duration) || 30;
+            } else {
+                periodDays = 30; // По умолчанию 30 дней
+            }
+            
+            console.log('📅 Период челленджа:', periodDays, 'дней');
+            
+            // Генерируем шаги для карты
+            const steps = [];
+            for (let i = 0; i < periodDays; i++) {
+                steps.push({
+                    id: `step-${i}`,
+                    day: i + 1,
+                    title: `День ${i + 1}`,
+                    task: this.caravanCreationData.task || '',
+                    completed: false
+                });
+            }
+            
+            // Создаем карту для челленджа
+            const newMap = {
+                id: Date.now().toString(),
+                goal: this.caravanCreationData.task || caravanData.goal,
+                description: this.caravanCreationData.description || '',
+                periodType: this.caravanCreationData.deadline ? 'deadline' : 'duration',
+                periodDays: periodDays,
+                deadline: this.caravanCreationData.deadline || null,
+                currentStep: 0,
+                totalSteps: periodDays,
+                steps: steps,
+                createdAt: new Date().toISOString(),
+                isCaravanGoal: true,
+                caravanName: caravanName,
+                isChallenge: true
+            };
+            
+            // Добавляем карту в основное приложение
+            if (!this.mainApp.maps) {
+                this.mainApp.maps = [];
+            }
+            this.mainApp.maps.push(newMap);
+            this.mainApp.saveMapsToStorage();
+            
+            // Привязываем караван к карте
+            caravanData.mapId = newMap.id;
+            
+            console.log('✅ Карта для челленджа создана:', newMap);
+        }
+        
         // Создаем караван
         const newCaravan = this.addCaravan(caravanData);
         
@@ -2002,7 +2127,14 @@ class CaravanModule {
         this.closeCreateCaravanModal();
         
         // Показываем уведомление об успехе
-        this.showNotification('Караван "' + caravanName + '" успешно создан!', 'success');
+        if (caravanType === 'challenge' && newCaravan.mapId) {
+            this.showNotification(
+                `Караван "${caravanName}" успешно создан! Челлендж добавлен в раздел "Карта".`,
+                'success'
+            );
+        } else {
+            this.showNotification('Караван "' + caravanName + '" успешно создан!', 'success');
+        }
         
         // Обновляем экран каравана для отображения нового каравана
         setTimeout(() => {
