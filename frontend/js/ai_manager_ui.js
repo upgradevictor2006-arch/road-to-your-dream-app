@@ -41,28 +41,13 @@ class AIManagerUI {
         appContainer.innerHTML = `
             <div class="ai-manager-screen">
                 <div class="ai-manager-header">
-                    <h2>🤖 ИИ-Менеджер</h2>
-                    <p class="ai-manager-subtitle">Ваш личный помощник для достижения целей</p>
+                    <h2>🧙 Мудрый Наставник</h2>
+                    <p class="ai-manager-subtitle">Глубокий анализ и мудрые советы для серьезных целей</p>
                 </div>
                 
                 <div class="ai-manager-content">
                     <!-- Быстрые действия -->
                     <div class="ai-quick-actions">
-                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testBreakGoal(); }">
-                            <span class="ai-btn-icon">🎯</span>
-                            <span class="ai-btn-text">Разбить цель на этапы</span>
-                        </button>
-                        
-                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testNavigation(); }">
-                            <span class="ai-btn-icon">🧭</span>
-                            <span class="ai-btn-text">Что делать дальше?</span>
-                        </button>
-                        
-                        <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testAdvice(); }">
-                            <span class="ai-btn-icon">💡</span>
-                            <span class="ai-btn-text">Получить совет</span>
-                        </button>
-                        
                         <button class="ai-action-btn" onclick="if(window.aiManagerUI) { window.aiManagerUI.testAnalyzeProgress(); }">
                             <span class="ai-btn-icon">📊</span>
                             <span class="ai-btn-text">Анализ прогресса</span>
@@ -79,10 +64,10 @@ class AIManagerUI {
                     
                     <!-- Чат с ИИ -->
                     <div class="ai-chat-section">
-                        <h3>💬 Чат с ИИ-советником</h3>
+                        <h3>💬 Чат с мудрым наставником</h3>
                         <div id="ai-chat-messages" class="ai-chat-messages">
                             <div class="ai-chat-message ai" style="padding: 12px; background: #e2e8f0; border-radius: 10px; margin-bottom: 15px;">
-                                👋 Привет! Я твой ИИ-помощник. Задай мне вопрос, и я помогу с достижением целей!
+                                👋 Привет! Я твой мудрый наставник и философ. Я помогу тебе на серьезном пути к твоим целям. Задай вопрос, и я дам глубокий, практичный совет.
                             </div>
                         </div>
                         <div class="ai-chat-input-container">

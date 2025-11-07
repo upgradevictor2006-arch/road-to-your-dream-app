@@ -1059,6 +1059,12 @@ class RoadToDreamApp {
                         <p class="modal-subtitle">Организуйте свой путь к цели</p>
                     </div>
                     <div class="modal-body">
+                        <div style="margin-bottom: 15px;">
+                            <button class="btn btn-secondary" id="breakdown-ai-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span>🤖</span>
+                                <span>Заполнить периоды с помощью ИИ</span>
+                            </button>
+                        </div>
                         <div class="breakdown-container" id="breakdown-container">
                             ${this.renderBreakdownHTML(breakdown)}
                         </div>
@@ -1079,6 +1085,147 @@ class RoadToDreamApp {
         
         // Добавляем обработчики для кнопок разбивки
         this.setupBreakdownItemHandlers();
+        
+        // Добавляем обработчик для кнопки ИИ
+        const aiBtn = document.getElementById('breakdown-ai-btn');
+        if (aiBtn) {
+            aiBtn.addEventListener('click', () => {
+                this.useAIForPeriodBreakdown(breakdown);
+            });
+        }
+        
+        // Сохраняем breakdown в объекте для использования
+        this.currentBreakdown = breakdown;
+    }
+    
+    // Использование ИИ для заполнения периодов
+    async useAIForPeriodBreakdown(breakdown) {
+        const aiBtn = document.getElementById('breakdown-ai-btn');
+        if (!aiBtn) return;
+        
+        // Проверяем наличие AIManager
+        if (!window.aiManager || !window.getAIManager) {
+            alert('ИИ-менеджер недоступен. Убедитесь, что все модули загружены.');
+            return;
+        }
+        
+        const manager = window.getAIManager();
+        if (!manager) {
+            alert('ИИ-менеджер не инициализирован.');
+            return;
+        }
+        
+        // Сохраняем исходное состояние кнопки
+        const originalText = aiBtn.innerHTML;
+        aiBtn.disabled = true;
+        aiBtn.innerHTML = '<span>⏳</span><span>ИИ анализирует цель...</span>';
+        
+        try {
+            // Получаем данные цели
+            const goalTitle = this.newGoalData.title || 'Цель';
+            const goalDescription = this.newGoalData.description || '';
+            const totalDays = this.newGoalData.periodDays;
+            
+            // Преобразуем breakdown в плоский список периодов для ИИ
+            const periodStructure = this.flattenBreakdown(breakdown);
+            
+            // Вызываем ИИ
+            const result = await manager.breakGoalIntoPeriods(
+                goalTitle,
+                goalDescription,
+                totalDays,
+                periodStructure
+            );
+            
+            if (result && result.success) {
+                // Если цель несерьезная, показываем предупреждение
+                if (!result.is_serious && result.feedback) {
+                    const useAnyway = confirm(
+                        `ИИ считает, что цель может быть недостаточно серьезной:\n\n${result.feedback}\n\n` +
+                        `Все равно заполнить периоды автоматически?`
+                    );
+                    if (!useAnyway) {
+                        aiBtn.disabled = false;
+                        aiBtn.innerHTML = originalText;
+                        return;
+                    }
+                }
+                
+                // Заполняем периоды из ответа ИИ
+                if (result.periods && result.periods.length > 0) {
+                    this.applyAIPeriods(breakdown, result.periods);
+                    
+                    // Обновляем отображение
+                    const container = document.getElementById('breakdown-container');
+                    if (container) {
+                        container.innerHTML = this.renderBreakdownHTML(breakdown);
+                        this.setupBreakdownItemHandlers();
+                        this.currentBreakdown = breakdown;
+                    }
+                    
+                    // Показываем совет ИИ если есть
+                    if (result.advice) {
+                        alert(`ИИ заполнил периоды!\n\nСовет: ${result.advice}`);
+                    } else {
+                        alert('ИИ успешно заполнил периоды задачами!');
+                    }
+                } else {
+                    alert('ИИ не вернул периоды. Попробуйте еще раз.');
+                }
+            } else {
+                alert('Не удалось получить ответ от ИИ. Попробуйте еще раз.');
+            }
+        } catch (error) {
+            console.error('Ошибка при использовании ИИ:', error);
+            alert(`Ошибка при использовании ИИ: ${error.message || 'Неизвестная ошибка'}`);
+        } finally {
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = originalText;
+        }
+    }
+    
+    // Преобразование иерархической структуры breakdown в плоский список
+    flattenBreakdown(breakdown, result = []) {
+        for (const item of breakdown) {
+            result.push({
+                id: item.id,
+                type: item.type,
+                title: item.title,
+                days: item.days,
+                task: item.task || '',
+                description: ''
+            });
+            if (item.children && item.children.length > 0) {
+                this.flattenBreakdown(item.children, result);
+            }
+        }
+        return result;
+    }
+    
+    // Применение результатов ИИ к breakdown структуре
+    applyAIPeriods(breakdown, aiPeriods) {
+        // Создаем map для быстрого поиска
+        const periodsMap = new Map();
+        aiPeriods.forEach(p => {
+            periodsMap.set(p.id, p);
+        });
+        
+        // Рекурсивно обновляем breakdown
+        const updateItem = (item) => {
+            const aiPeriod = periodsMap.get(item.id);
+            if (aiPeriod) {
+                if (aiPeriod.task) item.task = aiPeriod.task;
+                if (aiPeriod.description) {
+                    // Можно добавить description как отдельное поле или использовать для task
+                    if (!item.task) item.task = aiPeriod.description;
+                }
+            }
+            if (item.children && item.children.length > 0) {
+                item.children.forEach(updateItem);
+            }
+        };
+        
+        breakdown.forEach(updateItem);
     }
 
     // Генерация структуры разбивки периода

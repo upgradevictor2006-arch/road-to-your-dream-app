@@ -195,6 +195,41 @@ class AIManagerClient {
     }
     
     /**
+     * Разбивает цель на подпериоды с заполнением задач
+     * @param {string} title - Название цели
+     * @param {string} description - Описание цели
+     * @param {number} totalDays - Общее количество дней
+     * @param {Array} periodStructure - Структура периодов
+     * @returns {Promise<Object>} Объект с заполненными периодами
+     */
+    async breakGoalIntoPeriods(title, description, totalDays, periodStructure = []) {
+        try {
+            const response = await fetch(`${this.baseURL}/ai/manager/break-goal-periods`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description || "",
+                    total_days: totalDays,
+                    period_structure: periodStructure
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Ошибка при разбиении цели на периоды:', error);
+            throw error;
+        }
+    }
+    
+    /**
      * Получает статистику использования менеджера
      * @returns {Promise<Object>} Объект со статистикой
      */
