@@ -1330,12 +1330,18 @@ async def get_personal_advice(request: PersonalAdviceRequest):
             context=context
         )
         
-        return {
+        # Добавляем информацию об источнике ответа для отладки
+        response_data = {
             "success": True,
             "advice": result.get("advice", ""),
             "steps": result.get("steps", []),
             "motivation": result.get("motivation", "")
         }
+        
+        # Логируем результат
+        logger.info(f"Ответ на вопрос '{request.question[:50]}': advice={bool(result.get('advice'))}, steps={len(result.get('steps', []))}")
+        
+        return response_data
         
     except Exception as e:
         logger.error(f"Ошибка при получении совета: {e}")

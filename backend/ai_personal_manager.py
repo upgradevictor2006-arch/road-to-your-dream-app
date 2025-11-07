@@ -125,33 +125,55 @@ class PersonalAIManager:
         """
         self.stats['total_requests'] += 1
         
+        # Проверяем доступные API ключи
+        available_apis = []
+        if self.deepseek_key:
+            available_apis.append("DeepSeek")
+        if self.groq_key:
+            available_apis.append("Groq")
+        if self.cohere_key:
+            available_apis.append("Cohere")
+        if self.huggingface_key:
+            available_apis.append("HuggingFace")
+        
+        if not available_apis:
+            logger.error("❌ Нет доступных API ключей! Проверьте .env файл.")
+            self.stats['fallback_used'] += 1
+            return None
+        
+        logger.info(f"🔄 Пробуем ИИ API (доступны: {', '.join(available_apis)})")
+        
         # Пробуем DeepSeek (лучший для серьезных задач)
         if self.deepseek_key:
+            logger.debug("Пробуем DeepSeek...")
             result = await self._try_deepseek(system_prompt, user_prompt, max_tokens)
             if result:
                 return result
         
         # Пробуем Groq (быстрый и бесплатный)
         if self.groq_key:
+            logger.debug("Пробуем Groq...")
             result = await self._try_groq(system_prompt, user_prompt, max_tokens)
             if result:
                 return result
         
         # Пробуем Cohere (качественный API)
         if self.cohere_key:
+            logger.debug("Пробуем Cohere...")
             result = await self._try_cohere(system_prompt, user_prompt, max_tokens)
             if result:
                 return result
         
         # Пробуем HuggingFace (резервный)
         if self.huggingface_key:
+            logger.debug("Пробуем HuggingFace...")
             result = await self._try_huggingface(system_prompt, user_prompt, max_tokens)
             if result:
                 return result
         
         # Если ничего не сработало, используем fallback
         self.stats['fallback_used'] += 1
-        logger.info("Все ИИ API недоступны, используем fallback ответ")
+        logger.warning(f"⚠️ Все ИИ API ({', '.join(available_apis)}) недоступны, используем fallback ответ")
         return None
     
     async def _try_deepseek(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
@@ -181,14 +203,22 @@ class PersonalAIManager:
                         text = result['choices'][0]['message']['content']
                         if text:
                             self.stats['deepseek_success'] += 1
-                            logger.info("DeepSeek успешно обработал запрос")
+                            logger.info("✅ DeepSeek успешно обработал запрос")
                             return text.strip()
-                
-                self.stats['deepseek_failures'] += 1
-                logger.warning(f"DeepSeek недоступен: {response.status_code}")
+                    else:
+                        logger.warning(f"DeepSeek вернул пустой ответ: {result}")
+                else:
+                    error_text = ""
+                    try:
+                        error_data = response.json()
+                        error_text = str(error_data)
+                    except:
+                        error_text = response.text[:200]
+                    self.stats['deepseek_failures'] += 1
+                    logger.warning(f"❌ DeepSeek недоступен: статус {response.status_code}, ошибка: {error_text}")
         except Exception as e:
             self.stats['deepseek_failures'] += 1
-            logger.warning(f"DeepSeek ошибка: {e}")
+            logger.error(f"❌ DeepSeek исключение: {type(e).__name__}: {str(e)}")
         return None
     
     async def _try_groq(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
@@ -202,7 +232,7 @@ class PersonalAIManager:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "llama-3.1-70b-versatile",  # Более мощная модель для серьезных задач
+                        "model": "llama-3.1-8b-instant",  # Используем доступную модель
                         "messages": [
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_prompt}
@@ -218,14 +248,22 @@ class PersonalAIManager:
                         text = result['choices'][0]['message']['content']
                         if text:
                             self.stats['groq_success'] += 1
-                            logger.info("Groq успешно обработал запрос")
+                            logger.info("✅ Groq успешно обработал запрос")
                             return text.strip()
-                
-                self.stats['groq_failures'] += 1
-                logger.warning(f"Groq недоступен: {response.status_code}")
+                    else:
+                        logger.warning(f"Groq вернул пустой ответ: {result}")
+                else:
+                    error_text = ""
+                    try:
+                        error_data = response.json()
+                        error_text = str(error_data)
+                    except:
+                        error_text = response.text[:200]
+                    self.stats['groq_failures'] += 1
+                    logger.warning(f"❌ Groq недоступен: статус {response.status_code}, ошибка: {error_text}")
         except Exception as e:
             self.stats['groq_failures'] += 1
-            logger.warning(f"Groq ошибка: {e}")
+            logger.error(f"❌ Groq исключение: {type(e).__name__}: {str(e)}")
         return None
     
     async def _try_cohere(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
@@ -638,11 +676,36 @@ class PersonalAIManager:
                             for step in result['steps']
                         ]
                     
+                    logger.info(f"✅ ИИ успешно сгенерировал совет для вопроса: {question[:50]}")
                     return result
-            except json.JSONDecodeError:
-                logger.warning(f"Не удалось распарсить JSON: {response}")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Не удалось распарсить JSON: {response[:200]}")
+                logger.warning(f"Ошибка парсинга: {e}")
+                # Пытаемся использовать ответ как есть, если он не в JSON
+                if response.strip():
+                    return {
+                        "advice": response.strip(),
+                        "steps": [],
+                        "motivation": ""
+                    }
+        else:
+            logger.warning(f"⚠️ ИИ API не вернул ответ для вопроса: {question[:50]}. Используется fallback.")
+            # Проверяем, есть ли вообще доступные API ключи
+            available_apis = []
+            if self.deepseek_key:
+                available_apis.append("DeepSeek")
+            if self.groq_key:
+                available_apis.append("Groq")
+            if self.cohere_key:
+                available_apis.append("Cohere")
+            if self.huggingface_key:
+                available_apis.append("HuggingFace")
+            
+            if not available_apis:
+                logger.error("❌ Нет доступных API ключей! Убедитесь, что хотя бы один ключ настроен в .env")
         
         # Fallback совет
+        logger.info("Используется fallback ответ для чата")
         return {
             "advice": "Продолжай двигаться к своей цели маленькими шагами каждый день. Постоянство важнее скорости.",
             "steps": [

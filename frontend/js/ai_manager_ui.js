@@ -722,11 +722,24 @@ class AIManagerUI {
         const loadingMsg = this.addChatMessage('ai', 'Думаю...');
         
         try {
+            console.log('🔄 Отправка запроса к ИИ с вопросом:', question);
             const result = await this.manager.getAdvice(question);
+            console.log('✅ Получен ответ от ИИ:', result);
             
             // Обновляем сообщение загрузки на ответ
             if (loadingMsg && result && result.success) {
                 let responseText = result.advice || 'Продолжай двигаться к своей цели маленькими шагами каждый день.';
+                
+                // Проверяем, не является ли это fallback ответом (по характерным фразам)
+                const isFallback = responseText.includes('Определи один конкретный шаг') && 
+                                   responseText.includes('Выполни его сегодня') &&
+                                   responseText.includes('Повторяй ежедневно');
+                
+                if (isFallback) {
+                    console.warn('⚠️ Получен fallback ответ. Возможно, ИИ API недоступен.');
+                    responseText += '\n\n⚠️ Примечание: Используется стандартный ответ. Убедитесь, что API ключи настроены в backend.';
+                }
+                
                 if (result.steps && result.steps.length > 0) {
                     responseText += '\n\n📋 Шаги:\n' + result.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
                 }
@@ -735,17 +748,28 @@ class AIManagerUI {
                 }
                 loadingMsg.textContent = responseText;
             } else {
+                console.warn('⚠️ Ответ от ИИ не содержит success или имеет ошибку:', result);
                 // Fallback ответ
-                loadingMsg.textContent = this.getFallbackAdvice(question);
+                loadingMsg.textContent = this.getFallbackAdvice(question) + '\n\n⚠️ Не удалось получить ответ от ИИ. Проверьте настройки API ключей.';
             }
         } catch (error) {
-            console.error('Ошибка получения совета:', error);
+            console.error('❌ Ошибка получения совета:', error);
+            console.error('Детали ошибки:', {
+                message: error.message,
+                stack: error.stack,
+                response: error.response
+            });
+            
             if (loadingMsg) {
+                let errorMsg = this.getFallbackAdvice(question);
                 if (error.message && error.message.includes('404')) {
-                    loadingMsg.textContent = this.getFallbackAdvice(question) + '\n\n⚠️ Сервер еще не обновлен. Используется локальная версия.';
+                    errorMsg += '\n\n⚠️ Эндпоинт не найден. Сервер еще не обновлен.';
+                } else if (error.message && error.message.includes('500')) {
+                    errorMsg += '\n\n⚠️ Ошибка сервера. Проверьте логи backend.';
                 } else {
-                    loadingMsg.textContent = this.getFallbackAdvice(question);
+                    errorMsg += `\n\n⚠️ Ошибка: ${error.message || 'Неизвестная ошибка'}`;
                 }
+                loadingMsg.textContent = errorMsg;
             }
         }
     }

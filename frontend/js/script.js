@@ -1104,16 +1104,22 @@ class RoadToDreamApp {
         if (!aiBtn) return;
         
         // Проверяем наличие AIManager
-        if (!window.aiManager || !window.getAIManager) {
-            alert('ИИ-менеджер недоступен. Убедитесь, что все модули загружены.');
+        if (typeof getAIManager === 'undefined') {
+            alert('ИИ-менеджер недоступен. Убедитесь, что все модули загружены. Перезагрузите страницу.');
+            console.error('getAIManager не найден. Проверьте, что ai_manager_frontend.js загружен.');
             return;
         }
         
-        const manager = window.getAIManager();
+        // Получаем baseURL из константы или используем дефолтный
+        const baseURL = typeof BACKEND_BASE_URL !== 'undefined' ? BACKEND_BASE_URL : "https://road-to-your-dream-app-imtd.onrender.com";
+        const manager = getAIManager(baseURL);
         if (!manager) {
-            alert('ИИ-менеджер не инициализирован.');
+            alert('ИИ-менеджер не инициализирован. Попробуйте перезагрузить страницу.');
+            console.error('Не удалось получить AIManager. baseURL:', baseURL);
             return;
         }
+        
+        console.log('✅ AIManager получен, baseURL:', manager.baseURL);
         
         // Сохраняем исходное состояние кнопки
         const originalText = aiBtn.innerHTML;

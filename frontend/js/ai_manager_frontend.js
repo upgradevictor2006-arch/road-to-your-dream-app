@@ -281,6 +281,10 @@ console.log('✅ ai_manager_frontend.js загружен');
 console.log('  - AIManagerClient:', typeof AIManagerClient !== 'undefined' ? '✅' : '❌');
 console.log('  - getAIManager:', typeof getAIManager !== 'undefined' ? '✅' : '❌');
 
+// Делаем функцию глобально доступной
+window.getAIManager = getAIManager;
+window.AIManagerClient = AIManagerClient;
+
 // Экспортируем для использования в других модулях
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { AIManagerClient, getAIManager };
