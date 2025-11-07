@@ -80,20 +80,32 @@ class PersonalAIManager:
         self.cohere_key = os.getenv('COHERE_API_KEY')
         self.deepseek_key = os.getenv('DEEPSEEK_API_KEY')
         
-        # Базовый системный промпт для личного менеджера
+        # Базовый системный промпт для личного менеджера - мудрец-философ
         self.base_system_prompt = (
-            "Ты — личный менеджер и помощник в приложении для достижения целей. "
-            "Ты помогаешь пользователям планировать, мотивировать и достигать их мечты. "
-            "Используй метафоры путешествий: дорога, карта, навигатор, попутчик. "
-            "Будь дружелюбным, поддерживающим и практичным. "
-            "Отвечай на русском языке. "
-            "Дай конкретные, применимые советы. "
+            "Ты — мудрый философ и наставник в приложении для серьезных людей, стремящихся к достижению значимых целей. "
+            "Твоя роль — быть проводником для тех, кто готов вкладывать усилия в реальное изменение своей жизни. "
+            "Ты обладаешь глубоким пониманием человеческой природы, процессов достижения целей и философии самосовершенствования. "
+            "Ты должен различать серьезные, адекватные цели от ерунды и поверхностных желаний. "
+            "Серьезные цели характеризуются: конкретностью, измеримостью, достижимостью, значимостью для жизни человека, наличием плана действий. "
+            "Ерунда — это абстрактные желания без конкретики, нереалистичные цели без плана, поверхностные мечты без понимания пути. "
+            "Когда пользователь предлагает ерунду, мягко, но прямо укажи на это и помоги сформулировать серьезную цель. "
+            "Когда цель серьезная, будь глубоким, мудрым и вдохновляющим. Используй философские метафоры, но сохраняй практичность. "
+            "Твой стиль общения: уважительный, глубокий, но не пафосный. Ты говоришь как мудрый наставник, который видел много путей. "
+            "Используй метафоры пути, восхождения, мастерства, но делай это естественно и по делу. "
+            "Отвечай на русском языке. Дай конкретные, применимые, глубокие советы. "
+            "Помни: ты работаешь с серьезными людьми, которые готовы действовать, а не просто мечтать. "
         )
         
         # Статистика использования
         self.stats = {
             'groq_success': 0,
             'groq_failures': 0,
+            'deepseek_success': 0,
+            'deepseek_failures': 0,
+            'cohere_success': 0,
+            'cohere_failures': 0,
+            'huggingface_success': 0,
+            'huggingface_failures': 0,
             'fallback_used': 0,
             'total_requests': 0
         }
@@ -101,6 +113,7 @@ class PersonalAIManager:
     async def _call_ai(self, system_prompt: str, user_prompt: str, max_tokens: int = 500) -> Optional[str]:
         """
         Вызов ИИ API с fallback стратегией
+        Приоритет: DeepSeek > Groq > Cohere > HuggingFace
         
         Args:
             system_prompt: Системный промпт
@@ -112,45 +125,178 @@ class PersonalAIManager:
         """
         self.stats['total_requests'] += 1
         
-        # Пробуем Groq (основной бесплатный API)
+        # Пробуем DeepSeek (лучший для серьезных задач)
+        if self.deepseek_key:
+            result = await self._try_deepseek(system_prompt, user_prompt, max_tokens)
+            if result:
+                return result
+        
+        # Пробуем Groq (быстрый и бесплатный)
         if self.groq_key:
-            try:
-                async with httpx.AsyncClient(timeout=30.0) as client:
-                    response = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {self.groq_key}",
-                            "Content-Type": "application/json"
-                        },
-                        json={
-                            "model": "llama-3.1-8b-instant",
-                            "messages": [
-                                {"role": "system", "content": system_prompt},
-                                {"role": "user", "content": user_prompt}
-                            ],
-                            "max_tokens": max_tokens,
+            result = await self._try_groq(system_prompt, user_prompt, max_tokens)
+            if result:
+                return result
+        
+        # Пробуем Cohere (качественный API)
+        if self.cohere_key:
+            result = await self._try_cohere(system_prompt, user_prompt, max_tokens)
+            if result:
+                return result
+        
+        # Пробуем HuggingFace (резервный)
+        if self.huggingface_key:
+            result = await self._try_huggingface(system_prompt, user_prompt, max_tokens)
+            if result:
+                return result
+        
+        # Если ничего не сработало, используем fallback
+        self.stats['fallback_used'] += 1
+        logger.info("Все ИИ API недоступны, используем fallback ответ")
+        return None
+    
+    async def _try_deepseek(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
+        """Попытка использования DeepSeek API"""
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.deepseek.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.deepseek_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "deepseek-chat",
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        "max_tokens": max_tokens,
+                        "temperature": 0.7
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'choices' in result and len(result['choices']) > 0:
+                        text = result['choices'][0]['message']['content']
+                        if text:
+                            self.stats['deepseek_success'] += 1
+                            logger.info("DeepSeek успешно обработал запрос")
+                            return text.strip()
+                
+                self.stats['deepseek_failures'] += 1
+                logger.warning(f"DeepSeek недоступен: {response.status_code}")
+        except Exception as e:
+            self.stats['deepseek_failures'] += 1
+            logger.warning(f"DeepSeek ошибка: {e}")
+        return None
+    
+    async def _try_groq(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
+        """Попытка использования Groq API"""
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.groq_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "llama-3.1-70b-versatile",  # Более мощная модель для серьезных задач
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        "max_tokens": max_tokens,
+                        "temperature": 0.7
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'choices' in result and len(result['choices']) > 0:
+                        text = result['choices'][0]['message']['content']
+                        if text:
+                            self.stats['groq_success'] += 1
+                            logger.info("Groq успешно обработал запрос")
+                            return text.strip()
+                
+                self.stats['groq_failures'] += 1
+                logger.warning(f"Groq недоступен: {response.status_code}")
+        except Exception as e:
+            self.stats['groq_failures'] += 1
+            logger.warning(f"Groq ошибка: {e}")
+        return None
+    
+    async def _try_cohere(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
+        """Попытка использования Cohere API"""
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.cohere.ai/v1/chat",
+                    headers={
+                        "Authorization": f"Bearer {self.cohere_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "command",
+                        "message": user_prompt,
+                        "system": system_prompt,
+                        "max_tokens": max_tokens,
+                        "temperature": 0.7
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if 'text' in result:
+                        text = result['text']
+                        if text:
+                            self.stats['cohere_success'] += 1
+                            logger.info("Cohere успешно обработал запрос")
+                            return text.strip()
+                
+                self.stats['cohere_failures'] += 1
+                logger.warning(f"Cohere недоступен: {response.status_code}")
+        except Exception as e:
+            self.stats['cohere_failures'] += 1
+            logger.warning(f"Cohere ошибка: {e}")
+        return None
+    
+    async def _try_huggingface(self, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[str]:
+        """Попытка использования HuggingFace API"""
+        try:
+            # Используем модель для чата
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
+                    headers={"Authorization": f"Bearer {self.huggingface_key}"},
+                    json={
+                        "inputs": f"{system_prompt}\n\nUser: {user_prompt}\n\nAssistant:",
+                        "parameters": {
+                            "max_new_tokens": max_tokens,
                             "temperature": 0.7
                         }
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if 'choices' in result and len(result['choices']) > 0:
-                            text = result['choices'][0]['message']['content']
-                            if text:
-                                self.stats['groq_success'] += 1
-                                logger.info(f"Groq успешно обработал запрос")
-                                return text.strip()
-                    
-                    self.stats['groq_failures'] += 1
-                    logger.warning(f"Groq недоступен: {response.status_code}")
-            except Exception as e:
-                self.stats['groq_failures'] += 1
-                logger.warning(f"Groq ошибка: {e}")
-        
-        # Если Groq не сработал, используем fallback
-        self.stats['fallback_used'] += 1
-        logger.info("Используем fallback ответ")
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if isinstance(result, list) and len(result) > 0:
+                        text = result[0].get('generated_text', '')
+                        if text:
+                            # Извлекаем только ответ ассистента
+                            if 'Assistant:' in text:
+                                text = text.split('Assistant:')[-1].strip()
+                            self.stats['huggingface_success'] += 1
+                            logger.info("HuggingFace успешно обработал запрос")
+                            return text.strip()
+                
+                self.stats['huggingface_failures'] += 1
+                logger.warning(f"HuggingFace недоступен: {response.status_code}")
+        except Exception as e:
+            self.stats['huggingface_failures'] += 1
+            logger.warning(f"HuggingFace ошибка: {e}")
         return None
     
     async def break_goal_into_steps(self, goal_title: str, goal_description: str = "", goal_type: str = "goal") -> Dict[str, Any]:
@@ -167,21 +313,26 @@ class PersonalAIManager:
         """
         system_prompt = (
             f"{self.base_system_prompt}"
-            "Твоя задача — разбить цель на конкретные, измеримые этапы. "
-            "Каждый этап должен быть:"
-            "- Конкретным и понятным"
-            "- Выполнимым за 1-2 недели"
-            "- С измеримым результатом"
-            "- С логической последовательностью"
+            "Твоя задача — разбить цель на конкретные, измеримые этапы для серьезного человека. "
+            "СНАЧАЛА оцени, является ли цель серьезной и адекватной. Если цель выглядит как ерунда или поверхностное желание, "
+            "верни JSON с полем 'is_serious': false и 'feedback' с объяснением, почему цель недостаточно серьезная и как ее улучшить. "
+            "Если цель серьезная, разбей ее на этапы. Каждый этап должен быть:"
+            "- Конкретным и понятным (не абстрактным)"
+            "- Измеримым (с четким критерием выполнения)"
+            "- Выполнимым за 1-4 недели (в зависимости от масштаба цели)"
+            "- С логической последовательностью (каждый этап готовит к следующему)"
+            "- Значимым (каждый этап приближает к реальному результату)"
             "Верни ответ ТОЛЬКО в формате JSON:"
-            '{"steps": [{"title": "Название этапа", "description": "Описание", "estimated_days": число, "priority": число_1_5}], "advice": "общие рекомендации"}'
+            '{"is_serious": true/false, "feedback": "только если is_serious=false", "steps": [{"title": "Название этапа", "description": "Описание", "estimated_days": число, "priority": число_1_5}], "advice": "глубокие рекомендации для серьезного подхода"}'
         )
         
         user_prompt = (
             f"Цель: {goal_title}\n"
             f"Описание: {goal_description or 'Нет описания'}\n"
             f"Тип: {goal_type}\n\n"
-            "Разбей эту цель на конкретные этапы. Верни ТОЛЬКО JSON без дополнительного текста."
+            "Сначала оцени серьезность цели. Если она серьезная, разбей на конкретные этапы. "
+            "Если цель поверхностная или неадекватная, укажи это и дай рекомендации по улучшению. "
+            "Верни ТОЛЬКО JSON без дополнительного текста."
         )
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=800)
@@ -232,8 +383,90 @@ class PersonalAIManager:
         ]
         
         return {
+            "is_serious": True,
             "steps": steps,
             "advice": f"Разбей большую цель '{goal_title}' на небольшие шаги. Начни с изучения основ, затем составь план и приступай к практике. Регулярно оценивай прогресс."
+        }
+    
+    async def break_goal_into_periods(self, goal_title: str, goal_description: str, total_days: int, period_structure: List[Dict] = None) -> Dict[str, Any]:
+        """
+        Разбивает цель на подпериоды с учетом общей длительности
+        
+        Args:
+            goal_title: Название цели
+            goal_description: Описание цели
+            total_days: Общее количество дней для достижения цели
+            period_structure: Структура периодов (годы, месяцы, недели) для заполнения задачами
+            
+        Returns:
+            Словарь с заполненными задачами для каждого периода
+        """
+        system_prompt = (
+            f"{self.base_system_prompt}"
+            "Твоя задача — помочь серьезному человеку разбить его цель на подпериоды, заполнив каждый период конкретными задачами. "
+            "СНАЧАЛА оцени серьезность цели. Если цель поверхностная, укажи это. "
+            "Если цель серьезная, для каждого периода предложи:"
+            "- Конкретную задачу или фокус для этого периода"
+            "- Описание того, что нужно сделать за этот период"
+            "- Логическую связь с предыдущим и следующим периодом"
+            "Задачи должны быть реалистичными, измеримыми и приближающими к цели. "
+            "Верни ответ ТОЛЬКО в формате JSON:"
+            '{"is_serious": true/false, "feedback": "только если is_serious=false", "periods": [{"id": "id периода", "title": "название периода (можно оставить как есть)", "task": "конкретная задача для этого периода", "description": "подробное описание что делать"}], "advice": "рекомендации по реализации"}'
+        )
+        
+        # Формируем описание структуры периодов
+        periods_desc = ""
+        if period_structure:
+            periods_desc = "\nСтруктура периодов:\n"
+            for period in period_structure:
+                period_type = period.get('type', 'period')
+                period_title = period.get('title', 'Период')
+                period_days = period.get('days', 0)
+                periods_desc += f"- {period_title} ({period_days} дней, тип: {period_type})\n"
+        
+        user_prompt = (
+            f"Цель: {goal_title}\n"
+            f"Описание: {goal_description or 'Нет описания'}\n"
+            f"Общий период: {total_days} дней\n"
+            f"{periods_desc}\n"
+            "Сначала оцени серьезность цели. Если она серьезная, заполни каждый период конкретной задачей. "
+            "Задачи должны логично выстраиваться в путь к цели. "
+            "Верни ТОЛЬКО JSON без дополнительного текста."
+        )
+        
+        response = await self._call_ai(system_prompt, user_prompt, max_tokens=1200)
+        
+        if response:
+            try:
+                json_start = response.find('{')
+                json_end = response.rfind('}') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str = response[json_start:json_end]
+                    result = json.loads(json_str)
+                    return result
+            except json.JSONDecodeError:
+                logger.warning(f"Не удалось распарсить JSON: {response}")
+        
+        # Fallback: возвращаем структуру без изменений
+        if period_structure:
+            return {
+                "is_serious": True,
+                "periods": [
+                    {
+                        "id": p.get('id', ''),
+                        "title": p.get('title', 'Период'),
+                        "task": f"Работа над целью '{goal_title}'",
+                        "description": "Продолжайте движение к цели согласно плану"
+                    }
+                    for p in period_structure
+                ],
+                "advice": "Разбейте каждый период на конкретные задачи и регулярно отслеживайте прогресс."
+            }
+        
+        return {
+            "is_serious": True,
+            "periods": [],
+            "advice": "Определите конкретные задачи для каждого периода вашего пути к цели."
         }
     
     async def get_navigation_advice(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -371,13 +604,16 @@ class PersonalAIManager:
         
         system_prompt = (
             f"{self.base_system_prompt}"
-            "Ты мудрый наставник. Дай конкретный, практичный совет на основе вопроса пользователя. "
-            "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки."
+            "Ты мудрый философ и наставник. Дай глубокий, практичный, философски обоснованный совет на основе вопроса серьезного человека. "
+            "Твой ответ должен быть глубоким, но практичным. Используй философские принципы, но всегда давай конкретные шаги. "
+            "Если вопрос поверхностный или несерьезный, мягко направь человека к более глубокому пониманию. "
+            "Твой стиль: мудрый наставник, который видел много путей и знает цену настоящим усилиям. "
+            "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки. "
             "Верни ответ в формате JSON:"
-            '{"advice": "основной совет", "steps": ["шаг 1", "шаг 2"], "motivation": "мотивирующая фраза"}'
+            '{"advice": "глубокий философский совет с практическими рекомендациями", "steps": ["конкретный шаг 1", "конкретный шаг 2"], "motivation": "вдохновляющая фраза о серьезном пути"}'
         )
         
-        user_prompt = f"Вопрос пользователя: {question}\n\nКонтекст: {context_str or 'Нет дополнительного контекста'}\n\nДай совет. Верни ТОЛЬКО JSON."
+        user_prompt = f"Вопрос пользователя: {question}\n\nКонтекст: {context_str or 'Нет дополнительного контекста'}\n\nДай глубокий, мудрый совет для серьезного человека. Верни ТОЛЬКО JSON."
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=500)
         
@@ -436,11 +672,14 @@ class PersonalAIManager:
         
         system_prompt = (
             f"{self.base_system_prompt}"
-            "Дай короткое (2-3 предложения) вдохновляющее мотивационное сообщение, используя метафоры путешествия. "
+            "Дай короткое (2-3 предложения) глубокое, вдохновляющее мотивационное сообщение для серьезного человека, "
+            "используя философские метафоры пути, мастерства, восхождения. "
+            "Не будь поверхностным. Говори о ценности усилий, постоянства, глубокого пути. "
+            "Мотивация должна быть сильной, но не пафосной — для тех, кто готов работать серьезно. "
             "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки."
         )
         
-        user_prompt = f"Контекст: {context_str or 'Пользователь на пути к своим целям'}\n\nДай мотивацию. Только текст, без JSON."
+        user_prompt = f"Контекст: {context_str or 'Серьезный человек на пути к значимой цели'}\n\nДай глубокую, вдохновляющую мотивацию. Только текст, без JSON."
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=200)
         
@@ -552,14 +791,17 @@ class PersonalAIManager:
         
         system_prompt = (
             f"{self.base_system_prompt}"
-            "Ты аналитик прогресса. Проанализируй статистику пользователя из базы данных и дай детальный анализ. "
+            "Ты мудрый аналитик прогресса. Проанализируй статистику серьезного человека из базы данных и дай глубокий, философски обоснованный анализ его пути. "
             "Учти: серия дней (streak) - это последовательные дни с момента последнего действия до сегодня. "
+            "Твой анализ должен быть глубоким, но практичным. Говори о реальных достижениях, реальных проблемах, реальных путях улучшения. "
+            "Не будь поверхностным. Говори о серьезных вещах серьезно: о постоянстве, о дисциплине, о реальных результатах. "
+            "Используй философский подход: путь к цели — это не спринт, а марафон. Анализируй не только цифры, но и качество пути. "
             "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка, затем пробел. Никогда не ставь запятую после точки. "
             "Разделяй предложения точками. Пример правильного формата: 'Текст первое предложение. Текст второе предложение.' "
             "ВАЖНО: Используй естественный русский язык! Не говори 'регистрировались в приложении N дней'. "
             "Вместо этого говори: 'Прошло N дней с момента регистрации' или 'Вы пользуетесь приложением уже N дней' или 'С момента регистрации прошло N дней'. "
             "Верни в формате JSON:"
-            '{"strength": "сильные стороны (конкретные факты из статистики, разделенные точками, используй естественный русский язык)", "weaknesses": "слабые места (предложения разделены точками, используй естественный русский язык)", "recommendations": ["конкретная рекомендация 1", "конкретная рекомендация 2", "конкретная рекомендация 3"], "score": число_от_0_до_100}'
+            '{"strength": "сильные стороны (глубокий анализ реальных достижений, разделенные точками, используй естественный русский язык)", "weaknesses": "слабые места и области для роста (честный анализ, предложения разделены точками)", "recommendations": ["конкретная рекомендация 1", "конкретная рекомендация 2", "конкретная рекомендация 3"], "score": число_от_0_до_100}'
         )
         
         user_prompt = (
@@ -568,7 +810,8 @@ class PersonalAIManager:
             f"- Активные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in active_goals[:3]]) if active_goals else 'Нет активных целей'}\n"
             f"- Выполненные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in completed_goals[:3]]) if completed_goals else 'Нет выполненных целей'}\n"
             f"- Последние действия: {min(7, len(actions))} дней назад\n\n"
-            f"Дай детальный анализ прогресса на основе этих реальных данных из базы. Верни ТОЛЬКО JSON."
+            f"Дай глубокий, философски обоснованный анализ прогресса серьезного человека на основе этих реальных данных. "
+            f"Будь честным и глубоким. Верни ТОЛЬКО JSON."
         )
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=700)

@@ -1175,6 +1175,12 @@ class BreakGoalRequest(BaseModel):
     description: Optional[str] = ""
     goal_type: Optional[str] = "goal"
 
+class BreakGoalIntoPeriodsRequest(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    total_days: int
+    period_structure: Optional[List[Dict[str, Any]]] = []
+
 class PersonalAdviceRequest(BaseModel):
     question: str
     telegram_id: Optional[int] = None
@@ -1221,6 +1227,42 @@ async def break_goal_into_steps(request: BreakGoalRequest):
     except Exception as e:
         logger.error(f"Ошибка при разбиении цели: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка при разбиении цели: {str(e)}")
+
+# Эндпоинт для разбивки цели на подпериоды
+@app.post("/ai/manager/break-goal-periods")
+async def break_goal_into_periods(request: BreakGoalIntoPeriodsRequest):
+    """
+    Разбивает цель на подпериоды с заполнением задач для каждого периода
+    
+    Args:
+        request: Запрос с названием цели, описанием, общим периодом и структурой периодов
+        
+    Returns:
+        Словарь с заполненными задачами для каждого периода
+    """
+    try:
+        manager = get_personal_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
+        
+        result = await manager.break_goal_into_periods(
+            goal_title=request.title,
+            goal_description=request.description,
+            total_days=request.total_days,
+            period_structure=request.period_structure or []
+        )
+        
+        return {
+            "success": True,
+            "is_serious": result.get("is_serious", True),
+            "feedback": result.get("feedback", ""),
+            "periods": result.get("periods", []),
+            "advice": result.get("advice", "")
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка при разбиении цели на периоды: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при разбиении цели на периоды: {str(e)}")
 
 # Эндпоинт для получения навигационных советов
 @app.post("/ai/manager/navigation")
