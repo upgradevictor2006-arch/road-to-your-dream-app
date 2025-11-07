@@ -1159,7 +1159,9 @@ class RoadToDreamApp {
                 
                 // Заполняем периоды из ответа ИИ
                 if (result.periods && result.periods.length > 0) {
+                    console.log('📋 Периоды от ИИ:', result.periods);
                     this.applyAIPeriods(breakdown, result.periods);
+                    console.log('✅ Периоды обновлены:', breakdown);
                     
                     // Обновляем отображение
                     const container = document.getElementById('breakdown-container');
@@ -1220,10 +1222,23 @@ class RoadToDreamApp {
         const updateItem = (item) => {
             const aiPeriod = periodsMap.get(item.id);
             if (aiPeriod) {
-                if (aiPeriod.task) item.task = aiPeriod.task;
-                if (aiPeriod.description) {
-                    // Можно добавить description как отдельное поле или использовать для task
-                    if (!item.task) item.task = aiPeriod.description;
+                // Обновляем title, если ИИ предложил улучшенное название
+                if (aiPeriod.title && aiPeriod.title.trim()) {
+                    const oldTitle = item.title;
+                    item.title = aiPeriod.title.trim();
+                    if (oldTitle !== item.title) {
+                        console.log(`📝 Обновлен title для ${item.id}: "${oldTitle}" → "${item.title}"`);
+                    }
+                }
+                // Обновляем task
+                if (aiPeriod.task && aiPeriod.task.trim()) {
+                    item.task = aiPeriod.task.trim();
+                    console.log(`✅ Обновлен task для ${item.id}: "${item.task}"`);
+                }
+                // Используем description как task, если task не задан
+                if (aiPeriod.description && aiPeriod.description.trim() && !item.task) {
+                    item.task = aiPeriod.description.trim();
+                    console.log(`📝 Использован description как task для ${item.id}: "${item.task}"`);
                 }
             }
             if (item.children && item.children.length > 0) {

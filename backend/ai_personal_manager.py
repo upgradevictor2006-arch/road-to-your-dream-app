@@ -48,6 +48,42 @@ class PersonalAIManager:
         return text
     
     @staticmethod
+    def _remove_english_words(text: str) -> str:
+        """
+        Исправляет смешение языков в тексте (например, "Читайтеregularly" -> "Читайте регулярно")
+        Заменяет только явно неправильные случаи смешения, не удаляет корректные английские термины
+        """
+        if not text:
+            return text
+        
+        # Исправляем смешение языков: русское слово + английское слово без пробела
+        # Например: "Читайтеregularly" -> "Читайте регулярно"
+        text = re.sub(r'([а-яА-ЯёЁ]+)([a-zA-Z]+)', r'\1 \2', text)
+        
+        # Исправляем обратное: английское слово + русское слово без пробела
+        # Например: "regularlyчитайте" -> "regularly читайте"
+        text = re.sub(r'([a-zA-Z]+)([а-яА-ЯёЁ]+)', r'\1 \2', text)
+        
+        # Словарь замен только для явно неправильных случаев смешения
+        # Заменяем только если слово стоит отдельно и явно является ошибкой
+        replacements = {
+            r'\bregularly\b(?=\s|$|[.,!?;:])': 'регулярно',  # Только если стоит отдельно
+            r'\bdaily\b(?=\s|$|[.,!?;:])': 'ежедневно',
+            r'\bweekly\b(?=\s|$|[.,!?;:])': 'еженедельно',
+            r'\bmonthly\b(?=\s|$|[.,!?;:])': 'ежемесячно',
+        }
+        
+        # Применяем замены только для явных ошибок
+        for eng_word, rus_word in replacements.items():
+            text = re.sub(eng_word, rus_word, text, flags=re.IGNORECASE)
+        
+        # Убираем двойные пробелы
+        text = re.sub(r'\s+', ' ', text)
+        text = text.strip()
+        
+        return text
+    
+    @staticmethod
     def _fix_natural_language(text: str) -> str:
         """
         Исправляет неестественные формулировки на естественный русский язык
@@ -97,7 +133,10 @@ class PersonalAIManager:
             "Если цель выполнима и законна — принимай её и помогай разбить на этапы, даже если она кажется простой или развлекательной. "
             "Твой стиль общения: уважительный, глубокий, но не пафосный. Ты говоришь как мудрый наставник, который видел много путей. "
             "Используй метафоры пути, восхождения, мастерства, но делай это естественно и по делу. "
-            "Отвечай на русском языке. Дай конкретные, применимые, глубокие советы. "
+            "ВАЖНО: Отвечай на русском языке. Используй русский язык для всех текстов, советов и описаний. "
+            "Если нужно использовать английский термин (название, аббревиатура, технический термин) - используй его правильно, отдельно от русского текста. "
+            "НЕ смешивай языки в одном слове или фразе (например, 'Читайтеregularly' - это ошибка, правильно 'Читайте регулярно' или 'Read regularly'). "
+            "Дай конкретные, применимые, глубокие советы на русском языке. "
         )
         
         # Статистика использования
@@ -368,6 +407,8 @@ class PersonalAIManager:
             "- Значимым (каждый этап приближает к результату)"
             "Верни ответ ТОЛЬКО в формате JSON:"
             '{"is_serious": true/false, "feedback": "только если is_serious=false (объяснение проблемы)", "steps": [{"title": "Название этапа", "description": "Описание", "estimated_days": число, "priority": число_1_5}], "advice": "рекомендации для достижения цели"}'
+            "ВАЖНО: Все тексты в JSON должны быть на русском языке. Не смешивай языки в одном слове или фразе. "
+            "Если нужно использовать английский термин (название, аббревиатура) - используй его правильно, отдельно от русского текста."
         )
         
         user_prompt = (
@@ -377,7 +418,7 @@ class PersonalAIManager:
             "Сначала проверь: выполнима ли цель, законна ли она, реалистична ли она. "
             "Если есть проблемы — укажи их. Если цель хорошая — разбей на конкретные этапы. "
             "Помни: простые и развлекательные цели тоже хорошие, если они выполнимы и законны. "
-            "Верни ТОЛЬКО JSON без дополнительного текста."
+            "Верни ТОЛЬКО JSON без дополнительного текста. Не смешивай языки в одном слове или фразе."
         )
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=800)
@@ -391,6 +432,19 @@ class PersonalAIManager:
                 if json_start >= 0 and json_end > json_start:
                     json_str = response[json_start:json_end]
                     result = json.loads(json_str)
+                    
+                    # Удаляем английские слова из всех текстовых полей
+                    if 'feedback' in result and result['feedback']:
+                        result['feedback'] = self._remove_english_words(result['feedback'])
+                    if 'advice' in result and result['advice']:
+                        result['advice'] = self._remove_english_words(result['advice'])
+                    if 'steps' in result:
+                        for step in result['steps']:
+                            if 'title' in step and step['title']:
+                                step['title'] = self._remove_english_words(step['title'])
+                            if 'description' in step and step['description']:
+                                step['description'] = self._remove_english_words(step['description'])
+                    
                     return result
             except json.JSONDecodeError:
                 logger.warning(f"Не удалось распарсить JSON: {response}")
@@ -452,13 +506,17 @@ class PersonalAIManager:
             "СНАЧАЛА проверь цель на выполнимость, законность и реалистичность. "
             "Если цель невыполнима, незаконна или нереалистична — укажи это в feedback. "
             "Если цель хорошая (выполнима, законна, реалистична) — для каждого периода предложи:"
+            "- Улучшенное название периода (более конкретное и отражающее задачу этого периода, например 'Изучение основ' вместо '1-й месяц')"
             "- Конкретную задачу или фокус для этого периода"
             "- Описание того, что нужно сделать за этот период"
             "- Логическую связь с предыдущим и следующим периодом"
             "Задачи должны быть реалистичными, измеримыми и приближающими к цели. "
+            "Названия периодов должны быть конкретными и отражать суть этапа (например: 'Подготовка и планирование', 'Основной этап обучения', 'Практика и закрепление'). "
             "Помни: простые и развлекательные цели тоже хорошие, если они выполнимы. "
             "Верни ответ ТОЛЬКО в формате JSON:"
-            '{"is_serious": true/false, "feedback": "только если is_serious=false (объяснение проблемы)", "periods": [{"id": "id периода", "title": "название периода (можно оставить как есть)", "task": "конкретная задача для этого периода", "description": "подробное описание что делать"}], "advice": "рекомендации по реализации"}'
+            '{"is_serious": true/false, "feedback": "только если is_serious=false (объяснение проблемы)", "periods": [{"id": "id периода", "title": "улучшенное конкретное название периода", "task": "конкретная задача для этого периода", "description": "подробное описание что делать"}], "advice": "рекомендации по реализации"}'
+            "ВАЖНО: Все тексты в JSON должны быть на русском языке. Не смешивай языки в одном слове или фразе. "
+            "Названия, задачи, описания — на русском. Если нужно использовать английский термин - используй его правильно, отдельно."
         )
         
         # Формируем описание структуры периодов
@@ -480,7 +538,7 @@ class PersonalAIManager:
             "Если есть проблемы — укажи их. Если цель хорошая — заполни каждый период конкретной задачей. "
             "Задачи должны логично выстраиваться в путь к цели. "
             "Помни: простые и развлекательные цели тоже хорошие, если они выполнимы и законны. "
-            "Верни ТОЛЬКО JSON без дополнительного текста."
+            "Верни ТОЛЬКО JSON без дополнительного текста. Не смешивай языки в одном слове или фразе."
         )
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=1200)
@@ -492,6 +550,28 @@ class PersonalAIManager:
                 if json_start >= 0 and json_end > json_start:
                     json_str = response[json_start:json_end]
                     result = json.loads(json_str)
+                    
+                    # Удаляем английские слова из всех текстовых полей
+                    if 'feedback' in result and result['feedback']:
+                        result['feedback'] = self._remove_english_words(result['feedback'])
+                    if 'advice' in result and result['advice']:
+                        result['advice'] = self._remove_english_words(result['advice'])
+                    
+                    # Обрабатываем периоды
+                    if 'periods' in result and result['periods']:
+                        for period in result['periods']:
+                            # Убеждаемся, что все поля заполнены
+                            if 'id' not in period:
+                                continue
+                            if 'title' in period and period['title']:
+                                period['title'] = self._remove_english_words(period['title'])
+                            if 'task' in period and period['task']:
+                                period['task'] = self._remove_english_words(period['task'])
+                            elif 'description' in period and period['description']:
+                                period['task'] = self._remove_english_words(period['description'])
+                            if 'description' in period and period['description']:
+                                period['description'] = self._remove_english_words(period['description'])
+                    
                     return result
             except json.JSONDecodeError:
                 logger.warning(f"Не удалось распарсить JSON: {response}")
@@ -660,9 +740,11 @@ class PersonalAIManager:
             "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки. "
             "Верни ответ в формате JSON:"
             '{"advice": "глубокий философский совет с практическими рекомендациями", "steps": ["конкретный шаг 1", "конкретный шаг 2"], "motivation": "вдохновляющая фраза о пути к цели"}'
+            "ВАЖНО: Все тексты в JSON должны быть на русском языке. Не смешивай языки в одном слове или фразе. "
+            "Если нужно использовать английский термин (название, аббревиатура) - используй его правильно, отдельно от русского текста."
         )
         
-        user_prompt = f"Вопрос пользователя: {question}\n\nКонтекст: {context_str or 'Нет дополнительного контекста'}\n\nДай глубокий, мудрый совет. Верни ТОЛЬКО JSON."
+        user_prompt = f"Вопрос пользователя: {question}\n\nКонтекст: {context_str or 'Нет дополнительного контекста'}\n\nДай глубокий, мудрый совет на русском языке. Верни ТОЛЬКО JSON. Не смешивай языки в одном слове или фразе."
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=500)
         
@@ -674,16 +756,18 @@ class PersonalAIManager:
                     json_str = response[json_start:json_end]
                     result = json.loads(json_str)
                     
-                    # Исправляем пунктуацию и естественность языка в текстовых полях
+                    # Удаляем английские слова, исправляем пунктуацию и естественность языка в текстовых полях
                     if 'advice' in result and result['advice']:
+                        result['advice'] = self._remove_english_words(result['advice'])
                         result['advice'] = self._fix_punctuation(result['advice'])
                         result['advice'] = self._fix_natural_language(result['advice'])
                     if 'motivation' in result and result['motivation']:
+                        result['motivation'] = self._remove_english_words(result['motivation'])
                         result['motivation'] = self._fix_punctuation(result['motivation'])
                         result['motivation'] = self._fix_natural_language(result['motivation'])
                     if 'steps' in result:
                         result['steps'] = [
-                            self._fix_natural_language(self._fix_punctuation(step)) if step else step 
+                            self._fix_natural_language(self._fix_punctuation(self._remove_english_words(step))) if step else step 
                             for step in result['steps']
                         ]
                     
@@ -750,15 +834,18 @@ class PersonalAIManager:
             "используя философские метафоры пути, мастерства, восхождения. "
             "Говори о ценности усилий, постоянства, движения вперед. "
             "Мотивация должна быть сильной, но не пафосной — для тех, кто готов действовать. "
-            "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки."
+            "ВАЖНО: Используй правильную пунктуацию! После точки ставится точка и пробел. Никогда не ставь запятую после точки. "
+            "ВАЖНО: Отвечай на русском языке. Не смешивай языки в одном слове или фразе. "
+            "Если нужно использовать английский термин (название, аббревиатура) - используй его правильно, отдельно от русского текста."
         )
         
-        user_prompt = f"Контекст: {context_str or 'Человек на пути к своей цели'}\n\nДай глубокую, вдохновляющую мотивацию. Только текст, без JSON."
+        user_prompt = f"Контекст: {context_str or 'Человек на пути к своей цели'}\n\nДай глубокую, вдохновляющую мотивацию на русском языке. Только текст на русском, без JSON. Не смешивай языки в одном слове или фразе."
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=200)
         
         if response:
-            text = self._fix_punctuation(response.strip())
+            text = self._remove_english_words(response.strip())
+            text = self._fix_punctuation(text)
             return self._fix_natural_language(text)
         
         # Fallback мотивация
@@ -876,6 +963,8 @@ class PersonalAIManager:
             "Вместо этого говори: 'Прошло N дней с момента регистрации' или 'Вы пользуетесь приложением уже N дней' или 'С момента регистрации прошло N дней'. "
             "Верни в формате JSON:"
             '{"strength": "сильные стороны (глубокий анализ реальных достижений, разделенные точками, используй естественный русский язык)", "weaknesses": "слабые места и области для роста (честный анализ, предложения разделены точками)", "recommendations": ["конкретная рекомендация 1", "конкретная рекомендация 2", "конкретная рекомендация 3"], "score": число_от_0_до_100}'
+            "ВАЖНО: Все тексты в JSON должны быть на русском языке. Не смешивай языки в одном слове или фразе. "
+            "Если нужно использовать английский термин (название, аббревиатура) - используй его правильно, отдельно от русского текста."
         )
         
         user_prompt = (
@@ -884,8 +973,8 @@ class PersonalAIManager:
             f"- Активные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in active_goals[:3]]) if active_goals else 'Нет активных целей'}\n"
             f"- Выполненные цели: {', '.join([g.get('description', g.get('goal_type', 'Цель'))[:30] for g in completed_goals[:3]]) if completed_goals else 'Нет выполненных целей'}\n"
             f"- Последние действия: {min(7, len(actions))} дней назад\n\n"
-            f"Дай глубокий, философски обоснованный анализ прогресса серьезного человека на основе этих реальных данных. "
-            f"Будь честным и глубоким. Верни ТОЛЬКО JSON."
+            f"Дай глубокий, философски обоснованный анализ прогресса человека на основе этих реальных данных. "
+            f"Будь честным и глубоким. Верни ТОЛЬКО JSON. Не смешивай языки в одном слове или фразе."
         )
         
         response = await self._call_ai(system_prompt, user_prompt, max_tokens=700)
@@ -898,13 +987,20 @@ class PersonalAIManager:
                     json_str = response[json_start:json_end]
                     result = json.loads(json_str)
                     
-                    # Исправляем пунктуацию и естественность языка в текстовых полях
+                    # Удаляем английские слова, исправляем пунктуацию и естественность языка в текстовых полях
                     if 'strength' in result and result['strength']:
+                        result['strength'] = self._remove_english_words(result['strength'])
                         result['strength'] = self._fix_punctuation(result['strength'])
                         result['strength'] = self._fix_natural_language(result['strength'])
                     if 'weaknesses' in result and result['weaknesses']:
+                        result['weaknesses'] = self._remove_english_words(result['weaknesses'])
                         result['weaknesses'] = self._fix_punctuation(result['weaknesses'])
                         result['weaknesses'] = self._fix_natural_language(result['weaknesses'])
+                    if 'recommendations' in result:
+                        result['recommendations'] = [
+                            self._fix_natural_language(self._fix_punctuation(self._remove_english_words(rec))) if rec else rec
+                            for rec in result['recommendations']
+                        ]
                     
                     # Добавляем вычисленные значения из БД
                     result['streak'] = streak
