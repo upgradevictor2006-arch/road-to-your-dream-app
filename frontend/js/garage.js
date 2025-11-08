@@ -252,15 +252,49 @@ class GarageModule {
         }
     }
 
-    // Загрузка профиля пользователя из Telegram
-    loadUserProfile() {
-        console.log('👤 Загружаем профиль пользователя из Telegram...');
+    // Загрузка профиля пользователя из Telegram или БД
+    async loadUserProfile() {
+        console.log('👤 Загружаем профиль пользователя...');
         
+        // Сначала пытаемся загрузить из БД, если есть telegram_id
+        if (this.app?.user?.telegram_id && window.apiIntegration) {
+            try {
+                const userData = await window.apiIntegration.getUserData(this.app.user.telegram_id);
+                if (userData && userData.user) {
+                    const dbUser = userData.user;
+                    
+                    // Обновляем имя пользователя из БД
+                    const userNameElement = document.getElementById('user-name');
+                    if (userNameElement) {
+                        const displayName = (dbUser.first_name || '') + (dbUser.last_name ? ' ' + dbUser.last_name : '');
+                        userNameElement.textContent = displayName || 'Пользователь';
+                        console.log('📝 Имя пользователя из БД:', displayName);
+                    }
+                    
+                    // Обновляем аватарку из БД
+                    const avatarElement = document.getElementById('user-avatar-img');
+                    if (avatarElement && dbUser.photo_url) {
+                        avatarElement.src = dbUser.photo_url;
+                        avatarElement.alt = `Аватар ${dbUser.first_name || 'пользователя'}`;
+                        console.log('🖼️ Аватарка из БД обновлена');
+                    } else if (avatarElement) {
+                        // Используем fallback аватар
+                        avatarElement.src = this.getUserAvatar();
+                    }
+                    
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки профиля из БД:', error);
+            }
+        }
+        
+        // Fallback: загружаем из Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
             const user = window.Telegram.WebApp.initDataUnsafe.user;
             
             if (user) {
-                console.log('✅ Пользователь найден:', user);
+                console.log('✅ Пользователь найден в Telegram:', user);
                 
                 // Обновляем имя пользователя
                 const userNameElement = document.getElementById('user-name');
@@ -302,22 +336,364 @@ class GarageModule {
         }
     }
 
-    // Загрузка статистики пользователя
-    loadUserStats() {
-        console.log('📊 Загружаем статистику пользователя...');
+    // Загрузка статистики пользователя из базы данных
+    async loadUserStats() {
+        console.log('📊 Загружаем статистику пользователя из БД...');
         
-        // Здесь можно добавить загрузку статистики из API
-        // Пока используем демо-данные
-        this.updateUserStats({
-            completedGoals: 3,
-            currentStreak: 7,
-            totalSteps: 25,
-            level: 1,
-            currentExp: 35,
-            nextLevelExp: 100,
-            referralCount: 0,
-            referralBonus: 0
+        // Проверяем наличие пользователя и API интеграции
+        if (!this.app?.user?.telegram_id) {
+            console.log('⚠️ Telegram ID не найден, используем демо-данные');
+            this.updateUserStats({
+                completedGoals: 0,
+                currentStreak: 0,
+                totalSteps: 0,
+                level: 1,
+                currentExp: 0,
+                nextLevelExp: 100,
+                referralCount: 0,
+                referralBonus: 0
+            });
+            return;
+        }
+        
+        if (!window.apiIntegration) {
+            console.log('⚠️ API интеграция не найдена, используем демо-данные');
+            this.updateUserStats({
+                completedGoals: 0,
+                currentStreak: 0,
+                totalSteps: 0,
+                level: 1,
+                currentExp: 0,
+                nextLevelExp: 100,
+                referralCount: 0,
+                referralBonus: 0
+            });
+            return;
+        }
+        
+        try {
+            // Загружаем данные пользователя из БД
+            const userData = await window.apiIntegration.getUserData(this.app.user.telegram_id);
+            
+            if (!userData) {
+                console.log('⚠️ Данные пользователя не получены, используем демо-данные');
+                this.updateUserStats({
+                    completedGoals: 0,
+                    currentStreak: 0,
+                    totalSteps: 0,
+                    level: 1,
+                    currentExp: 0,
+                    nextLevelExp: 100,
+                    referralCount: 0,
+                    referralBonus: 0
+                });
+                return;
+            }
+            
+            // Вычисляем статистику из реальных данных
+            const stats = this.calculateStatsFromUserData(userData);
+            
+            // Обновляем статистику в UI
+            this.updateUserStats(stats);
+            
+            // Обновляем календарь активности
+            this.updateActivityCalendar(userData.daily_actions || []);
+            
+            // Обновляем достижения
+            this.updateAchievements(userData);
+            
+            console.log('✅ Статистика загружена из БД:', stats);
+        } catch (error) {
+            console.error('❌ Ошибка загрузки статистики:', error);
+            // Используем демо-данные при ошибке
+            this.updateUserStats({
+                completedGoals: 0,
+                currentStreak: 0,
+                totalSteps: 0,
+                level: 1,
+                currentExp: 0,
+                nextLevelExp: 100,
+                referralCount: 0,
+                referralBonus: 0
+            });
+        }
+    }
+    
+    // Вычисление статистики из данных пользователя
+    calculateStatsFromUserData(userData) {
+        const goals = userData.goals || [];
+        const dailyActions = userData.daily_actions || [];
+        const cards = userData.cards || [];
+        
+        // Количество завершенных целей
+        const completedGoals = goals.filter(g => g.is_completed).length;
+        
+        // Вычисляем streak (серию дней подряд)
+        const currentStreak = this.calculateStreak(dailyActions);
+        
+        // Общее количество шагов (из карт или целей)
+        const totalSteps = this.calculateTotalSteps(cards, goals);
+        
+        // Вычисляем уровень и опыт на основе активности
+        const { level, currentExp, nextLevelExp } = this.calculateLevelAndExp(
+            completedGoals,
+            dailyActions.length,
+            currentStreak
+        );
+        
+        return {
+            completedGoals,
+            currentStreak,
+            totalSteps,
+            level,
+            currentExp,
+            nextLevelExp,
+            referralCount: 0, // TODO: добавить реферальную систему
+            referralBonus: 0  // TODO: добавить реферальную систему
+        };
+    }
+    
+    // Вычисление streak (серии дней подряд)
+    calculateStreak(dailyActions) {
+        if (!dailyActions || dailyActions.length === 0) return 0;
+        
+        // Сортируем действия по дате (от новых к старым)
+        const sortedActions = [...dailyActions]
+            .map(a => new Date(a.action_date))
+            .sort((a, b) => b - a);
+        
+        if (sortedActions.length === 0) return 0;
+        
+        // Проверяем, есть ли действие сегодня
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const latestAction = sortedActions[0];
+        latestAction.setHours(0, 0, 0, 0);
+        
+        // Если последнее действие не сегодня, streak = 0
+        if (latestAction.getTime() !== today.getTime()) {
+            return 0;
+        }
+        
+        // Считаем последовательные дни
+        let streak = 1;
+        let expectedDate = new Date(today);
+        expectedDate.setDate(expectedDate.getDate() - 1);
+        
+        for (let i = 1; i < sortedActions.length; i++) {
+            const actionDate = sortedActions[i];
+            actionDate.setHours(0, 0, 0, 0);
+            
+            if (actionDate.getTime() === expectedDate.getTime()) {
+                streak++;
+                expectedDate.setDate(expectedDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        
+        return streak;
+    }
+    
+    // Вычисление общего количества шагов
+    calculateTotalSteps(cards, goals) {
+        // Считаем шаги из карт (если есть метаданные с шагами)
+        let totalSteps = 0;
+        
+        cards.forEach(card => {
+            if (card.metadata && card.metadata.totalSteps) {
+                totalSteps += card.metadata.totalSteps;
+            }
         });
+        
+        // Если нет шагов в картах, считаем по количеству целей
+        if (totalSteps === 0) {
+            totalSteps = goals.length;
+        }
+        
+        return totalSteps;
+    }
+    
+    // Вычисление уровня и опыта
+    calculateLevelAndExp(completedGoals, totalActions, streak) {
+        // Базовая формула: опыт = завершенные цели * 50 + действия * 5 + streak * 10
+        const baseExp = completedGoals * 50 + totalActions * 5 + streak * 10;
+        
+        // Уровень = квадратный корень от опыта / 10 (округлено вниз) + 1
+        const level = Math.floor(Math.sqrt(baseExp / 10)) + 1;
+        
+        // Опыт для текущего уровня
+        const expForCurrentLevel = Math.pow((level - 1) * 10, 2);
+        const expForNextLevel = Math.pow(level * 10, 2);
+        
+        const currentExp = baseExp - expForCurrentLevel;
+        const nextLevelExp = expForNextLevel - expForCurrentLevel;
+        
+        return {
+            level: Math.max(1, level),
+            currentExp: Math.max(0, currentExp),
+            nextLevelExp: Math.max(100, nextLevelExp)
+        };
+    }
+    
+    // Обновление календаря активности
+    updateActivityCalendar(dailyActions) {
+        console.log('📅 Обновляем календарь активности...');
+        
+        // Создаем map дат для быстрого поиска
+        const actionDates = new Set();
+        dailyActions.forEach(action => {
+            const date = new Date(action.action_date);
+            date.setHours(0, 0, 0, 0);
+            actionDates.add(date.getTime());
+        });
+        
+        // Обновляем индикаторы дней
+        const calendarDays = document.querySelectorAll('.calendar-day');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Получаем начало недели (понедельник)
+        const startOfWeek = new Date(today);
+        const dayOfWeek = today.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Понедельник = 0
+        startOfWeek.setDate(today.getDate() - diff);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        calendarDays.forEach((dayElement, index) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + index);
+            dayDate.setHours(0, 0, 0, 0);
+            
+            const indicator = dayElement.querySelector('.day-indicator');
+            if (indicator) {
+                // Убираем класс today, если он есть
+                dayElement.classList.remove('today');
+                
+                // Проверяем, является ли день сегодняшним
+                if (dayDate.getTime() === today.getTime()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Проверяем, есть ли активность в этот день
+                if (actionDates.has(dayDate.getTime())) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            }
+        });
+        
+        console.log('✅ Календарь активности обновлен');
+    }
+    
+    // Обновление достижений
+    updateAchievements(userData) {
+        console.log('🏆 Обновляем достижения...');
+        
+        const goals = userData.goals || [];
+        const dailyActions = userData.daily_actions || [];
+        const completedGoals = goals.filter(g => g.is_completed).length;
+        const streak = this.calculateStreak(dailyActions);
+        const { level } = this.calculateLevelAndExp(completedGoals, dailyActions.length, streak);
+        
+        // Обновляем достижения
+        const achievements = [
+            {
+                id: 'first-goal',
+                unlocked: completedGoals >= 1,
+                progress: completedGoals >= 1 ? 1 : 0,
+                maxProgress: 1
+            },
+            {
+                id: 'passionate',
+                unlocked: streak >= 7,
+                progress: Math.min(streak, 7),
+                maxProgress: 7
+            },
+            {
+                id: 'perfectionist',
+                unlocked: completedGoals >= 10,
+                progress: Math.min(completedGoals, 10),
+                maxProgress: 10
+            },
+            {
+                id: 'legend',
+                unlocked: level >= 10,
+                progress: Math.min(level, 10),
+                maxProgress: 10
+            }
+        ];
+        
+        // Обновляем UI достижений
+        const achievementsGrid = document.querySelector('.achievements-grid');
+        if (achievementsGrid) {
+            achievementsGrid.innerHTML = achievements.map(achievement => {
+                const isUnlocked = achievement.unlocked;
+                const isInProgress = !isUnlocked && achievement.progress > 0;
+                const isLocked = !isUnlocked && achievement.progress === 0;
+                
+                let achievementHTML = '';
+                
+                if (achievement.id === 'first-goal') {
+                    achievementHTML = `
+                        <div class="achievement-card ${isUnlocked ? 'unlocked' : isInProgress ? 'in-progress' : 'locked'}">
+                            <div class="achievement-icon-large">🎯</div>
+                            <div class="achievement-name">Первая цель</div>
+                            <div class="achievement-desc">Завершите свою первую цель</div>
+                            ${isUnlocked ? '<div class="achievement-progress">Получено!</div>' : 
+                              isInProgress ? `<div class="progress-bar-small"><div class="progress-fill-small" style="width: ${(achievement.progress / achievement.maxProgress) * 100}%"></div></div><div class="achievement-progress">${achievement.progress}/${achievement.maxProgress}</div>` :
+                              '<div class="achievement-progress">Заблокировано</div>'}
+                        </div>
+                    `;
+                } else if (achievement.id === 'passionate') {
+                    achievementHTML = `
+                        <div class="achievement-card ${isUnlocked ? 'unlocked' : isInProgress ? 'in-progress' : 'locked'}">
+                            <div class="achievement-icon-large">🔥</div>
+                            <div class="achievement-name">Страстный</div>
+                            <div class="achievement-desc">7 дней активности подряд</div>
+                            ${isUnlocked ? '<div class="achievement-progress">Получено!</div>' : 
+                              isInProgress ? `<div class="progress-bar-small"><div class="progress-fill-small" style="width: ${(achievement.progress / achievement.maxProgress) * 100}%"></div></div><div class="achievement-progress">${achievement.progress}/${achievement.maxProgress}</div>` :
+                              '<div class="achievement-progress">Заблокировано</div>'}
+                        </div>
+                    `;
+                } else if (achievement.id === 'perfectionist') {
+                    achievementHTML = `
+                        <div class="achievement-card ${isUnlocked ? 'unlocked' : isInProgress ? 'in-progress' : 'locked'}">
+                            <div class="achievement-icon-large">💎</div>
+                            <div class="achievement-name">Перфекционист</div>
+                            <div class="achievement-desc">Завершите 10 целей</div>
+                            ${isUnlocked ? '<div class="achievement-progress">Получено!</div>' : 
+                              isInProgress ? `<div class="progress-bar-small"><div class="progress-fill-small" style="width: ${(achievement.progress / achievement.maxProgress) * 100}%"></div></div><div class="achievement-progress">${achievement.progress}/${achievement.maxProgress}</div>` :
+                              '<div class="achievement-progress">Заблокировано</div>'}
+                        </div>
+                    `;
+                } else if (achievement.id === 'legend') {
+                    achievementHTML = `
+                        <div class="achievement-card ${isUnlocked ? 'unlocked' : isInProgress ? 'in-progress' : 'locked'}">
+                            <div class="achievement-icon-large">🏆</div>
+                            <div class="achievement-name">Легенда</div>
+                            <div class="achievement-desc">Достигните 10 уровня</div>
+                            ${isUnlocked ? '<div class="achievement-progress">Получено!</div>' : 
+                              isInProgress ? `<div class="progress-bar-small"><div class="progress-fill-small" style="width: ${(achievement.progress / achievement.maxProgress) * 100}%"></div></div><div class="achievement-progress">${achievement.progress}/${achievement.maxProgress}</div>` :
+                              '<div class="achievement-progress">Заблокировано</div>'}
+                        </div>
+                    `;
+                }
+                
+                return achievementHTML;
+            }).join('');
+        }
+        
+        // Обновляем счетчик достижений
+        const unlockedCount = achievements.filter(a => a.unlocked).length;
+        const badgeCount = document.querySelector('.section-header .badge-count');
+        if (badgeCount) {
+            badgeCount.textContent = `${unlockedCount}/${achievements.length}`;
+        }
+        
+        console.log('✅ Достижения обновлены');
     }
 
     // Обновление статистики пользователя
@@ -389,7 +765,7 @@ class GarageModule {
     }
 
     // Инициализация профиля пользователя
-    initializeUserProfile() {
+    async initializeUserProfile() {
         console.log('🚀 Инициализируем профиль пользователя...');
         
         // Проверяем наличие элементов перед инициализацией
@@ -403,8 +779,9 @@ class GarageModule {
             console.error('❌ Элемент user-avatar-img не найден!');
         }
         
-        this.loadUserProfile();
-        this.loadUserStats();
+        // Загружаем профиль и статистику асинхронно
+        await this.loadUserProfile();
+        await this.loadUserStats();
         this.setupProfileEventListeners();
         
         console.log('✅ Профиль пользователя инициализирован');

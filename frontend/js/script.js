@@ -1577,6 +1577,19 @@ class RoadToDreamApp {
         console.log('🎯 ФУНКЦИЯ createMap ВЫЗВАНА!');
         console.log('Создание карты с данными:', this.newGoalData);
         console.log('Данные каравана:', this.caravanCreationData);
+        console.log('📋 Breakdown в newGoalData:', this.newGoalData.breakdown);
+        console.log('📋 currentBreakdown:', this.currentBreakdown);
+        
+        // Убеждаемся, что breakdown сохранен
+        if (this.currentBreakdown && !this.newGoalData.breakdown) {
+            this.newGoalData.breakdown = JSON.parse(JSON.stringify(this.currentBreakdown));
+            console.log('✅ Breakdown восстановлен из currentBreakdown');
+        }
+        
+        // Генерируем шаги
+        const steps = this.generateMapSteps();
+        console.log('📝 Сгенерированные шаги:', steps);
+        console.log('📝 Количество шагов:', steps.length);
         
         // Создаем новую карту
         const newMap = {
@@ -1587,14 +1600,17 @@ class RoadToDreamApp {
             periodDays: this.newGoalData.periodDays,
             customPeriod: this.newGoalData.customPeriod,
             deadline: this.newGoalData.deadline,
+            breakdown: this.newGoalData.breakdown ? JSON.parse(JSON.stringify(this.newGoalData.breakdown)) : null, // Сохраняем breakdown в карту
             currentStep: 0,
-            totalSteps: this.newGoalData.periodDays,
-            steps: this.generateMapSteps(),
+            totalSteps: steps.length, // Используем реальное количество шагов
+            steps: steps,
             createdAt: new Date().toISOString(),
             // Добавляем информацию о караване, если это цель каравана
             isCaravanGoal: this.caravanCreationData && this.caravanCreationData.isCaravanGoal,
             caravanName: this.caravanCreationData ? this.caravanCreationData.caravanName : null
         };
+        
+        console.log('🗺️ Создана карта:', newMap);
         
         // Добавляем карту в массив
         this.maps.push(newMap);
@@ -1884,10 +1900,16 @@ class RoadToDreamApp {
 
     // Генерация шагов для карты
     generateMapSteps() {
+        console.log('🔄 generateMapSteps вызван');
+        console.log('📋 this.newGoalData:', this.newGoalData);
+        console.log('📋 this.newGoalData.breakdown:', this.newGoalData?.breakdown);
+        
         const steps = [];
         
         // Если есть breakdown, используем его для создания шагов
-        if (this.newGoalData.breakdown && this.newGoalData.breakdown.length > 0) {
+        if (this.newGoalData && this.newGoalData.breakdown && this.newGoalData.breakdown.length > 0) {
+            console.log('✅ Используем breakdown для создания шагов');
+            
             // Преобразуем breakdown в плоский список шагов
             const flattenBreakdownToSteps = (breakdown, dayCounter = { value: 1 }) => {
                 const result = [];
@@ -1899,6 +1921,8 @@ class RoadToDreamApp {
                         // Это конечный элемент (день) - создаем шаг
                         const stepTitle = item.title || `День ${dayCounter.value}`;
                         const stepTask = item.task || '';
+                        
+                        console.log(`📝 Создаем шаг ${dayCounter.value}: "${stepTitle}" - "${stepTask}"`);
                         
                         result.push({
                             id: item.id || `step-${dayCounter.value - 1}`,
@@ -1914,15 +1938,20 @@ class RoadToDreamApp {
             };
             
             const flattenedSteps = flattenBreakdownToSteps(this.newGoalData.breakdown);
+            console.log('✅ Создано шагов из breakdown:', flattenedSteps.length);
+            console.log('📋 Шаги:', flattenedSteps);
             
             // Если получили шаги из breakdown, используем их
             if (flattenedSteps.length > 0) {
                 return flattenedSteps;
             }
+        } else {
+            console.log('⚠️ Breakdown нет или пустой, используем fallback');
         }
         
         // Fallback: создаем шаги по дням, если breakdown нет или он пустой
-        const totalDays = this.newGoalData.periodDays;
+        const totalDays = this.newGoalData?.periodDays || 7;
+        console.log(`📅 Создаем ${totalDays} шагов по дням (fallback)`);
         for (let i = 0; i < totalDays; i++) {
             steps.push({
                 id: `step-${i}`,
@@ -1962,9 +1991,11 @@ class RoadToDreamApp {
                 <div class="step-container">
                     <div class="step-square ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}" 
                          data-step="${i}">
-                        <span class="step-number">${step.day}</span>
+                        <span class="step-number">${step.day || (i + 1)}</span>
                         ${isCompleted ? '<div class="checkmark">✓</div>' : ''}
                     </div>
+                    ${step.title ? `<div class="step-title">${step.title}</div>` : ''}
+                    ${step.task ? `<div class="step-description">${step.task}</div>` : ''}
                     ${isCurrent && !isCompleted ? `
                         <button class="confirm-step-btn-inline" data-step-index="${i}">
                             Подтвердить шаг

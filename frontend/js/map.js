@@ -174,14 +174,16 @@ class MapModule {
             return `
                 <div class="step-container">
                     <div class="step-square ${isCurrentStep ? 'current' : ''} ${isCompleted ? 'completed' : ''}" data-step="${stepNumber}">
-                        <span class="step-number">${stepNumber}</span>
+                        <span class="step-number">${step.day || stepNumber}</span>
                     </div>
+                    ${step.title ? `<div class="step-title">${step.title}</div>` : ''}
+                    ${step.task ? `<div class="step-description">${step.task}</div>` : ''}
                     ${isCurrentStep ? `
                         <div class="current-step-details">
-                            <h3>Шаг ${stepNumber}</h3>
+                            <h3>${step.title || `Шаг ${stepNumber}`}</h3>
                             <div class="step-info">
-                                <span class="step-number-large">${stepNumber}</span>
-                                <div class="step-description">${step.task}</div>
+                                <span class="step-number-large">${step.day || stepNumber}</span>
+                                <div class="step-description">${step.task || 'Выполните задачи этого шага'}</div>
                             </div>
                             <button class="confirm-step-btn-inline">Подтвердить выполнение</button>
                         </div>
@@ -210,8 +212,9 @@ class MapModule {
                     </div>
                     <div class="modal-body">
                         <div class="step-confirmation-info">
-                            <div class="step-confirmation-number">${currentStepIndex + 1}</div>
-                            <div class="step-confirmation-task">${currentStep.task}</div>
+                            <div class="step-confirmation-number">${currentStep.day || (currentStepIndex + 1)}</div>
+                            ${currentStep.title ? `<div class="step-confirmation-title">${currentStep.title}</div>` : ''}
+                            <div class="step-confirmation-task">${currentStep.task || 'Выполните задачи этого шага'}</div>
                         </div>
                         <div class="confirmation-warning">
                             <div class="warning-icon">⚠️</div>
