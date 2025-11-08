@@ -1133,7 +1133,11 @@ class RoadToDreamApp {
             const totalDays = this.newGoalData.periodDays;
             
             // Преобразуем breakdown в плоский список периодов для ИИ
-            const periodStructure = this.flattenBreakdown(breakdown);
+            // Для больших периодов (месяц+) не включаем дни, только месяцы/недели
+            const includeDays = totalDays < 30; // Для периодов меньше месяца включаем дни
+            const periodStructure = this.flattenBreakdown(breakdown, [], includeDays);
+            
+            console.log(`📊 Отправляем в ИИ: ${periodStructure.length} периодов (всего дней: ${totalDays}, включая дни: ${includeDays})`);
             
             console.log('📤 Отправляем запрос ИИ:', {
                 goalTitle,
@@ -1195,17 +1199,57 @@ class RoadToDreamApp {
                         this.currentBreakdown = breakdown;
                     }
                     
-                    // Показываем совет ИИ если есть
-                    if (result.advice) {
+                    // Показываем совет ИИ если есть (но не показываем, если это fallback)
+                    if (result.advice && !result.advice.includes('временно недоступен')) {
                         alert(`ИИ заполнил периоды!\n\nСовет: ${result.advice}`);
                     } else {
-                        alert('ИИ успешно заполнил периоды задачами!');
+                        alert('Периоды успешно заполнены задачами!');
                     }
                 } else {
-                    alert('ИИ не вернул периоды. Попробуйте еще раз.');
+                    console.error('❌ ИИ не вернул периоды. Результат:', result);
+                    alert('ИИ не вернул периоды. Задачи будут созданы автоматически на основе вашей цели.');
+                    
+                    // Используем fallback - создаем простые задачи
+                    const fallbackPeriods = breakdown.map((item, index) => ({
+                        id: item.id,
+                        title: item.title,
+                        task: `Работа над целью "${goalTitle}" - ${item.title}`,
+                        description: `Выполнение задач для ${item.title}`,
+                        days: item.days
+                    }));
+                    
+                    this.applyAIPeriods(breakdown, fallbackPeriods);
+                    
+                    // Обновляем отображение
+                    const container = document.getElementById('breakdown-container');
+                    if (container) {
+                        container.innerHTML = this.renderBreakdownHTML(breakdown);
+                        this.setupBreakdownItemHandlers();
+                        this.currentBreakdown = breakdown;
+                    }
                 }
             } else {
-                alert('Не удалось получить ответ от ИИ. Попробуйте еще раз.');
+                console.error('❌ Не удалось получить ответ от ИИ. Результат:', result);
+                alert('Не удалось получить ответ от ИИ. Задачи будут созданы автоматически на основе вашей цели.');
+                
+                // Используем fallback - создаем простые задачи
+                const fallbackPeriods = breakdown.map((item, index) => ({
+                    id: item.id,
+                    title: item.title,
+                    task: `Работа над целью "${goalTitle}" - ${item.title}`,
+                    description: `Выполнение задач для ${item.title}`,
+                    days: item.days
+                }));
+                
+                this.applyAIPeriods(breakdown, fallbackPeriods);
+                
+                // Обновляем отображение
+                const container = document.getElementById('breakdown-container');
+                if (container) {
+                    container.innerHTML = this.renderBreakdownHTML(breakdown);
+                    this.setupBreakdownItemHandlers();
+                    this.currentBreakdown = breakdown;
+                }
             }
         } catch (error) {
             console.error('Ошибка при использовании ИИ:', error);
@@ -1217,22 +1261,34 @@ class RoadToDreamApp {
     }
     
     // Преобразование иерархической структуры breakdown в плоский список
-    flattenBreakdown(breakdown, result = []) {
+    // Для больших периодов отправляем только верхние уровни (месяцы/недели), не все дни
+    flattenBreakdown(breakdown, result = [], includeDays = false) {
         for (const item of breakdown) {
-            result.push({
-                id: item.id,
-                type: item.type,
-                title: item.title,
-                days: item.days,
-                task: item.task || '',
-                description: ''
-            });
+            // Определяем, нужно ли включать этот элемент
+            // Для больших периодов (месяц+) не включаем дни
+            const isDay = item.type === 'day';
+            const shouldInclude = includeDays || !isDay;
+            
+            if (shouldInclude) {
+                result.push({
+                    id: item.id,
+                    type: item.type,
+                    title: item.title,
+                    days: item.days,
+                    task: item.task || '',
+                    description: ''
+                });
+            }
+            
+            // Рекурсивно обрабатываем детей
             if (item.children && item.children.length > 0) {
-                this.flattenBreakdown(item.children, result);
+                // Передаем флаг includeDays дальше
+                this.flattenBreakdown(item.children, result, includeDays);
             }
         }
         return result;
     }
+    
     
     // Применение результатов ИИ к breakdown структуре
     applyAIPeriods(breakdown, aiPeriods) {

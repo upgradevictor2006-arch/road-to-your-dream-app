@@ -1434,9 +1434,29 @@ async def get_manager_stats():
             raise HTTPException(status_code=503, detail="Личный менеджер недоступен")
         
         stats = manager.get_stats()
+        
+        # Проверяем доступность API ключей
+        api_status = {
+            "deepseek": bool(manager.deepseek_key),
+            "groq": bool(manager.groq_key),
+            "cohere": bool(manager.cohere_key),
+            "huggingface": bool(manager.huggingface_key)
+        }
+        
         return {
             "success": True,
-            "stats": stats
+            "stats": stats,
+            "api_keys_available": api_status,
+            "has_any_api": any(api_status.values()),
+            "diagnostics": {
+                "total_requests": stats.get('total_requests', 0),
+                "fallback_used": stats.get('fallback_used', 0),
+                "success_rate": (
+                    (stats.get('groq_success', 0) + stats.get('deepseek_success', 0) + 
+                     stats.get('cohere_success', 0) + stats.get('huggingface_success', 0)) / 
+                    max(stats.get('total_requests', 1), 1) * 100
+                ) if stats.get('total_requests', 0) > 0 else 0
+            }
         }
         
     except Exception as e:

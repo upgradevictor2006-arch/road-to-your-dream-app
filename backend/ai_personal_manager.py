@@ -116,6 +116,16 @@ class PersonalAIManager:
         self.cohere_key = os.getenv('COHERE_API_KEY')
         self.deepseek_key = os.getenv('DEEPSEEK_API_KEY')
         
+        # Логируем доступность API ключей (без самих ключей)
+        logger.info("🔑 Проверка API ключей:")
+        logger.info(f"  DeepSeek: {'✅' if self.deepseek_key else '❌'}")
+        logger.info(f"  Groq: {'✅' if self.groq_key else '❌'}")
+        logger.info(f"  Cohere: {'✅' if self.cohere_key else '❌'}")
+        logger.info(f"  HuggingFace: {'✅' if self.huggingface_key else '❌'}")
+        
+        if not any([self.deepseek_key, self.groq_key, self.cohere_key, self.huggingface_key]):
+            logger.error("❌ ВНИМАНИЕ: Нет ни одного API ключа! ИИ будет использовать только fallback ответы.")
+        
         # Базовый системный промпт для личного менеджера - мудрец-философ
         self.base_system_prompt = (
             "Ты — мудрый философ и наставник в приложении для людей, стремящихся к достижению своих целей. "
@@ -259,6 +269,12 @@ class PersonalAIManager:
                         error_text = response.text[:200]
                     self.stats['deepseek_failures'] += 1
                     logger.warning(f"❌ DeepSeek недоступен: статус {response.status_code}, ошибка: {error_text}")
+                    if response.status_code == 401:
+                        logger.error("🔑 DeepSeek: Неверный API ключ или ключ истек!")
+                    elif response.status_code == 429:
+                        logger.error("⏱️ DeepSeek: Превышен лимит запросов!")
+                    elif response.status_code == 500:
+                        logger.error("🔧 DeepSeek: Ошибка на стороне сервера!")
         except Exception as e:
             self.stats['deepseek_failures'] += 1
             logger.error(f"❌ DeepSeek исключение: {type(e).__name__}: {str(e)}")
@@ -304,6 +320,12 @@ class PersonalAIManager:
                         error_text = response.text[:200]
                     self.stats['groq_failures'] += 1
                     logger.warning(f"❌ Groq недоступен: статус {response.status_code}, ошибка: {error_text}")
+                    if response.status_code == 401:
+                        logger.error("🔑 Groq: Неверный API ключ или ключ истек!")
+                    elif response.status_code == 429:
+                        logger.error("⏱️ Groq: Превышен лимит запросов!")
+                    elif response.status_code == 500:
+                        logger.error("🔧 Groq: Ошибка на стороне сервера!")
         except Exception as e:
             self.stats['groq_failures'] += 1
             logger.error(f"❌ Groq исключение: {type(e).__name__}: {str(e)}")
@@ -533,13 +555,32 @@ class PersonalAIManager:
         # Формируем описание структуры периодов
         periods_desc = ""
         if period_structure:
-            periods_desc = "\nСтруктура периодов (заполни КАЖДЫЙ период конкретной задачей):\n"
-            for i, period in enumerate(period_structure, 1):
-                period_id = period.get('id', f'period_{i}')
-                period_type = period.get('type', 'period')
-                period_title = period.get('title', f'Период {i}')
-                period_days = period.get('days', 0)
-                periods_desc += f"{i}. ID: {period_id}, Название: {period_title}, Дней: {period_days}, Тип: {period_type}\n"
+            # Для больших структур показываем только первые и последние периоды
+            period_count = len(period_structure)
+            if period_count > 15:
+                # Показываем первые 5, пропускаем средние, показываем последние 5
+                periods_desc = f"\nСтруктура периодов (всего {period_count}, заполни КАЖДЫЙ период конкретной задачей):\n"
+                for i, period in enumerate(period_structure[:5], 1):
+                    period_id = period.get('id', f'period_{i}')
+                    period_type = period.get('type', 'period')
+                    period_title = period.get('title', f'Период {i}')
+                    period_days = period.get('days', 0)
+                    periods_desc += f"{i}. ID: {period_id}, Название: {period_title}, Дней: {period_days}, Тип: {period_type}\n"
+                periods_desc += f"... (пропущено {period_count - 10} периодов) ...\n"
+                for i, period in enumerate(period_structure[-5:], period_count - 4):
+                    period_id = period.get('id', f'period_{i}')
+                    period_type = period.get('type', 'period')
+                    period_title = period.get('title', f'Период {i}')
+                    period_days = period.get('days', 0)
+                    periods_desc += f"{i}. ID: {period_id}, Название: {period_title}, Дней: {period_days}, Тип: {period_type}\n"
+            else:
+                periods_desc = "\nСтруктура периодов (заполни КАЖДЫЙ период конкретной задачей):\n"
+                for i, period in enumerate(period_structure, 1):
+                    period_id = period.get('id', f'period_{i}')
+                    period_type = period.get('type', 'period')
+                    period_title = period.get('title', f'Период {i}')
+                    period_days = period.get('days', 0)
+                    periods_desc += f"{i}. ID: {period_id}, Название: {period_title}, Дней: {period_days}, Тип: {period_type}\n"
             periods_desc += "\nВАЖНО: Для каждого периода создай уникальную и конкретную задачу. Не используй общие фразы!"
         
         user_prompt = (
@@ -558,7 +599,19 @@ class PersonalAIManager:
             "\nВерни ТОЛЬКО валидный JSON без дополнительного текста. Все тексты на русском языке."
         )
         
-        response = await self._call_ai(system_prompt, user_prompt, max_tokens=2000)
+        # Для больших периодов увеличиваем лимит токенов
+        # Определяем размер запроса по количеству периодов
+        period_count = len(period_structure) if period_structure else 0
+        if period_count > 20:
+            max_tokens = 4000  # Для больших периодов (месяц+)
+        elif period_count > 10:
+            max_tokens = 3000  # Для средних периодов (2-3 недели)
+        else:
+            max_tokens = 2000  # Для маленьких периодов (неделя)
+        
+        logger.info(f"📊 Запрос к ИИ: {period_count} периодов, max_tokens={max_tokens}")
+        
+        response = await self._call_ai(system_prompt, user_prompt, max_tokens=max_tokens)
         
         if response:
             logger.info(f"📥 Получен ответ от ИИ (длина: {len(response)} символов)")
@@ -739,7 +792,7 @@ class PersonalAIManager:
             return {
                 "is_serious": True,
                 "periods": fallback_periods,
-                "advice": "ИИ временно недоступен, но задачи созданы автоматически. Вы можете отредактировать их вручную."
+                "advice": "Задачи созданы автоматически на основе вашей цели. Вы можете отредактировать их вручную для более точной настройки."
             }
         
         return {
