@@ -1240,6 +1240,12 @@ class RoadToDreamApp {
                     item.task = aiPeriod.description.trim();
                     console.log(`📝 Использован description как task для ${item.id}: "${item.task}"`);
                 }
+                // Обновляем days, если ИИ предложил изменить количество дней
+                if (aiPeriod.days && aiPeriod.days > 0 && aiPeriod.days !== item.days) {
+                    const oldDays = item.days;
+                    item.days = aiPeriod.days;
+                    console.log(`📅 Обновлены days для ${item.id}: ${oldDays} → ${aiPeriod.days}`);
+                }
             }
             if (item.children && item.children.length > 0) {
                 item.children.forEach(updateItem);
@@ -1247,6 +1253,9 @@ class RoadToDreamApp {
         };
         
         breakdown.forEach(updateItem);
+        
+        // Обновляем currentBreakdown, чтобы изменения сохранились
+        this.currentBreakdown = breakdown;
     }
 
     // Генерация структуры разбивки периода
@@ -1404,6 +1413,12 @@ class RoadToDreamApp {
         });
 
         nextBtn.addEventListener('click', () => {
+            // Сохраняем breakdown перед созданием карты
+            if (this.currentBreakdown) {
+                this.newGoalData.breakdown = JSON.parse(JSON.stringify(this.currentBreakdown));
+                console.log('✅ Breakdown сохранен перед созданием карты:', this.newGoalData.breakdown);
+            }
+            
             if (this.mapModule && this.mapModule.createMap) {
                 this.mapModule.createMap();
             } else {
@@ -1542,6 +1557,12 @@ class RoadToDreamApp {
 
     // Закрыть модальное окно разбивки
     closePeriodBreakdownModal() {
+        // Сохраняем breakdown в newGoalData перед закрытием
+        if (this.currentBreakdown) {
+            this.newGoalData.breakdown = JSON.parse(JSON.stringify(this.currentBreakdown));
+            console.log('✅ Breakdown сохранен в newGoalData:', this.newGoalData.breakdown);
+        }
+        
         const modal = document.getElementById('period-breakdown-modal');
         if (modal) {
             modal.classList.remove('active');
@@ -1864,8 +1885,44 @@ class RoadToDreamApp {
     // Генерация шагов для карты
     generateMapSteps() {
         const steps = [];
-        const totalDays = this.newGoalData.periodDays;
         
+        // Если есть breakdown, используем его для создания шагов
+        if (this.newGoalData.breakdown && this.newGoalData.breakdown.length > 0) {
+            // Преобразуем breakdown в плоский список шагов
+            const flattenBreakdownToSteps = (breakdown, dayCounter = { value: 1 }) => {
+                const result = [];
+                for (const item of breakdown) {
+                    // Если у элемента есть дети, обрабатываем их
+                    if (item.children && item.children.length > 0) {
+                        result.push(...flattenBreakdownToSteps(item.children, dayCounter));
+                    } else {
+                        // Это конечный элемент (день) - создаем шаг
+                        const stepTitle = item.title || `День ${dayCounter.value}`;
+                        const stepTask = item.task || '';
+                        
+                        result.push({
+                            id: item.id || `step-${dayCounter.value - 1}`,
+                            day: dayCounter.value,
+                            title: stepTitle,
+                            task: stepTask,
+                            completed: false
+                        });
+                        dayCounter.value++;
+                    }
+                }
+                return result;
+            };
+            
+            const flattenedSteps = flattenBreakdownToSteps(this.newGoalData.breakdown);
+            
+            // Если получили шаги из breakdown, используем их
+            if (flattenedSteps.length > 0) {
+                return flattenedSteps;
+            }
+        }
+        
+        // Fallback: создаем шаги по дням, если breakdown нет или он пустой
+        const totalDays = this.newGoalData.periodDays;
         for (let i = 0; i < totalDays; i++) {
             steps.push({
                 id: `step-${i}`,
