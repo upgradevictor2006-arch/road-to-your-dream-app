@@ -1135,6 +1135,14 @@ class RoadToDreamApp {
             // Преобразуем breakdown в плоский список периодов для ИИ
             const periodStructure = this.flattenBreakdown(breakdown);
             
+            console.log('📤 Отправляем запрос ИИ:', {
+                goalTitle,
+                goalDescription,
+                totalDays,
+                periodStructureCount: periodStructure.length,
+                periodStructure: periodStructure
+            });
+            
             // Вызываем ИИ
             const result = await manager.breakGoalIntoPeriods(
                 goalTitle,
@@ -1142,6 +1150,8 @@ class RoadToDreamApp {
                 totalDays,
                 periodStructure
             );
+            
+            console.log('📥 Получен ответ от ИИ:', result);
             
             if (result && result.success) {
                 // Если цель несерьезная, показываем предупреждение
@@ -1160,6 +1170,20 @@ class RoadToDreamApp {
                 // Заполняем периоды из ответа ИИ
                 if (result.periods && result.periods.length > 0) {
                     console.log('📋 Периоды от ИИ:', result.periods);
+                    console.log('📊 Количество периодов:', result.periods.length);
+                    
+                    // Проверяем качество задач
+                    result.periods.forEach((p, i) => {
+                        console.log(`  Период ${i+1} (${p.id}):`, {
+                            title: p.title,
+                            task: p.task,
+                            description: p.description
+                        });
+                        if (!p.task || p.task.trim() === '' || p.task.includes('Работа над целью')) {
+                            console.warn(`⚠️ Период ${i+1} имеет общую или пустую задачу: "${p.task}"`);
+                        }
+                    });
+                    
                     this.applyAIPeriods(breakdown, result.periods);
                     console.log('✅ Периоды обновлены:', breakdown);
                     
@@ -1624,6 +1648,9 @@ class RoadToDreamApp {
         
         // Сохраняем карты в localStorage
         this.saveMapsToStorage();
+        
+        // Сохраняем в БД, если telegram_id задан
+        this.saveMapToDatabase(newMap);
         
         // Закрываем модальное окно
         this.closePeriodBreakdownModal();
@@ -2104,6 +2131,96 @@ class RoadToDreamApp {
         this.renderMapScreen();
     }
     
+    
+    // Сохранение карты в БД
+    async saveMapToDatabase(mapData) {
+        if (!this.user?.telegram_id || !window.apiIntegration) {
+            console.log('⚠️ Telegram ID не задан или API недоступен, пропускаем сохранение в БД');
+            return;
+        }
+        
+        try {
+            // Создаем цель в БД
+            const goalData = {
+                goal_type: 'general',
+                description: mapData.goal
+            };
+            
+            const goalResult = await window.apiIntegration.createGoals(this.user.telegram_id, [goalData]);
+            
+            if (goalResult && goalResult.goals && goalResult.goals.length > 0) {
+                const goalId = goalResult.goals[0].id;
+                console.log('✅ Цель создана в БД с ID:', goalId);
+                
+                // Сохраняем ID цели в карте
+                mapData.dbGoalId = goalId;
+                this.saveMapsToStorage();
+            }
+            
+            // Создаем карту в БД
+            const cardData = {
+                title: mapData.goal,
+                description: mapData.description || '',
+                card_type: 'goal',
+                status: 'active',
+                metadata: {
+                    mapId: mapData.id,
+                    totalSteps: mapData.totalSteps,
+                    currentStep: mapData.currentStep,
+                    periodDays: mapData.periodDays,
+                    periodType: mapData.periodType,
+                    breakdown: mapData.breakdown
+                }
+            };
+            
+            const cardResult = await window.apiIntegration.createCards(this.user.telegram_id, [cardData]);
+            
+            if (cardResult && cardResult.cards && cardResult.cards.length > 0) {
+                const cardId = cardResult.cards[0].id;
+                console.log('✅ Карта создана в БД с ID:', cardId);
+                
+                // Сохраняем ID карты в БД
+                mapData.dbCardId = cardId;
+                this.saveMapsToStorage();
+            }
+        } catch (error) {
+            console.error('❌ Ошибка сохранения карты в БД:', error);
+        }
+    }
+    
+    // Обновление карты в БД
+    async updateMapInDatabase(mapData) {
+        if (!this.user?.telegram_id || !window.apiIntegration || !mapData.dbCardId) {
+            return;
+        }
+        
+        try {
+            const updates = {
+                status: mapData.currentStep >= mapData.totalSteps ? 'completed' : 'active',
+                metadata: {
+                    mapId: mapData.id,
+                    totalSteps: mapData.totalSteps,
+                    currentStep: mapData.currentStep,
+                    periodDays: mapData.periodDays,
+                    periodType: mapData.periodType,
+                    breakdown: mapData.breakdown
+                }
+            };
+            
+            await window.apiIntegration.updateCard(this.user.telegram_id, mapData.dbCardId, updates);
+            console.log('✅ Карта обновлена в БД');
+            
+            // Если карта завершена, обновляем цель
+            if (mapData.currentStep >= mapData.totalSteps && mapData.dbGoalId) {
+                await window.apiIntegration.updateGoal(this.user.telegram_id, mapData.dbGoalId, {
+                    is_completed: true
+                });
+                console.log('✅ Цель отмечена как завершенная в БД');
+            }
+        } catch (error) {
+            console.error('❌ Ошибка обновления карты в БД:', error);
+        }
+    }
     
     // Сохранение прогресса карты
     saveMapProgress() {

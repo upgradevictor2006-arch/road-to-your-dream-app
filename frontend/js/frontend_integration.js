@@ -207,6 +207,62 @@ class APIIntegration {
             return null;
         }
     }
+
+    // 8. Обновление цели (отметка как завершенной)
+    async updateGoal(telegramId, goalId, updates) {
+        try {
+            const response = await fetch(`${this.baseURL}/goals/${goalId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    telegram_id: telegramId,
+                    ...updates
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('🎯 Цель обновлена:', result);
+                return result;
+            } else {
+                console.error('❌ Ошибка обновления цели:', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка при обновлении цели:', error);
+            return null;
+        }
+    }
+
+    // 9. Обновление карты (прогресс)
+    async updateCard(telegramId, cardId, updates) {
+        try {
+            const response = await fetch(`${this.baseURL}/cards/${cardId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    telegram_id: telegramId,
+                    ...updates
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('🃏 Карта обновлена:', result);
+                return result;
+            } else {
+                console.error('❌ Ошибка обновления карты:', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка при обновлении карты:', error);
+            return null;
+        }
+    }
 }
 
 // Глобальный экземпляр API

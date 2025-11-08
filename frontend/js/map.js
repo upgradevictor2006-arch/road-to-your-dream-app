@@ -257,7 +257,7 @@ class MapModule {
     }
 
     // Завершить текущий шаг
-    completeCurrentStep() {
+    async completeCurrentStep() {
         
         if (!this.app.currentMap || this.app.currentMap.currentStep >= this.app.currentMap.totalSteps) {
             return;
@@ -266,9 +266,21 @@ class MapModule {
         // Увеличиваем текущий шаг
         this.app.currentMap.currentStep++;
         
-        
-        // Сохраняем изменения
+        // Сохраняем изменения в localStorage
         this.app.saveMapsToStorage();
+        
+        // Сохраняем действие в БД
+        if (this.app.user?.telegram_id && window.apiIntegration) {
+            try {
+                await window.apiIntegration.completeAction(this.app.user.telegram_id);
+                console.log('✅ Действие сохранено в БД');
+            } catch (error) {
+                console.error('❌ Ошибка сохранения действия в БД:', error);
+            }
+        }
+        
+        // Обновляем карту в БД
+        await this.app.updateMapInDatabase(this.app.currentMap);
         
         // Перерендериваем карту
         this.renderMapScreen();

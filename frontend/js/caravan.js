@@ -2029,7 +2029,7 @@ class CaravanModule {
     }
 
     // Завершить создание каравана
-    finishCaravanCreation() {
+    async finishCaravanCreation() {
         if (!this.caravanCreationData) {
             console.error('Нет данных для создания каравана');
             return;
@@ -2112,6 +2112,11 @@ class CaravanModule {
             }
             this.mainApp.maps.push(newMap);
             this.mainApp.saveMapsToStorage();
+            
+            // Сохраняем карту в БД, если telegram_id задан
+            if (this.mainApp.saveMapToDatabase) {
+                await this.mainApp.saveMapToDatabase(newMap);
+            }
             
             // Привязываем караван к карте
             caravanData.mapId = newMap.id;
